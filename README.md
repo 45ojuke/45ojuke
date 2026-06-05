@@ -1,16 +1,21 @@
-## Hi there 👋
+# 45'O'Juke
 
-<!--
-**45ojuke/45ojuke** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+45'O'Juke est un site de création d'étiquettes jukebox personnalisées.
 
-Here are some ideas to get you started:
+## Usage
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+Le projet est destiné à être utilisé depuis le site officiel 45'O'Juke. Le dépôt n'accorde aucun droit de copie, d'hébergement séparé, de redistribution ou d'exploitation indépendante.
+
+Le site n'est pas encore optimisé pour mobile.
+
+## Données
+
+Les données saisies par l'utilisateur restent sous sa responsabilité. Les contenus musicaux, noms d'artistes, marques et références commerciales appartiennent à leurs ayants droit respectifs.
+
+## Licence
+
+Ce projet est protégé par une licence propriétaire. Il est destiné à un usage personnel, familial ou associatif non commercial.
+
+La copie, l'aspiration, la redistribution, la revente, l'hébergement d'une version séparée, la publication d'un clone ou l'utilisation du projet pour créer un service commercial ou concurrent sont interdites sans autorisation écrite.
+
+Consultez [LICENSE.md](LICENSE.md) pour les conditions complètes.
