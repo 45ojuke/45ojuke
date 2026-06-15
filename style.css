@@ -1664,8 +1664,7 @@ body:not(.is-intro-active) .hero-site__contenu {
   padding: 16px;
 }
 
-.impression-personnalisee__aide,
-.sortie-action-aide {
+.impression-personnalisee__aide {
   margin: 0;
   color: var(--texte-doux);
   font-size: 0.72rem;
@@ -2557,10 +2556,6 @@ body.is-favoris-ouverts .scene {
   text-align: center;
 }
 
-#planche-impression {
-  display: none;
-}
-
 .pied-site {
   display: grid;
   justify-items: center;
@@ -2598,79 +2593,6 @@ body.is-favoris-ouverts .scene {
 .soutien-noscript a {
   color: var(--accent-2);
   font-weight: 900;
-}
-
-@media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-
-  html,
-  body {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-  }
-
-  body > :not(#planche-impression) {
-    display: none !important;
-  }
-
-  body {
-    padding: 0 !important;
-  }
-
-  body,
-  #planche-impression {
-    width: 210mm;
-    min-width: 210mm;
-    max-width: 210mm;
-    margin: 0;
-    background: white !important;
-  }
-
-  #planche-impression {
-    display: block;
-    height: auto;
-    overflow: visible;
-  }
-
-  .page-impression {
-    width: 210mm;
-    min-width: 210mm;
-    max-width: 210mm;
-    height: 297mm;
-    min-height: 297mm;
-    max-height: 297mm;
-    display: grid;
-    grid-template-columns: repeat(var(--colonnes-impression, 2), var(--largeur-etiquette-mm, var(--largeur-etiquette-defaut-mm, 1fr)));
-    grid-template-rows: repeat(var(--lignes-impression, 7), var(--hauteur-etiquette-mm, var(--hauteur-etiquette-defaut-mm, auto)));
-    gap: var(--ecart-impression-mm, 6mm);
-    justify-content: center;
-    align-content: center;
-    margin: 0;
-    padding: 0;
-    overflow: visible;
-    break-inside: avoid;
-    break-after: page;
-    page-break-inside: avoid;
-    page-break-after: always;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  .page-impression:last-child {
-    break-after: auto;
-    page-break-after: auto;
-  }
-
-  .cellule-impression,
-  .cellule-impression img {
-    width: var(--largeur-etiquette-mm, var(--largeur-etiquette-defaut-mm, auto));
-    height: var(--hauteur-etiquette-mm, var(--hauteur-etiquette-defaut-mm, auto));
-    display: block;
-  }
 }
 
 @media screen and (max-width: 860px) {

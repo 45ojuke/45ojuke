@@ -32,10 +32,8 @@ import {
 } from "./traductions.js";
 import {
   calculerDispositionImpression,
-  imprimerLignes as imprimerLignesModule,
   preparerLignesSortie,
   telechargerPdf as telechargerPdfModule,
-  telechargerPng as telechargerPngModule,
 } from "./impression.js";
 
 const EMAIL_CONTACT = "contact45ojuke@gmail.com";
@@ -238,7 +236,6 @@ const elements = {
   suivant: document.querySelector("#suivant"),
   etat: document.querySelector("#etat"),
   statutPlanche: document.querySelector("#statutPlanche"),
-  plancheImpression: document.querySelector("#planche-impression"),
 };
 
 let vinyles = [];
@@ -4247,31 +4244,14 @@ function ouvrirDialogueImpression(lignes) {
   boutonImpression.type = "button";
   boutonImpression.textContent = traduirePhrase("Télécharger PDF");
 
-  const aidePdf = document.createElement("p");
-  aidePdf.className = "sortie-action-aide";
-  aidePdf.textContent = traduirePhrase("Génère un vrai PDF A4, plus fiable pour Safari et iPhone.");
-
-  const boutonPng = document.createElement("button");
-  boutonPng.className = "bouton bouton-secondaire";
-  boutonPng.type = "button";
-  boutonPng.textContent = traduirePhrase("Télécharger PNG");
-
-  const aidePng = document.createElement("p");
-  aidePng.className = "sortie-action-aide";
-  aidePng.textContent = traduirePhrase("Télécharge une image de la sélection.");
-
   const blocImpression = document.createElement("div");
   blocImpression.className = "sortie-action";
   const enteteImpression = document.createElement("div");
   enteteImpression.className = "sortie-action__entete";
-  enteteImpression.append(boutonImpression, creerAideDynamique("Télécharger PDF"));
-  blocImpression.append(enteteImpression, aidePdf);
+  enteteImpression.append(boutonImpression);
+  blocImpression.append(enteteImpression);
 
-  const blocPng = document.createElement("div");
-  blocPng.className = "sortie-action";
-  blocPng.append(boutonPng, aidePng);
-
-  actionsSortie.append(blocImpression, blocPng);
+  actionsSortie.append(blocImpression);
   options.append(selection, optionsSortie, actionsSortie);
 
   const afficherOptions = () => {
@@ -4298,19 +4278,26 @@ function ouvrirDialogueImpression(lignes) {
     input.focus();
   };
 
-  const executerSortie = (type) => {
+  const executerSortie = async () => {
     const selectionLignes = selectionnerLignes();
     if (!selectionLignes.length) {
       afficherMessageSelection();
       return;
     }
+    const libelleInitial = boutonImpression.textContent;
+    boutonImpression.disabled = true;
+    boutonImpression.textContent = traduirePhrase("Préparation...");
     const lignesSortie = preparerLignesSortie(selectionLignes, { vierges: viergesInput.checked });
-    dialogue.close();
-    if (type === "png") {
-      telechargerPng(lignesSortie);
-      return;
+    await attendreRenduInterface();
+    try {
+      await telechargerPdf(lignesSortie);
+      dialogue.close();
+    } catch {
+      message.hidden = false;
+      message.textContent = traduirePhrase("Impossible de générer le PDF.");
+      boutonImpression.disabled = false;
+      boutonImpression.textContent = libelleInitial;
     }
-    telechargerPdf(lignesSortie);
   };
 
   participer.addEventListener("click", () => {
@@ -4324,8 +4311,7 @@ function ouvrirDialogueImpression(lignes) {
       input.focus();
     }
   });
-  boutonImpression.addEventListener("click", () => executerSortie("print"));
-  boutonPng.addEventListener("click", () => executerSortie("png"));
+  boutonImpression.addEventListener("click", executerSortie);
 
   contenu.append(entete, soutien, options);
   dialogue.append(contenu);
@@ -4341,14 +4327,10 @@ function ouvrirDialogueImpression(lignes) {
   dialogue.showModal();
 }
 
-function telechargerPng(lignes) {
-  return telechargerPngModule(lignes, { deuxiemeEtiquetteActive, lireReglages });
-}
-
 function telechargerPdf(lignes) {
   return telechargerPdfModule(lignes, { deuxiemeEtiquetteActive, lireReglages });
 }
 
-function imprimerLignes(lignes) {
-  return imprimerLignesModule(lignes, { deuxiemeEtiquetteActive, elements, lireReglages });
+function attendreRenduInterface() {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 }
