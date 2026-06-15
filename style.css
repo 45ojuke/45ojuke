@@ -2640,9 +2640,9 @@ body.is-favoris-ouverts .scene {
     width: 210mm;
     min-width: 210mm;
     max-width: 210mm;
-    height: 297mm;
-    min-height: 297mm;
-    max-height: 297mm;
+    height: 296.5mm;
+    min-height: 296.5mm;
+    max-height: 296.5mm;
     display: grid;
     grid-template-columns: repeat(var(--colonnes-impression, 2), var(--largeur-etiquette-mm, var(--largeur-etiquette-defaut-mm, 1fr)));
     grid-template-rows: repeat(var(--lignes-impression, 7), var(--hauteur-etiquette-mm, var(--hauteur-etiquette-defaut-mm, auto)));
@@ -2651,7 +2651,7 @@ body.is-favoris-ouverts .scene {
     align-content: center;
     margin: 0;
     padding: 0;
-    overflow: visible;
+    overflow: hidden;
     break-inside: avoid;
     break-after: page;
     page-break-inside: avoid;
