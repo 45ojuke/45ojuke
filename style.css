@@ -1792,7 +1792,8 @@ body:not(.is-intro-active) .hero-site__contenu {
 
 .sortie-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(180px, 320px);
+  justify-content: center;
   gap: 8px;
 }
 
