@@ -1,0 +1,29 @@
+{
+  "name": "45'O'Juke - Etiquettes jukebox",
+  "short_name": "45'O'Juke",
+  "description": "Créez vos étiquettes jukebox personnalisées dans un style rétro, prêtes à imprimer et à glisser dans votre machine.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#fff3d8",
+  "theme_color": "#f4efe5",
+  "categories": ["music", "productivity", "utilities"],
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "./Images/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./Images/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

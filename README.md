@@ -1,6 +1,6 @@
 # 45'O'Juke
 
-45'O'Juke est un site de création d'étiquettes jukebox personnalisées.
+Créez vos étiquettes jukebox personnalisées dans un style rétro, prêtes à imprimer et à glisser dans votre machine.
 
 ## Usage
 

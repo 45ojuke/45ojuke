@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="robots" content="index, follow" />
+    <meta name="description" content="Créez vos étiquettes jukebox personnalisées dans un style rétro, prêtes à imprimer et à glisser dans votre machine." />
+    <meta name="keywords" content="étiquette jukebox, étiquettes jukebox, etiquette jukebox, jukebox label, jukebox title strip, title strip jukebox, étiquette 45 tours, etiquette 45 tours, étiquette vinyle, etiquette vinyle, 45 tours jukebox, vinyle jukebox, juke-box, juke box, étiquette musique, planche étiquettes jukebox, étiquettes personnalisées jukebox, créer étiquette jukebox, imprimer étiquette jukebox, modèle étiquette jukebox" />
+    <meta name="author" content="Arnaud" />
+    <meta name="theme-color" content="#f4efe5" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="45'O'Juke" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="application-name" content="45'O'Juke" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="45'O'Juke" />
+    <meta property="og:title" content="45'O'Juke - Étiquettes jukebox personnalisées" />
+    <meta property="og:description" content="Créez vos étiquettes jukebox personnalisées dans un style rétro, prêtes à imprimer et à glisser dans votre machine." />
+    <meta property="og:image" content="./Images/logo45.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="45'O'Juke - Étiquettes jukebox personnalisées" />
+    <meta name="twitter:description" content="Créez vos étiquettes jukebox personnalisées dans un style rétro, prêtes à imprimer et à glisser dans votre machine." />
+    <meta name="twitter:image" content="./Images/logo45.png" />
+    <title>45'O'Juke - Étiquettes jukebox personnalisées</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./Images/logo45.png" />
+    <link rel="apple-touch-icon" href="./Images/icons/apple-touch-icon.png" />
+    <link rel="preload" as="image" href="./Images/fond-45ojuke.jpeg" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="is-intro-active">
+    <div class="top-actions" id="topActions">
+      <button class="menu-mobile-toggle" type="button" id="menuMobileToggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menuMobileActions">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="top-actions__menu" id="menuMobileActions">
+        <button class="about-btn" type="button" id="boutonAPropos" aria-label="Ouvrir la fenêtre À propos">
+          <span class="about-icon">i</span>
+          À propos
+        </button>
+        <a class="facebook-btn" href="https://www.facebook.com/45.O.Juke/" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la page Facebook de 45'O'Juke dans un nouvel onglet">
+          <span class="facebook-icon">f</span>
+          <span class="facebook-text">Facebook</span>
+        </a>
+        <button class="installer-app-btn installer-app-btn--menu" id="installerAppMenu" type="button">Installer l'application</button>
+        <button class="soutien-menu-btn" id="ouvrirSoutienMenu" type="button">♡ Soutien / Contact</button>
+      </div>
+    </div>
+
+    <aside class="bandeau-restauration" id="bandeauRestauration" aria-live="polite" hidden>
+      <div class="bandeau-restauration__texte">
+        <strong>Réglages sauvegardés trouvés</strong>
+        <span id="dateRestauration">Vous pouvez restaurer votre dernière configuration.</span>
+      </div>
+      <div class="bandeau-restauration__actions">
+        <button class="bouton bouton-principal" id="restaurerReglagesAuto" type="button">Restaurer</button>
+        <button class="bouton bouton-secondaire" id="ignorerReglagesAuto" type="button">Ignorer</button>
+      </div>
+    </aside>
+
+    <section class="intro" id="intro">
+      <div class="intro-fond" id="introFond" aria-hidden="true">
+        <img src="./Images/fond-45ojuke.jpeg" alt="" draggable="false" />
+      </div>
+      <div class="contenu-intro">
+        <div class="bloc-titre">
+          <h1 class="titre-intro" id="titreIntro">Étiquettes jukebox</h1>
+          <p class="soustitre-intro" id="sousTitreIntro">100% personnalisables</p>
+        </div>
+        <div class="langues" aria-label="Choix de la langue">
+          <button class="drapeau actif" type="button" data-lang="fr" title="Français" aria-label="Français">🇫🇷</button>
+          <button class="drapeau" type="button" data-lang="en" title="English" aria-label="English">🇬🇧</button>
+          <button class="drapeau" type="button" data-lang="us" title="American English" aria-label="American English">🇺🇸</button>
+          <button class="drapeau" type="button" data-lang="nl" title="Nederlands" aria-label="Nederlands">🇳🇱</button>
+          <button class="drapeau" type="button" data-lang="de" title="Deutsch" aria-label="Deutsch">🇩🇪</button>
+          <button class="drapeau" type="button" data-lang="es" title="Español" aria-label="Español">🇪🇸</button>
+          <button class="drapeau" type="button" data-lang="it" title="Italiano" aria-label="Italiano">🇮🇹</button>
+        </div>
+        <button class="commencer" id="boutonCommencer" type="button">Commencer</button>
+      </div>
+    </section>
+
+    <dialog class="about-modal" id="aboutModal" aria-labelledby="aboutTitle">
+      <div class="about-box">
+        <div class="about-header">
+          <h2 id="aboutTitle">À propos de 45'O'Juke</h2>
+          <button class="close-about" type="button" id="fermerAPropos" aria-label="Fermer">×</button>
+        </div>
+        <div class="about-content">
+          <p class="about-lead">Créez vos étiquettes de jukebox personnalisées, du choix du modèle à l'impression, dans un esprit vinyle et rétro.</p>
+          <p class="about-signature">Créé par Arnaud.</p>
+
+          <div class="about-actions" aria-label="Contact 45'O'Juke">
+            <a class="about-action about-action--facebook" href="https://www.facebook.com/45.O.Juke/" target="_blank" rel="noopener noreferrer">Facebook</a>
+            <a class="about-action about-action--email" href="mailto:contact45ojuke@gmail.com?subject=Contact%2045%27O%27Juke">Email</a>
+          </div>
+
+          <section class="about-license" aria-labelledby="aboutLicenseTitle">
+            <h3 id="aboutLicenseTitle">Licence & usages</h3>
+            <p>45'O'Juke est réservé à un usage personnel, familial ou associatif non commercial, depuis le site officiel du projet.</p>
+            <p>Le code, l'interface, les réglages, les textes propres au projet et les éléments graphiques originaux ne peuvent pas être copiés, redistribués, hébergés séparément ou exploités commercialement sans autorisation écrite.</p>
+            <p>Les noms d'artistes, titres musicaux, marques, modèles, logos éventuels et références commerciales restent la propriété de leurs ayants droit respectifs.</p>
+            <a class="about-license-link" href="./LICENSE.md" target="_blank" rel="noopener noreferrer">Lire la licence complète</a>
+          </section>
+        </div>
+      </div>
+    </dialog>
+
+    <main class="page" id="accueil">
+      <section class="hero-site" aria-label="45'O'Juke">
+        <div class="hero-site__contenu">
+          <h1 class="visuellement-cache">45'O'Juke - Étiquettes jukebox personnalisées</h1>
+          <img class="hero-site__logo" src="./Images/titre.png" alt="45'O'Juke - Étiquettes jukebox 100% personnalisables" />
+        </div>
+      </section>
+
+      <div class="section-site" id="atelier">
+        <section class="atelier" aria-label="Atelier étiquettes Canvas">
+        <form class="panneau controles" id="formulaire">
+          <div class="assistant-reglages" id="assistantReglages" hidden>
+            <p class="assistant-reglages__etape" id="assistantEtape">Étape 2</p>
+            <h2 class="assistant-reglages__titre" id="assistantTitre">Ajustez la taille</h2>
+            <p class="assistant-reglages__aide" id="assistantAide">Gardez l'aperçu sous les yeux pendant chaque réglage.</p>
+          </div>
+
+          <section class="groupe onglet-panneau" data-tab-panel="style">
+            <div class="grille grille-style-secondaire">
+              <select id="modele" hidden></select>
+              <div class="mise-en-avant-secondaire champ-large" id="miseEnAvantSecondaire">
+                <fieldset class="selecteur-secondaire" aria-label="Ajouter une deuxième étiquette">
+                  <label><input id="deuxiemeEtiquetteNon" name="deuxiemeEtiquette" type="radio" value="non" checked /> Non</label>
+                  <label><input id="deuxiemeEtiquetteOui" name="deuxiemeEtiquette" type="radio" value="oui" /> Oui</label>
+                </fieldset>
+                <select id="modeleSecondaire" hidden></select>
+              </div>
+              <div class="bloc-secondaire champ-large" id="blocGalerieSecondaire">
+                <div class="navigation-galerie-modeles navigation-galerie-modeles--secondaire">
+                  <button class="bouton bouton-navigation-modeles" id="modelesSecondairesPrecedent" type="button" aria-label="Modèles secondaires précédents">‹</button>
+                  <div class="galerie-modeles galerie-modeles--secondaire" id="galerieModelesSecondaires" aria-label="Styles de la deuxième étiquette"></div>
+                  <button class="bouton bouton-navigation-modeles" id="modelesSecondairesSuivant" type="button" aria-label="Modèles secondaires suivants">›</button>
+                </div>
+              </div>
+              <fieldset class="champ champ-large selecteur-etiquette" id="selecteurEtiquette" hidden>
+                <label><input id="editionEtiquette1" name="editionEtiquette" type="radio" value="1" checked /> Étiquette 1</label>
+                <label><input id="editionEtiquette2" name="editionEtiquette" type="radio" value="2" /> Étiquette 2</label>
+              </fieldset>
+            </div>
+          </section>
+
+          <section class="groupe onglet-panneau" data-tab-panel="reglages" hidden>
+            <div class="grille">
+              <label class="champ">
+                Largeur étiquette (mm)
+                <input id="largeurEtiquette" type="number" min="50" max="100" step="0.1" inputmode="decimal" aria-describedby="messageDimensions" />
+              </label>
+              <label class="champ">
+                Hauteur étiquette (mm)
+                <input id="hauteurEtiquette" type="number" min="20" max="40" step="0.1" inputmode="decimal" aria-describedby="messageDimensions" />
+              </label>
+              <p class="message-validation champ-large" id="messageDimensions" aria-live="polite" hidden></p>
+            </div>
+          </section>
+
+          <section class="groupe onglet-panneau" data-tab-panel="donnees" hidden>
+            <div class="grille">
+              <p class="champ-description champ-large" id="statutCsv">Chargement du CSV...</p>
+              <input id="importStyleFile" type="file" accept="application/json,.json" hidden />
+              <input id="importCsv" type="file" accept=".csv,text/csv" hidden />
+              <div class="barre-actions barre-actions--csv champ-large">
+                <button class="bouton bouton-principal bouton-action-large" id="ouvrirTableauCsv" type="button">Modifier les données</button>
+                <div class="bloc-fichier">
+                  <p class="bloc-fichier__titre">Style de l’étiquette <button class="aide-option" type="button" data-help-key="Aide style export import">?</button></p>
+                  <div class="bloc-fichier__actions">
+                    <button class="bouton bouton-secondaire" id="copierReglagesDonnees" type="button">Exporter style</button>
+                    <button class="bouton" id="importerStyleDonnees" type="button">Importer style</button>
+                  </div>
+                </div>
+                <div class="bloc-fichier">
+                  <p class="bloc-fichier__titre">Données du tableau <button class="aide-option" type="button" data-help-key="Aide donnees CSV">?</button></p>
+                  <div class="bloc-fichier__actions">
+                    <button class="bouton" id="choisirCsv" type="button">Importer CSV</button>
+                    <button class="bouton bouton-secondaire" id="exporterCsv" type="button">Exporter CSV</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="groupe onglet-panneau" data-tab-panel="couleurs" hidden>
+            <div class="grille">
+              <label class="champ">Cadre <input id="couleur1" type="color" /></label>
+              <label class="champ" data-modele-masque="celeste">Fond supérieur <input id="couleur2" type="color" /></label>
+              <label class="champ" data-modele-masque="celeste">Fond inférieur <input id="couleur3" type="color" /></label>
+              <label class="champ" data-modele-visible="celeste">Fond moderne <input id="couleurFondModerne" type="color" /></label>
+              <label class="champ">Ruban / zone artiste <input id="couleurRuban" type="color" /></label>
+              <label class="champ" data-modele-visible="celeste">Bande gauche <input id="couleurBandeGauche" type="color" /></label>
+              <label class="champ" data-modele-visible="celeste">Bande droite <input id="couleurBandeDroite" type="color" /></label>
+              <label class="champ">Titres <input id="couleurTitres" type="color" /></label>
+              <label class="champ">Artiste <input id="couleurArtiste" type="color" /></label>
+            </div>
+          </section>
+
+          <section class="groupe onglet-panneau" data-tab-panel="texte" hidden>
+            <div class="grille" id="reglagesTextePrincipaux">
+              <label class="champ">Police des titres
+                <select id="policeTitres">
+                  <optgroup label="Retro">
+                    <option value="dactylo-ronde">Dactylo ronde</option>
+                    <option value="dactylo-seche">Dactylo sèche</option>
+                    <option value="silk-remington">Silk Remington</option>
+                    <option value="terminal-carre">Terminal carré</option>
+                    <option value="journal-ancien">Journal ancien</option>
+                    <option value="machine-vintage">Machine vintage</option>
+                    <option value="rock-affiche">Rock affiche</option>
+                    <option value="swing-50">Swing 50</option>
+                    <option value="western-retro">Western retro</option>
+                  </optgroup>
+                  <optgroup label="Classique">
+                    <option value="classique-livre">Classique livre</option>
+                    <option value="elegante">Elegante</option>
+                    <option value="luxe-fin">Luxe fin</option>
+                    <option value="gravure">Gravure</option>
+                  </optgroup>
+                  <optgroup label="Affiche">
+                    <option value="compacte">Compacte nette</option>
+                    <option value="affiche-condensee">Affiche condensée</option>
+                    <option value="sans-serree">Sans serrée</option>
+                    <option value="mono-moderne">Mono moderne</option>
+                  </optgroup>
+                </select>
+              </label>
+              <label class="champ">Police de l’artiste
+                <select id="policeArtiste">
+                  <optgroup label="Retro">
+                    <option value="dactylo-ronde">Dactylo ronde</option>
+                    <option value="dactylo-seche">Dactylo sèche</option>
+                    <option value="silk-remington">Silk Remington</option>
+                    <option value="terminal-carre">Terminal carré</option>
+                    <option value="journal-ancien">Journal ancien</option>
+                    <option value="machine-vintage">Machine vintage</option>
+                    <option value="rock-affiche">Rock affiche</option>
+                    <option value="swing-50">Swing 50</option>
+                    <option value="western-retro">Western retro</option>
+                  </optgroup>
+                  <optgroup label="Classique">
+                    <option value="classique-livre">Classique livre</option>
+                    <option value="elegante">Elegante</option>
+                    <option value="luxe-fin">Luxe fin</option>
+                    <option value="gravure">Gravure</option>
+                  </optgroup>
+                  <optgroup label="Affiche">
+                    <option value="compacte">Compacte nette</option>
+                    <option value="affiche-condensee">Affiche condensée</option>
+                    <option value="sans-serree">Sans serrée</option>
+                    <option value="mono-moderne">Mono moderne</option>
+                  </optgroup>
+                </select>
+              </label>
+              <label class="champ"><span class="champ__libelle">Taille des titres <span class="valeur-range" data-range-value="tailleTitres"></span></span><input id="tailleTitres" type="range" min="60" max="200" step="5" /></label>
+              <label class="champ"><span class="champ__libelle">Taille de l’artiste <span class="valeur-range" data-range-value="tailleArtiste"></span></span><input id="tailleArtiste" type="range" min="70" max="200" step="5" /></label>
+              <label class="champ">Style des titres
+                <select id="styleTitres">
+                  <option value="normal">Normal</option>
+                  <option value="gras">Gras</option>
+                  <option value="italique">Italique</option>
+                  <option value="gras-italique">Gras italique</option>
+                </select>
+              </label>
+              <label class="champ">Style de l’artiste
+                <select id="styleArtiste">
+                  <option value="normal">Normal</option>
+                  <option value="gras">Gras</option>
+                  <option value="italique">Italique</option>
+                  <option value="gras-italique">Gras italique</option>
+                </select>
+              </label>
+              <label class="champ champ-large">Effet rétro sur les titres <input id="guillemetsTitres" type="checkbox" /></label>
+              <label class="champ champ-large">Désalignement rétro
+                <select id="decalageRetro">
+                  <option value="aucun">Aucun</option>
+                  <option value="titres-leger">Titres légers</option>
+                  <option value="un-titre">Une ligne de titre</option>
+                  <option value="artiste-leger">Artiste léger</option>
+                  <option value="tout-leger">Titres + artiste légers</option>
+                  <option value="artiste-bas">Artiste plus bas</option>
+                  <option value="tout-bas-decale">Tout plus bas et décalé</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="groupe onglet-panneau" data-tab-panel="decor" hidden>
+            <div class="grille">
+              <fieldset class="champ champ-large choix-decor"><span class="choix-decor__titre">Élément à modifier</span>
+                <input id="decorPanel" type="hidden" value="motif" />
+                <input id="activerVignettage" type="checkbox" hidden />
+                <input id="activerMotif" type="checkbox" hidden />
+                <input id="papierVieilli" type="checkbox" hidden />
+                <div class="choix-decor__options">
+                  <button class="choix-decor__option" id="boutonVignettage" type="button" aria-pressed="false">Vignettage</button>
+                  <button class="choix-decor__option" id="boutonMotif" type="button" aria-pressed="false">Motif</button>
+                  <button class="choix-decor__option" id="boutonPapierVieilli" type="button" aria-pressed="false">Papier vieilli</button>
+                </div>
+              </fieldset>
+              <label class="champ" data-decor-panel="motif">Motif
+                <select id="motifType">
+                  <option value="aucun">Aucun</option>
+                  <option value="grille">Grille fine</option>
+                  <option value="rayures">Rayures</option>
+                  <option value="points">Points</option>
+                  <option value="diagonales">Diagonales</option>
+                  <option value="chevrons">Chevrons</option>
+                  <option value="croisillons">Croisillons</option>
+                  <option value="vagues">Vagues</option>
+                  <option value="soleil">Soleil</option>
+                </select>
+              </label>
+              <label class="champ" data-decor-panel="motif" data-motif-reglage>Couleur <input id="couleurMotif" type="color" /></label>
+              <label class="champ" data-decor-panel="motif" data-motif-reglage><span class="champ__libelle">Opacité <span class="valeur-range" data-range-value="motif" data-range-unit="%"></span></span><input id="motif" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-decor-panel="motif" data-motif-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMotif"></span></span><input id="angleMotif" type="range" min="-80" max="80" step="1" /></label>
+              <label class="champ champ-large" data-decor-panel="motif">Motif secondaire <input id="afficherTraitsModernes" type="checkbox" /></label>
+              <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage>Type secondaire
+                <select id="motifTraitsModernes">
+                  <option value="grille">Grille</option>
+                  <option value="rayures">Rayures</option>
+                  <option value="points">Points</option>
+                  <option value="diagonales">Diagonales</option>
+                  <option value="croisillons">Croisillons</option>
+                  <option value="chevrons">Chevrons</option>
+                  <option value="vagues">Vagues</option>
+                  <option value="soleil">Soleil</option>
+                </select>
+              </label>
+              <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage>Couleur secondaire <input id="couleurTraitsModernes" type="color" /></label>
+              <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage><span class="champ__libelle">Opacité <span class="valeur-range" data-range-value="opaciteTraitsModernes" data-range-unit="%"></span></span><input id="opaciteTraitsModernes" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleTraitsModernes"></span></span><input id="angleTraitsModernes" type="range" min="-80" max="80" step="1" /></label>
+              <label class="champ" data-decor-panel="vignette">Vignettage
+                <select id="modeVignette">
+                  <option value="aucun">Sans</option>
+                  <option value="fond">Fond seulement</option>
+                  <option value="global">Fond et étiquette</option>
+                </select>
+              </label>
+              <label class="champ" data-decor-panel="vignette" data-vignette-reglage>Couleur <input id="couleurVignette" type="color" /></label>
+              <label class="champ" data-decor-panel="vignette" data-vignette-reglage><span class="champ__libelle">Intensité <span class="valeur-range" data-range-value="intensite" data-range-unit="%"></span></span><input id="intensite" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-decor-panel="vignette" data-vignette-reglage><span class="champ__libelle">Opacité <span class="valeur-range" data-range-value="vignette" data-range-unit="%"></span></span><input id="vignette" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-decor-panel="vignette" data-vignette-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angle"></span></span><input id="angle" type="range" min="0" max="180" step="5" /></label>
+              <label class="champ" data-decor-panel="papier" data-papier-reglage>Couleur vieillie <input id="couleurPapierVieilli" type="color" /></label>
+              <label class="champ" data-decor-panel="papier" data-papier-reglage><span class="champ__libelle">Jaunissement <span class="valeur-range" data-range-value="jaunissementPapier" data-range-unit="%"></span></span><input id="jaunissementPapier" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-decor-panel="papier" data-papier-reglage><span class="champ__libelle">Froissage <span class="valeur-range" data-range-value="froissagePapier" data-range-unit="%"></span></span><input id="froissagePapier" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-decor-panel="papier" data-papier-reglage><span class="champ__libelle">Imperfections <span class="valeur-range" data-range-value="imperfectionsPapier" data-range-unit="%"></span></span><input id="imperfectionsPapier" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-decor-panel="papier" data-papier-reglage><span class="champ__libelle">Usure des bords <span class="valeur-range" data-range-value="usureBordsPapier" data-range-unit="%"></span></span><input id="usureBordsPapier" type="range" min="0" max="100" step="1" /></label>
+            </div>
+          </section>
+
+          <section class="groupe onglet-panneau" data-tab-panel="ruban" hidden>
+            <div class="grille">
+              <label class="champ champ-large">
+                <span class="champ__libelle">Épaisseur de bordure <span class="valeur-range" data-range-value="bordure" data-range-unit="%"></span></span>
+                <input id="bordure" type="range" min="0" max="100" step="1" />
+              </label>
+              <label class="champ champ-large">Arrondi intérieur <input id="arrondiInterieurBordure" type="checkbox" /></label>
+              <label class="champ" data-capacite-modele="ruban"><span class="champ__libelle">Largeur du ruban <span class="valeur-range" data-range-value="largeurRuban" data-range-unit="%"></span></span><input id="largeurRuban" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-capacite-modele="ruban"><span class="champ__libelle">Hauteur du ruban <span class="valeur-range" data-range-value="hauteurRuban" data-range-unit="%"></span></span><input id="hauteurRuban" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-capacite-modele="bandeCentrale"><span class="champ__libelle">Bande centrale <span class="valeur-range" data-range-value="hauteurBande" data-range-unit="%"></span></span><input id="hauteurBande" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-modele-visible="celeste"><span class="champ__libelle">Taille bande gauche <span class="valeur-range" data-range-value="tailleBandeGauche" data-range-unit="%"></span></span><input id="tailleBandeGauche" type="range" min="0" max="60" step="1" /></label>
+              <label class="champ" data-modele-visible="celeste"><span class="champ__libelle">Orientation gauche <span class="valeur-range" data-range-value="angleBandeGauche"></span></span><input id="angleBandeGauche" type="range" min="-80" max="80" step="1" /></label>
+              <label class="champ" data-modele-visible="celeste"><span class="champ__libelle">Taille bande droite <span class="valeur-range" data-range-value="tailleBandeDroite" data-range-unit="%"></span></span><input id="tailleBandeDroite" type="range" min="0" max="60" step="1" /></label>
+              <label class="champ" data-modele-visible="celeste"><span class="champ__libelle">Orientation droite <span class="valeur-range" data-range-value="angleBandeDroite"></span></span><input id="angleBandeDroite" type="range" min="-80" max="80" step="1" /></label>
+              <label class="champ" data-modele-visible="leon"><span class="champ__libelle">Épaisseur traits <span class="valeur-range" data-range-value="epaisseurTraitsLeon"></span></span><input id="epaisseurTraitsLeon" type="range" min="1" max="12" step="0.5" /></label>
+              <label class="champ" data-modele-visible="leon"><span class="champ__libelle">Position traits <span class="valeur-range" data-range-value="positionTraitsLeon" data-range-unit="%"></span></span><input id="positionTraitsLeon" type="range" min="25" max="75" step="1" /></label>
+              <label class="champ" data-modele-visible="leon"><span class="champ__libelle">Espace entre traits <span class="valeur-range" data-range-value="ecartTraitsLeon" data-range-unit="%"></span></span><input id="ecartTraitsLeon" type="range" min="10" max="42" step="1" /></label>
+              <label class="champ champ-large">Modifier aussi les textes <input id="modifierTextesMiseEnPage" type="checkbox" /></label>
+              <div class="champ-large reglages-texte-ruban" id="reglagesTexteMiseEnPage" hidden></div>
+            </div>
+          </section>
+
+          <section class="groupe onglet-panneau" id="groupeMarques" data-tab-panel="cote" hidden>
+            <div class="marques-panneau">
+              <label class="marques-activation">
+                <span class="marques-activation__texte">
+                  <span class="marques-activation__titre">Mentions latérales visibles</span>
+                  <span class="marques-activation__aide">Active ou masque les inscriptions placées sur les côtés.</span>
+                </span>
+                <span class="marques-switch">
+                  <input id="afficherMarques" type="checkbox" />
+                  <span class="marques-switch__piste" aria-hidden="true"></span>
+                </span>
+              </label>
+
+              <div class="marques-section marques-section--contenu" data-marque-reglage>
+                <h3 class="marques-section__titre">Contenu</h3>
+                <div class="grille marques-grille">
+                  <label class="champ champ-large" data-marque-reglage>Synchroniser les textes latéraux <input id="synchroniserMarques" type="checkbox" checked /></label>
+                  <label class="champ champ-large" data-marque-reglage>Proposition
+                    <select id="presetMarques">
+                      <option value="custom">Texte libre</option>
+                      <option value="juke-box">JUKE … BOX</option>
+                      <option value="vinyl-hit">VINYL … HIT</option>
+                      <option value="45-rpm">45 … RPM</option>
+                      <option value="hit-tune">HIT … TUNE</option>
+                      <option value="old-hit">OLD … HIT</option>
+                      <option value="top-side">TOP … SIDE</option>
+                      <option value="a-side">A … SIDE</option>
+                      <option value="b-side">B … SIDE</option>
+                      <option value="stereo-sound">STEREO … SOUND</option>
+                      <option value="vintage-label">VINTAGE … LABEL</option>
+                      <option value="music-select">MUSIC … SELECT</option>
+                      <option value="45-o-juke">45’O … JUKE</option>
+                      <option value="juke-time">JUKE … TIME</option>
+                      <option value="vinyl-side">VINYL … SIDE</option>
+                      <option value="retro-hit">RETRO … HIT</option>
+                      <option value="hit-parade">HIT … PARADE</option>
+                      <option value="oldies-club">OLDIES … CLUB</option>
+                      <option value="dance-tune">DANCE … TUNE</option>
+                      <option value="music-box">MUSIC … BOX</option>
+                      <option value="select-play">SELECT … PLAY</option>
+                      <option value="side-one">SIDE … ONE</option>
+                      <option value="side-two">SIDE … TWO</option>
+                      <option value="top-vinyl">TOP … VINYL</option>
+                      <option value="golden-hit">GOLDEN … HIT</option>
+                      <option value="45-record">45 … RECORD</option>
+                      <option value="play-music">PLAY … MUSIC</option>
+                      <option value="jukebox-sound">JUKEBOX … SOUND</option>
+                      <option value="retro-label">RETRO … LABEL</option>
+                      <option value="tune-select">TUNE … SELECT</option>
+                      <option value="sound-track">SOUND … TRACK</option>
+                      <option value="hit-record">HIT … RECORD</option>
+                      <option value="vinyl-select">VINYL … SELECT</option>
+                    </select>
+                  </label>
+                  <label class="champ" data-marque-reglage data-marque-commun>Texte gauche <input id="marqueGauche" type="text" maxlength="8" /></label>
+                  <label class="champ" data-marque-reglage data-marque-commun>Texte droit <input id="marqueDroite" type="text" maxlength="8" /></label>
+                </div>
+              </div>
+
+              <div class="marques-section" data-marque-reglage data-marque-commun>
+                <h3 class="marques-section__titre">Apparence</h3>
+                <div class="grille marques-grille">
+                  <label class="champ marque-couleur" data-marque-reglage>Couleur <input id="couleurMarques" type="color" /></label>
+                  <label class="champ" data-marque-reglage data-marque-commun data-modele-visible="manu">Forme
+                    <select id="formePastille">
+                      <option value="rond">Rond</option>
+                      <option value="carre">Carré</option>
+                      <option value="losange">Losange</option>
+                    </select>
+                  </label>
+                  <label class="champ" data-marque-reglage>Police
+                    <select id="policeMarques">
+                      <option value="compacte">Compacte nette</option>
+                      <option value="dactylo-ronde">Dactylo ronde</option>
+                      <option value="silk-remington">Silk Remington</option>
+                      <option value="mono-moderne">Mono moderne</option>
+                      <option value="affiche-condensee">Affiche condensée</option>
+                      <option value="sans-serree">Sans serrée</option>
+                    </select>
+                  </label>
+                  <label class="champ champ-large" data-marque-reglage><span class="champ__libelle">Taille <span class="valeur-range" data-range-value="tailleMarques"></span></span><input id="tailleMarques" type="range" min="50" max="520" step="5" /></label>
+                  <label class="champ champ-large" data-marque-reglage data-marque-commun data-modele-visible="manu"><span class="champ__libelle">Diamètre <span class="valeur-range" data-range-value="diametrePastille" data-range-unit="%"></span></span><input id="diametrePastille" type="range" min="12" max="70" step="1" /></label>
+                  <label class="champ champ-large" data-marque-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMarques"></span></span><input id="angleMarques" type="range" min="-180" max="180" step="5" /></label>
+                  <label class="champ champ-large" data-marque-reglage data-modele-visible="manu"><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarques" data-range-unit="%"></span></span><input id="positionMarques" type="range" min="0" max="100" step="1" /></label>
+                  <label class="champ champ-large" data-marque-reglage><span class="champ__libelle">Hauteur <span class="valeur-range" data-range-value="hauteurMarques" data-range-unit="%"></span></span><input id="hauteurMarques" type="range" min="0" max="100" step="1" /></label>
+                </div>
+              </div>
+
+              <div class="marques-section" data-marque-reglage data-marque-separe hidden>
+                <h3 class="marques-section__titre">Texte gauche</h3>
+                <div class="grille marques-grille">
+                  <label class="champ">Texte <input id="marqueGaucheTexte" type="text" maxlength="8" /></label>
+                  <label class="champ">Couleur <input id="couleurMarqueGauche" type="color" /></label>
+                  <label class="champ" data-modele-visible="manu">Forme <select id="formePastilleGauche"><option value="rond">Rond</option><option value="carre">Carré</option><option value="losange">Losange</option></select></label>
+                  <label class="champ">Police <select id="policeMarqueGauche"></select></label>
+                  <label class="champ">Style <select id="styleMarqueGauche"><option value="normal">Normal</option><option value="gras">Gras</option><option value="italique">Italique</option><option value="gras-italique">Gras italique</option></select></label>
+                  <label class="champ champ-large"><span class="champ__libelle">Taille <span class="valeur-range" data-range-value="tailleMarqueGauche"></span></span><input id="tailleMarqueGauche" type="range" min="50" max="520" step="5" /></label>
+                  <label class="champ champ-large" data-modele-visible="manu"><span class="champ__libelle">Diamètre <span class="valeur-range" data-range-value="diametrePastilleGauche" data-range-unit="%"></span></span><input id="diametrePastilleGauche" type="range" min="12" max="70" step="1" /></label>
+                  <label class="champ champ-large"><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMarqueGauche"></span></span><input id="angleMarqueGauche" type="range" min="-180" max="180" step="5" /></label>
+                  <label class="champ champ-large" data-modele-visible="manu"><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarqueGauche" data-range-unit="%"></span></span><input id="positionMarqueGauche" type="range" min="0" max="100" step="1" /></label>
+                  <label class="champ champ-large"><span class="champ__libelle">Hauteur <span class="valeur-range" data-range-value="hauteurMarqueGauche" data-range-unit="%"></span></span><input id="hauteurMarqueGauche" type="range" min="0" max="100" step="1" /></label>
+                </div>
+              </div>
+
+              <div class="marques-section" data-marque-reglage data-marque-separe hidden>
+                <h3 class="marques-section__titre">Texte droit</h3>
+                <div class="grille marques-grille">
+                  <label class="champ">Texte <input id="marqueDroiteTexte" type="text" maxlength="8" /></label>
+                  <label class="champ">Couleur <input id="couleurMarqueDroite" type="color" /></label>
+                  <label class="champ" data-modele-visible="manu">Forme <select id="formePastilleDroite"><option value="rond">Rond</option><option value="carre">Carré</option><option value="losange">Losange</option></select></label>
+                  <label class="champ">Police <select id="policeMarqueDroite"></select></label>
+                  <label class="champ">Style <select id="styleMarqueDroite"><option value="normal">Normal</option><option value="gras">Gras</option><option value="italique">Italique</option><option value="gras-italique">Gras italique</option></select></label>
+                  <label class="champ champ-large"><span class="champ__libelle">Taille <span class="valeur-range" data-range-value="tailleMarqueDroite"></span></span><input id="tailleMarqueDroite" type="range" min="50" max="520" step="5" /></label>
+                  <label class="champ champ-large" data-modele-visible="manu"><span class="champ__libelle">Diamètre <span class="valeur-range" data-range-value="diametrePastilleDroite" data-range-unit="%"></span></span><input id="diametrePastilleDroite" type="range" min="12" max="70" step="1" /></label>
+                  <label class="champ champ-large"><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMarqueDroite"></span></span><input id="angleMarqueDroite" type="range" min="-180" max="180" step="5" /></label>
+                  <label class="champ champ-large" data-modele-visible="manu"><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarqueDroite" data-range-unit="%"></span></span><input id="positionMarqueDroite" type="range" min="0" max="100" step="1" /></label>
+                  <label class="champ champ-large"><span class="champ__libelle">Hauteur <span class="valeur-range" data-range-value="hauteurMarqueDroite" data-range-unit="%"></span></span><input id="hauteurMarqueDroite" type="range" min="0" max="100" step="1" /></label>
+                </div>
+              </div>
+
+              <input id="limiterMarquesBandeSurprise" type="checkbox" hidden />
+            </div>
+          </section>
+
+          <section class="groupe onglet-panneau" data-tab-panel="favoris" hidden>
+            <div class="barre-actions barre-actions--csv champ-large">
+              <div class="bloc-fichier">
+                <p class="bloc-fichier__titre">Style de l’étiquette <button class="aide-option" type="button" data-help-key="Aide style export import">?</button></p>
+                <div class="bloc-fichier__actions">
+                  <button class="bouton bouton-secondaire" id="copierReglagesFavoris" type="button">Exporter style</button>
+                  <button class="bouton" id="importerReglagesFavoris" type="button">Importer style</button>
+                </div>
+              </div>
+              <div class="bloc-fichier">
+                <p class="bloc-fichier__titre">Données du tableau <button class="aide-option" type="button" data-help-key="Aide donnees CSV">?</button></p>
+                <div class="bloc-fichier__actions">
+                  <button class="bouton" id="choisirCsvSauvegarde" type="button">Importer CSV</button>
+                  <button class="bouton bouton-secondaire" id="exporterCsvSauvegarde" type="button">Exporter CSV</button>
+                </div>
+              </div>
+            </div>
+          </section>
+          <div class="assistant-navigation" id="assistantNavigation" hidden>
+            <button class="bouton bouton-secondaire" id="assistantPrecedent" type="button">Précédent</button>
+            <button class="bouton bouton-principal" id="assistantSuivant" type="button">Suivant</button>
+          </div>
+        </form>
+
+        <section class="panneau scene">
+          <div class="scene__entete" id="sceneEntete" hidden>
+            <div class="scene__statuts">
+              <p class="etat" id="statutPlanche" hidden>0 page</p>
+            </div>
+          </div>
+          <div class="barre-actions barre-actions--apercu" id="actionsApercu" hidden>
+            <div class="groupe-historique" aria-label="Historique des modifications">
+              <button class="bouton bouton-secondaire bouton-historique" id="annulerReglage" type="button" disabled aria-label="Annuler la dernière modification" title="Annuler">↶</button>
+              <button class="bouton bouton-secondaire bouton-historique" id="retablirReglage" type="button" disabled aria-label="Rétablir la modification annulée" title="Rétablir">↷</button>
+              <button class="bouton bouton-favori bouton-favori-icone" id="aimerReglage" type="button" aria-pressed="false" aria-label="Ajouter aux favoris" title="Favori">
+                <span aria-hidden="true">♡</span>
+              </button>
+            </div>
+            <button class="bouton bouton-secondaire" id="surprise" type="button">Nouveau style</button>
+            <button class="bouton bouton-secondaire" id="inverser" type="button">Variante</button>
+            <button class="bouton bouton-secondaire bouton-afficher-favoris" id="ouvrirFavoris" type="button" aria-expanded="false">Favoris</button>
+            <button class="bouton" id="ouvrirTableauCsvApercu" type="button">Données</button>
+            <button class="bouton bouton-principal" id="imprimer" type="button">Imprimer</button>
+          </div>
+          <div class="favoris__liste favoris__liste--apercu" id="listeFavoris" hidden></div>
+          <section class="accueil-apercu" id="accueilApercu">
+            <p class="accueil-apercu__surtitre">Étape 1</p>
+            <h2>Choisissez votre style</h2>
+            <p class="accueil-apercu__description">Choisissez le style qui vous plaît : vous pourrez ensuite l’adapter à votre goût, avec vos couleurs, vos textes et vos décors.</p>
+            <div class="accueil-selection">
+              <button class="bouton bouton-navigation-modeles" id="modelesAccueilPrecedent" type="button" aria-label="Modèles précédents">‹</button>
+              <div class="galerie-modeles galerie-modeles--accueil champ-large" id="galerieModelesAccueil" aria-label="Styles d'étiquette de départ"></div>
+              <button class="bouton bouton-navigation-modeles" id="modelesAccueilSuivant" type="button" aria-label="Modèles suivants">›</button>
+            </div>
+          </section>
+          <div class="apercus" hidden>
+            <p class="aide-selection-etiquette" id="aideSelectionEtiquette" hidden>Cliquez sur une étiquette pour la modifier.</p>
+            <img class="apercu-image" id="apercu" alt="Aperçu étiquette Canvas" data-apercu-etiquette="1" />
+            <img class="apercu-image apercu-secondaire" id="apercuSecondaire" alt="Aperçu étiquette secondaire Canvas" data-apercu-etiquette="2" hidden />
+          </div>
+          <div class="navigation" id="navigationApercu" hidden>
+            <button class="bouton" id="precedent" type="button">‹</button>
+            <p class="etat" id="etat">Chargement...</p>
+            <button class="bouton" id="suivant" type="button">›</button>
+          </div>
+          <button class="bouton bouton-secondaire bouton-editer-textes-mobile" id="basculerEditionTexteMobile" type="button" hidden>Modifier les textes</button>
+          <section class="edition-texte" id="editionTexte" aria-label="Édition du texte de l'étiquette" hidden>
+            <div class="edition-texte__entete">
+              <h2 class="edition-texte__titre">Modifier les titres</h2>
+              <button class="aide-option edition-texte__aide" id="aideSwipeMobile" type="button" data-help-key="Aide édition titres" aria-label="Aide édition titres">?</button>
+            </div>
+            <div class="edition-texte__navigation">
+              <button class="bouton edition-texte__fleche" id="editionTextePrecedent" type="button" aria-label="Étiquette précédente">‹</button>
+              <p class="edition-texte__etat" id="editionTexteEtat">1/1</p>
+              <button class="bouton edition-texte__fleche" id="editionTexteSuivant" type="button" aria-label="Étiquette suivante">›</button>
+            </div>
+            <label class="champ">Face A <input id="texteFaceA" type="text" /></label>
+            <label class="champ">Artiste <input id="texteArtiste" type="text" /></label>
+            <label class="champ">Face B <input id="texteFaceB" type="text" /></label>
+          </section>
+        </section>
+      </div>
+    </main>
+
+    <footer class="pied-site">
+      <button class="installer-app-btn" id="installerApp" type="button">Installer l'application</button>
+      <button class="soutien-lien" id="ouvrirSoutien" type="button">♡ Soutien / Contact</button>
+      <noscript>
+        <p class="soutien-noscript">
+          JavaScript est désactivé : contactez 45'O'Juke par
+          <a href="mailto:contact45ojuke@gmail.com?subject=Contact%2045%27O%27Juke">email</a>
+          ou sur
+          <a href="https://www.facebook.com/45.O.Juke/" target="_blank" rel="noopener noreferrer">Facebook</a>.
+        </p>
+      </noscript>
+    </footer>
+
+    <div id="planche-impression"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

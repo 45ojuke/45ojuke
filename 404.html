@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, follow" />
+    <meta name="theme-color" content="#f4efe5" />
+    <title>Page introuvable - 45'O'Juke</title>
+    <link rel="icon" type="image/png" href="./Images/logo45.png" />
+    <link rel="apple-touch-icon" href="./Images/icons/apple-touch-icon.png" />
+    <link rel="preload" as="image" href="./Images/fond-45ojuke.jpeg" />
+    <link rel="stylesheet" href="./style.css" />
+    <style>
+      body.page-404 {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background:
+          linear-gradient(rgba(255, 247, 223, 0.72), rgba(255, 243, 216, 0.82)),
+          url("./Images/fond-45ojuke.jpeg") center top / cover no-repeat,
+          var(--fond);
+      }
+
+      .erreur-404 {
+        width: min(560px, 100%);
+        padding: 34px 28px;
+        border: 1px solid rgba(74, 43, 24, 0.2);
+        border-radius: 18px;
+        background: rgba(255, 247, 223, 0.88);
+        box-shadow: var(--ombre);
+        text-align: center;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .erreur-404__logo {
+        width: min(320px, 82vw);
+        height: auto;
+        margin-bottom: 26px;
+      }
+
+      .erreur-404__code {
+        margin: 0 0 6px;
+        color: var(--accent-2);
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .erreur-404__titre {
+        margin: 0 0 12px;
+        color: var(--texte);
+        font-size: clamp(34px, 7vw, 56px);
+        line-height: 1;
+      }
+
+      .erreur-404__texte {
+        margin: 0 auto 26px;
+        max-width: 420px;
+        color: var(--texte-doux);
+        font-size: 18px;
+        line-height: 1.5;
+      }
+
+      .erreur-404__retour {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 12px 24px;
+        border-radius: 999px;
+        background: var(--accent-2);
+        color: #fff7df;
+        font-weight: 800;
+        text-decoration: none;
+        box-shadow: 0 10px 24px rgba(50, 28, 15, 0.2);
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      .erreur-404__retour:hover,
+      .erreur-404__retour:focus-visible {
+        transform: translateY(-2px);
+        background: var(--accent);
+      }
+
+      @media (max-width: 560px) {
+        body.page-404 {
+          padding: 18px;
+        }
+
+        .erreur-404 {
+          padding: 28px 20px;
+        }
+
+        .erreur-404__texte {
+          font-size: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body class="page-404">
+    <main class="erreur-404" aria-labelledby="titre404">
+      <img class="erreur-404__logo" src="./Images/titre.png" alt="45'O'Juke" />
+      <p class="erreur-404__code">Erreur 404</p>
+      <h1 class="erreur-404__titre" id="titre404">Page introuvable</h1>
+      <p class="erreur-404__texte">Cette adresse ne mène à aucune étiquette. Retournez à l'accueil pour reprendre la sélection.</p>
+      <a class="erreur-404__retour" href="./">Retour à l'accueil</a>
+    </main>
+  </body>
+</html>
