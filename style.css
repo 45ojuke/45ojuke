@@ -2603,7 +2603,7 @@ body.is-favoris-ouverts .scene {
 @media print {
   @page {
     size: A4;
-    margin: 8mm;
+    margin: 0;
   }
 
   html,
@@ -2623,9 +2623,9 @@ body.is-favoris-ouverts .scene {
 
   body,
   #planche-impression {
-    width: 194mm;
-    min-width: 194mm;
-    max-width: 194mm;
+    width: 210mm;
+    min-width: 210mm;
+    max-width: 210mm;
     margin: 0;
     background: white !important;
   }
@@ -2637,12 +2637,12 @@ body.is-favoris-ouverts .scene {
   }
 
   .page-impression {
-    width: 194mm;
-    min-width: 194mm;
-    max-width: 194mm;
-    height: 281mm;
-    min-height: 281mm;
-    max-height: 281mm;
+    width: 210mm;
+    min-width: 210mm;
+    max-width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
+    max-height: 297mm;
     display: grid;
     grid-template-columns: repeat(var(--colonnes-impression, 2), var(--largeur-etiquette-mm, var(--largeur-etiquette-defaut-mm, 1fr)));
     grid-template-rows: repeat(var(--lignes-impression, 7), var(--hauteur-etiquette-mm, var(--hauteur-etiquette-defaut-mm, auto)));
