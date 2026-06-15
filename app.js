@@ -34,6 +34,7 @@ import {
   calculerDispositionImpression,
   imprimerLignes as imprimerLignesModule,
   preparerLignesSortie,
+  telechargerPdf as telechargerPdfModule,
   telechargerPng as telechargerPngModule,
 } from "./impression.js";
 
@@ -4244,11 +4245,11 @@ function ouvrirDialogueImpression(lignes) {
   const boutonImpression = document.createElement("button");
   boutonImpression.className = "bouton bouton-principal";
   boutonImpression.type = "button";
-  boutonImpression.textContent = traduirePhrase("Ouvrir impression / PDF");
+  boutonImpression.textContent = traduirePhrase("Télécharger PDF");
 
   const aidePdf = document.createElement("p");
   aidePdf.className = "sortie-action-aide";
-  aidePdf.textContent = traduirePhrase("Choisissez Imprimer ou Enregistrer en PDF dans la fenêtre système.");
+  aidePdf.textContent = traduirePhrase("Génère un vrai PDF A4, plus fiable pour Safari et iPhone.");
 
   const boutonPng = document.createElement("button");
   boutonPng.className = "bouton bouton-secondaire";
@@ -4263,7 +4264,7 @@ function ouvrirDialogueImpression(lignes) {
   blocImpression.className = "sortie-action";
   const enteteImpression = document.createElement("div");
   enteteImpression.className = "sortie-action__entete";
-  enteteImpression.append(boutonImpression, creerAideDynamique("Ouvrir impression / PDF"));
+  enteteImpression.append(boutonImpression, creerAideDynamique("Télécharger PDF"));
   blocImpression.append(enteteImpression, aidePdf);
 
   const blocPng = document.createElement("div");
@@ -4309,7 +4310,7 @@ function ouvrirDialogueImpression(lignes) {
       telechargerPng(lignesSortie);
       return;
     }
-    imprimerLignes(lignesSortie);
+    telechargerPdf(lignesSortie);
   };
 
   participer.addEventListener("click", () => {
@@ -4342,6 +4343,10 @@ function ouvrirDialogueImpression(lignes) {
 
 function telechargerPng(lignes) {
   return telechargerPngModule(lignes, { deuxiemeEtiquetteActive, lireReglages });
+}
+
+function telechargerPdf(lignes) {
+  return telechargerPdfModule(lignes, { deuxiemeEtiquetteActive, lireReglages });
 }
 
 function imprimerLignes(lignes) {
