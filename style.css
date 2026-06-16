@@ -457,7 +457,7 @@ body:not(.is-intro-active) .top-actions__menu .facebook-text {
 }
 
 .about-box {
-  width: min(560px, 100%);
+  width: min(760px, 100%);
   max-height: calc(100vh - 44px);
   overflow: hidden;
   border: 1px solid rgba(255, 247, 223, 0.64);
@@ -507,6 +507,12 @@ body:not(.is-intro-active) .top-actions__menu .facebook-text {
   margin: 0 0 10px;
   color: #3b2415;
   font-size: 16px;
+}
+
+.about-content h4 {
+  margin: 0 0 8px;
+  color: #3b2415;
+  font-size: 14px;
 }
 
 .about-content p {
@@ -574,13 +580,27 @@ body:not(.is-intro-active) .top-actions__menu .facebook-text {
   margin-bottom: 12px;
 }
 
-.about-license-link {
-  display: inline-flex;
-  color: #7a300e;
+.about-license-full {
+  max-height: min(34vh, 330px);
+  margin: 14px 0 0;
+  padding: 14px 16px;
+  overflow-y: auto;
+  border: 1px solid rgba(90, 50, 20, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 250, 240, 0.84);
+  -webkit-overflow-scrolling: touch;
+}
+
+.about-license-full ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  color: #624530;
   font-size: 13px;
-  font-weight: 850;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  line-height: 1.48;
+}
+
+.about-license-full li {
+  margin: 0 0 6px;
 }
 
 @keyframes arriveeDouce {

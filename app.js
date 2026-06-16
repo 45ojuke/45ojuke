@@ -2061,7 +2061,7 @@ function afficherFavoris() {
     estFavori ? traduirePhrase("Retirer des favoris") : traduirePhrase("Ajouter aux favoris"),
   );
   elements.aimerReglage.title = estFavori ? traduirePhrase("Retirer des favoris") : traduirePhrase("Ajouter aux favoris");
-  elements.ouvrirFavoris.hidden = false;
+  elements.ouvrirFavoris.hidden = favoris.length === 0;
   elements.ouvrirFavoris.setAttribute("aria-expanded", String(favorisOuverts));
   elements.ouvrirFavoris.textContent = traduirePhrase("Favoris");
 
