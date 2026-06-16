@@ -35,6 +35,7 @@ import {
   preparerLignesSortie,
   telechargerPdf as telechargerPdfModule,
 } from "./impression.js";
+import { envoyerJsonStyle } from "./analytics.js";
 
 const EMAIL_CONTACT = "contact45ojuke@gmail.com";
 const LIEN_FACEBOOK_CONTACT = "https://www.facebook.com/45.O.Juke/";
@@ -2027,6 +2028,7 @@ const { obtenirFavoris, enregistrerFavoris, signatureReglages } = creerGestionFa
 
 function basculerFavori() {
   const reglages = lireReglagesFormulaire();
+  reglagesParEtiquette[etiquetteActive] = reglages;
   const id = signatureReglages(reglages);
   const favoris = obtenirFavoris();
   const dejaPresent = favoris.some((favori) => favori.id === id);
@@ -2035,6 +2037,9 @@ function basculerFavori() {
     enregistrerFavoris(favoris.filter((favori) => favori.id !== id));
   } else {
     enregistrerFavoris([{ id, creeLe: new Date().toISOString(), nomPersonnalise: "", reglages }, ...favoris].slice(0, 24));
+    envoyerJsonStyle("favorite_added", creerPayloadJsonStyle({
+      favoriteStyle: preparerReglagesPourExport(reglages),
+    }));
   }
 
   afficherFavoris();
@@ -3089,6 +3094,21 @@ function preparerReglagesPourExport(reglages) {
     }
   }
   return copie;
+}
+
+function creerPayloadJsonStyle(details = {}) {
+  const deuxiemeActive = deuxiemeEtiquetteActive();
+  return {
+    page: location.pathname,
+    language: langueActive,
+    activeLabel: etiquetteActive,
+    secondLabelEnabled: deuxiemeActive,
+    styles: {
+      primary: preparerReglagesPourExport(lireReglages("1")),
+      secondary: deuxiemeActive ? preparerReglagesPourExport(lireReglages("2")) : null,
+    },
+    ...details,
+  };
 }
 
 function importerReglages() {
@@ -4309,6 +4329,10 @@ function ouvrirDialogueImpression(lignes) {
     await attendreRenduInterface();
     try {
       await telechargerPdf(lignesSortie);
+      envoyerJsonStyle("pdf_downloaded", creerPayloadJsonStyle({
+        selectedRows: selectionLignes.length,
+        blankLabels: viergesInput.checked,
+      }));
       dialogue.close();
     } catch {
       message.hidden = false;
