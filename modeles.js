@@ -313,7 +313,7 @@ export const presets = {
     froissagePapier: 50,
     imperfectionsPapier: 14,
     usureBordsPapier: 54,
-    bordure: 0,
+    bordure: 1,
     arrondiInterieurBordure: false,
     largeurRuban: 0,
     hauteurRuban: 0,

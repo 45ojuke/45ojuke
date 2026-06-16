@@ -38,6 +38,7 @@ import {
 import { envoyerJsonStyle } from "./analytics.js";
 
 const EMAIL_CONTACT = "contact45ojuke@gmail.com";
+const EPAISSEUR_BORDURE_MIN = 1;
 const LIEN_FACEBOOK_CONTACT = "https://www.facebook.com/45.O.Juke/";
 const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
 const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
@@ -1825,6 +1826,7 @@ function synchroniserBoutonDeuxiemeEtiquette(active) {
 function appliquerReglagesAuFormulaire(reglages) {
   chargementReglages = true;
   const reglagesNormalises = { ...reglages };
+  reglagesNormalises.bordure = Math.max(EPAISSEUR_BORDURE_MIN, Number(reglagesNormalises.bordure) || EPAISSEUR_BORDURE_MIN);
   reglagesNormalises.decalageRetro = reglagesNormalises.decalageRetro || "aucun";
   reglagesNormalises.angleMotif = reglagesNormalises.angleMotif ?? 0;
   reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.arrondiInterieurBordure ?? false;
@@ -2354,7 +2356,7 @@ function lireReglagesFormulaire() {
     froissagePapier: Number(elements.froissagePapier.value),
     imperfectionsPapier: Number(elements.imperfectionsPapier.value),
     usureBordsPapier: Number(elements.usureBordsPapier.value),
-    bordure: Number(elements.bordure.value),
+    bordure: Math.max(EPAISSEUR_BORDURE_MIN, Number(elements.bordure.value) || EPAISSEUR_BORDURE_MIN),
     arrondiInterieurBordure: elements.arrondiInterieurBordure.checked,
     largeurRuban: Number(elements.largeurRuban.value),
     hauteurRuban: Number(elements.hauteurRuban.value),
@@ -3264,7 +3266,7 @@ function normaliserReglagesImportes(donnees) {
       if (!Number.isFinite(nombre)) {
         return;
       }
-      const minimum = champ.min === "" ? -Infinity : Number(champ.min);
+      const minimum = cle === "bordure" ? EPAISSEUR_BORDURE_MIN : (champ.min === "" ? -Infinity : Number(champ.min));
       const maximum = champ.max === "" ? Infinity : Number(champ.max);
       reglages[cle] = Math.max(minimum, Math.min(maximum, nombre));
       return;
