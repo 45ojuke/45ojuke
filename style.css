@@ -225,6 +225,10 @@ body.is-intro-active > .pied-site {
   display: none;
 }
 
+.home-index-link {
+  display: none;
+}
+
 body:not(.is-intro-active) .top-actions {
   position: relative;
   inset: auto;
@@ -233,6 +237,7 @@ body:not(.is-intro-active) .top-actions {
   z-index: 12;
 }
 
+body:not(.is-intro-active) .home-index-link,
 body:not(.is-intro-active) .menu-mobile-toggle {
   width: 38px;
   min-width: 38px;
@@ -247,6 +252,20 @@ body:not(.is-intro-active) .menu-mobile-toggle {
   color: var(--accent-2);
   box-shadow: 0 8px 18px rgba(37, 27, 20, 0.12);
   cursor: pointer;
+}
+
+body:not(.is-intro-active) .home-index-link {
+  text-decoration: none;
+}
+
+body:not(.is-intro-active) .home-index-link svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 body:not(.is-intro-active) .menu-mobile-toggle span {
@@ -2723,6 +2742,7 @@ body.is-favoris-ouverts .scene {
     z-index: 12;
   }
 
+  body:not(.is-intro-active) .home-index-link,
   body:not(.is-intro-active) .menu-mobile-toggle {
     width: 36px;
     min-width: 36px;
@@ -3620,6 +3640,7 @@ body.is-favoris-ouverts .scene {
   .carte-modele,
   .drapeau,
   .aide-option,
+  .home-index-link,
   .menu-mobile-toggle,
   .bouton-navigation-modeles {
     position: relative;
@@ -3633,6 +3654,7 @@ body.is-favoris-ouverts .scene {
   .carte-modele::after,
   .drapeau::after,
   .aide-option::after,
+  .home-index-link::after,
   .menu-mobile-toggle::after,
   .bouton-navigation-modeles::after {
     content: "";
