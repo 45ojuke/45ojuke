@@ -10,6 +10,7 @@ export function envoyerJsonStyle(evenement, payload) {
   }
 
   const donnees = JSON.stringify({
+    eventId: creerEventId(),
     event: evenement,
     sentAt: new Date().toISOString(),
     source: "45ojuke",
@@ -18,24 +19,27 @@ export function envoyerJsonStyle(evenement, payload) {
   });
 
   try {
-    if (navigator.sendBeacon) {
-      const blob = new Blob([donnees], { type: "text/plain;charset=utf-8" });
-      if (navigator.sendBeacon(ANALYTICS_CONFIG.endpoint, blob)) {
-        return;
-      }
-    }
-
+    const formulaire = new URLSearchParams();
+    formulaire.set("payload", donnees);
     fetch(ANALYTICS_CONFIG.endpoint, {
       method: "POST",
       mode: "no-cors",
       headers: {
-        "Content-Type": "text/plain;charset=utf-8",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       },
-      body: donnees,
+      body: formulaire,
     }).catch(() => {});
   } catch {
     // L'envoi du JSON ne doit jamais bloquer l'utilisation de l'application.
   }
+}
+
+function creerEventId() {
+  const sourceAleatoire = globalThis.crypto?.randomUUID?.();
+  if (sourceAleatoire) {
+    return sourceAleatoire;
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function obtenirInfosAppareil() {

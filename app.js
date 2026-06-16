@@ -2113,9 +2113,7 @@ function basculerFavori() {
     enregistrerFavoris(favoris.filter((favori) => favori.id !== id));
   } else {
     enregistrerFavoris([{ id, creeLe: new Date().toISOString(), nomPersonnalise: "", reglages }, ...favoris].slice(0, 24));
-    envoyerJsonStyle("favorite_added", creerPayloadJsonStyle({
-      favoriteStyle: preparerReglagesPourExport(reglages),
-    }));
+    envoyerJsonStyle("favorite_added", creerPayloadFavori(reglages));
   }
 
   afficherFavoris();
@@ -3193,6 +3191,17 @@ function creerPayloadJsonStyle(details = {}) {
   };
 }
 
+function creerPayloadFavori(reglages) {
+  return {
+    page: location.pathname,
+    language: langueActive,
+    activeLabel: etiquetteActive,
+    secondLabelEnabled: deuxiemeEtiquetteActive(),
+    favoriteStyle: preparerReglagesPourExport(reglages),
+    favoritePreviewImage: creerApercuStylePourEmail(reglages, "favori"),
+  };
+}
+
 function creerApercuStylePourEmail(reglages, nom) {
   try {
     const ligne = obtenirLignes()[indexApercu] || obtenirLignes()[0] || {
@@ -3210,7 +3219,7 @@ function creerApercuStylePourEmail(reglages, nom) {
     const apercu = redimensionnerCanvasPourEmail(canvas);
     return {
       name: `45ojuke-apercu-${nom}.jpg`,
-      dataUrl: apercu.toDataURL("image/jpeg", 0.82),
+      dataUrl: apercu.toDataURL("image/jpeg", 0.42),
     };
   } catch {
     return null;
@@ -3218,7 +3227,7 @@ function creerApercuStylePourEmail(reglages, nom) {
 }
 
 function redimensionnerCanvasPourEmail(source) {
-  const largeurMax = 900;
+  const largeurMax = 220;
   const ratio = Math.min(1, largeurMax / source.width);
   if (ratio >= 1) {
     return source;
