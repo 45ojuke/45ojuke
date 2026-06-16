@@ -13,14 +13,16 @@ export function envoyerJsonStyle(evenement, payload) {
     event: evenement,
     sentAt: new Date().toISOString(),
     source: "45ojuke",
+    device: obtenirInfosAppareil(),
     ...payload,
   });
 
   try {
     if (navigator.sendBeacon) {
       const blob = new Blob([donnees], { type: "text/plain;charset=utf-8" });
-      navigator.sendBeacon(ANALYTICS_CONFIG.endpoint, blob);
-      return;
+      if (navigator.sendBeacon(ANALYTICS_CONFIG.endpoint, blob)) {
+        return;
+      }
     }
 
     fetch(ANALYTICS_CONFIG.endpoint, {
@@ -35,4 +37,23 @@ export function envoyerJsonStyle(evenement, payload) {
   } catch {
     // L'envoi du JSON ne doit jamais bloquer l'utilisation de l'application.
   }
+}
+
+function obtenirInfosAppareil() {
+  return {
+    userAgent: navigator.userAgent || "",
+    platform: navigator.platform || "",
+    language: navigator.language || "",
+    languages: Array.isArray(navigator.languages) ? navigator.languages.join(", ") : "",
+    screen: {
+      width: window.screen?.width || null,
+      height: window.screen?.height || null,
+      pixelRatio: window.devicePixelRatio || 1,
+    },
+    viewport: {
+      width: window.innerWidth || null,
+      height: window.innerHeight || null,
+    },
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+  };
 }

@@ -3098,17 +3098,46 @@ function preparerReglagesPourExport(reglages) {
 
 function creerPayloadJsonStyle(details = {}) {
   const deuxiemeActive = deuxiemeEtiquetteActive();
+  const reglagesPrincipaux = lireReglages("1");
+  const reglagesSecondaires = deuxiemeActive ? lireReglages("2") : null;
   return {
     page: location.pathname,
     language: langueActive,
     activeLabel: etiquetteActive,
     secondLabelEnabled: deuxiemeActive,
     styles: {
-      primary: preparerReglagesPourExport(lireReglages("1")),
-      secondary: deuxiemeActive ? preparerReglagesPourExport(lireReglages("2")) : null,
+      primary: preparerReglagesPourExport(reglagesPrincipaux),
+      secondary: reglagesSecondaires ? preparerReglagesPourExport(reglagesSecondaires) : null,
+    },
+    previewImages: {
+      primary: creerApercuStylePourEmail(reglagesPrincipaux, "principal"),
+      secondary: reglagesSecondaires ? creerApercuStylePourEmail(reglagesSecondaires, "secondaire") : null,
     },
     ...details,
   };
+}
+
+function creerApercuStylePourEmail(reglages, nom) {
+  try {
+    const ligne = obtenirLignes()[indexApercu] || obtenirLignes()[0] || {
+      titre_face_a: "",
+      titre_face_b: "",
+      selection_face_a: "",
+      selection_face_b: "",
+      titreA: "",
+      artiste: "",
+      titreB: "",
+      artisteAffiche: "",
+      position: "",
+    };
+    const canvas = dessinerEtiquette(ligne, reglages);
+    return {
+      name: `45ojuke-apercu-${nom}.png`,
+      dataUrl: canvas.toDataURL("image/png"),
+    };
+  } catch {
+    return null;
+  }
 }
 
 function importerReglages() {
