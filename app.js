@@ -255,6 +255,7 @@ const reglagesParEtiquette = {
 };
 const signaturesSurpriseRecentes = [];
 const modelesAccueilMelanges = new Map();
+const MAX_MODELES_ACCUEIL_AVEC_TEASER = Math.max(1, MAX_MODELES_ACCUEIL - 1);
 let pageModelesSecondaires = 0;
 let pageAccueilModeles = 0;
 let rendreTableauCsvActif = null;
@@ -1556,11 +1557,11 @@ function mettreAJourGalerieModeles() {
     titreB: "",
     position: "",
   };
-  const totalPagesAccueil = Math.max(1, Math.ceil(modelesAccueil.length / MAX_MODELES_ACCUEIL));
+  const totalPagesAccueil = Math.max(1, Math.ceil(modelesAccueil.length / MAX_MODELES_ACCUEIL_AVEC_TEASER));
   pageAccueilModeles = ((pageAccueilModeles % totalPagesAccueil) + totalPagesAccueil) % totalPagesAccueil;
   const modelesAccueilPage = modelesAccueil.slice(
-    pageAccueilModeles * MAX_MODELES_ACCUEIL,
-    pageAccueilModeles * MAX_MODELES_ACCUEIL + MAX_MODELES_ACCUEIL,
+    pageAccueilModeles * MAX_MODELES_ACCUEIL_AVEC_TEASER,
+    pageAccueilModeles * MAX_MODELES_ACCUEIL_AVEC_TEASER + MAX_MODELES_ACCUEIL_AVEC_TEASER,
   );
   elements.galerieModelesAccueil.replaceChildren(...modelesAccueilPage.map(([valeur, libelle]) => creerCarteModele({
     valeur,
@@ -1570,8 +1571,8 @@ function mettreAJourGalerieModeles() {
     cible: "principale",
     reglagesBase: lireReglages("1"),
     vierge: true,
-  })));
-  const navigationAccueilVisible = modelesAccueil.length > MAX_MODELES_ACCUEIL;
+  })), creerCarteModeleIndisponible());
+  const navigationAccueilVisible = modelesAccueil.length > MAX_MODELES_ACCUEIL_AVEC_TEASER;
   elements.modelesAccueilPrecedent.hidden = !navigationAccueilVisible;
   elements.modelesAccueilSuivant.hidden = !navigationAccueilVisible;
   elements.modelesAccueilPrecedent.disabled = !navigationAccueilVisible;
@@ -1650,7 +1651,7 @@ function changerPageModeles(cible, delta) {
 
 function changerPageModelesAccueil(delta) {
   const total = obtenirModelesAccueil("tout").length;
-  const totalPages = Math.max(1, Math.ceil(total / MAX_MODELES_ACCUEIL));
+  const totalPages = Math.max(1, Math.ceil(total / MAX_MODELES_ACCUEIL_AVEC_TEASER));
   pageAccueilModeles = (pageAccueilModeles + delta + totalPages) % totalPages;
   mettreAJourGalerieModeles();
 }
@@ -1681,6 +1682,23 @@ function creerCarteModele({ valeur, libelle, ligneDemo, actif, cible, reglagesBa
 
   bouton.append(image, nom);
   return bouton;
+}
+
+function creerCarteModeleIndisponible() {
+  const carte = document.createElement("div");
+  carte.className = "carte-modele carte-modele--indisponible";
+  carte.setAttribute("aria-disabled", "true");
+
+  const etiquette = document.createElement("div");
+  etiquette.className = "carte-modele__teaser";
+  etiquette.textContent = traduirePhrase("Prochaine étiquette bientôt disponible");
+
+  const nom = document.createElement("span");
+  nom.className = "carte-modele__nom";
+  nom.textContent = traduirePhrase("Bientôt disponible");
+
+  carte.append(etiquette, nom);
+  return carte;
 }
 
 function choisirModeleDepuisAccueil(evenement) {

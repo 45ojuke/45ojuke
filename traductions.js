@@ -397,6 +397,8 @@ Object.assign(phrasesInterface, {
   "Modèles secondaires suivants": phrase("Next secondary models", "Volgende tweede modellen", "Nächste zweite Modelle", "Modelos secundarios siguientes", "Modelli secondari successivi"),
   "Styles d'étiquette de départ": phrase("Starting label styles", "Startstijlen voor labels", "Startstile für Etiketten", "Estilos de etiqueta iniciales", "Stili etichetta iniziali"),
   "Styles de la deuxième étiquette": phrase("Second label styles", "Stijlen voor het tweede label", "Stile des zweiten Etiketts", "Estilos de la segunda etiqueta", "Stili della seconda etichetta"),
+  "Prochaine étiquette bientôt disponible": phrase("Next label coming soon", "Volgend label binnenkort beschikbaar", "Nächstes Etikett bald verfügbar", "Próxima etiqueta disponible pronto", "Prossima etichetta presto disponibile"),
+  "Bientôt disponible": phrase("Coming soon", "Binnenkort", "Bald verfügbar", "Próximamente", "Prossimamente"),
   "Cliquez sur une étiquette pour la modifier.": phrase("Tap a label to edit it.", "Tik op een label om het te bewerken.", "Tippen Sie auf ein Etikett, um es zu bearbeiten.", "Toca una etiqueta para editarla.", "Tocca un'etichetta per modificarla."),
   "Chargement...": phrase("Loading...", "Laden...", "Wird geladen...", "Cargando...", "Caricamento..."),
   "Aperçu étiquette Canvas": phrase("Canvas label preview", "Canvas-labelvoorbeeld", "Canvas-Etikettenvorschau", "Vista previa de etiqueta Canvas", "Anteprima etichetta Canvas"),
