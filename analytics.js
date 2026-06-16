@@ -28,7 +28,6 @@ export function envoyerJsonStyle(evenement, payload) {
     fetch(ANALYTICS_CONFIG.endpoint, {
       method: "POST",
       mode: "no-cors",
-      keepalive: true,
       headers: {
         "Content-Type": "text/plain;charset=utf-8",
       },

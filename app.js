@@ -3207,13 +3207,30 @@ function creerApercuStylePourEmail(reglages, nom) {
       position: "",
     };
     const canvas = dessinerEtiquette(ligne, reglages);
+    const apercu = redimensionnerCanvasPourEmail(canvas);
     return {
-      name: `45ojuke-apercu-${nom}.png`,
-      dataUrl: canvas.toDataURL("image/png"),
+      name: `45ojuke-apercu-${nom}.jpg`,
+      dataUrl: apercu.toDataURL("image/jpeg", 0.82),
     };
   } catch {
     return null;
   }
+}
+
+function redimensionnerCanvasPourEmail(source) {
+  const largeurMax = 900;
+  const ratio = Math.min(1, largeurMax / source.width);
+  if (ratio >= 1) {
+    return source;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(source.width * ratio);
+  canvas.height = Math.round(source.height * ratio);
+  const contexte = canvas.getContext("2d");
+  contexte.fillStyle = "#ffffff";
+  contexte.fillRect(0, 0, canvas.width, canvas.height);
+  contexte.drawImage(source, 0, 0, canvas.width, canvas.height);
+  return canvas;
 }
 
 function importerReglages() {
