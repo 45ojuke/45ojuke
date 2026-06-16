@@ -41,6 +41,7 @@ const EMAIL_CONTACT = "contact45ojuke@gmail.com";
 const LIEN_FACEBOOK_CONTACT = "https://www.facebook.com/45.O.Juke/";
 const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
 const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
+const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine)");
 
 const elements = {
   intro: document.querySelector("#intro"),
@@ -1668,21 +1669,92 @@ function creerCarteModele({ valeur, libelle, ligneDemo, actif, cible, reglagesBa
     bouton.classList.add("is-actif");
   }
 
-  const image = document.createElement("img");
-  image.alt = `Apercu ${libelle}`;
   const reglagesCarte = {
     ...reglagesBase,
     ...presets[valeur],
     modele: valeur,
   };
+  const apercu = document.createElement("span");
+  apercu.className = "carte-modele__apercu";
+
+  const image = document.createElement("img");
+  image.className = "carte-modele__image carte-modele__image--base";
+  image.alt = `Apercu ${libelle}`;
   image.src = dessinerEtiquette(ligneDemo, reglagesCarte).toDataURL("image/png");
+
+  const imageVariante = document.createElement("img");
+  imageVariante.className = "carte-modele__image carte-modele__image--variante";
+  imageVariante.alt = "";
+  imageVariante.setAttribute("aria-hidden", "true");
+
+  const mettreAJourVariante = () => {
+    imageVariante.src = dessinerEtiquette(ligneDemo, creerVariantePourApercuModele(reglagesCarte)).toDataURL("image/png");
+  };
+  mettreAJourVariante();
+  bouton.addEventListener("pointerenter", () => {
+    if (MEDIA_SURVOL_PRECIS.matches) {
+      mettreAJourVariante();
+    }
+  });
 
   const nom = document.createElement("span");
   nom.className = "carte-modele__nom";
   nom.textContent = libelle;
 
-  bouton.append(image, nom);
+  apercu.append(image, imageVariante);
+  bouton.append(apercu, nom);
   return bouton;
+}
+
+function creerVariantePourApercuModele(reglages) {
+  if (reglages.modele === "manu") {
+    return Math.random() > 0.35 ? creerSurpriseManu(reglages) : creerVarianteManu(reglages);
+  }
+  if (reglages.modele === "leon") {
+    return creerSurpriseLeon(reglages);
+  }
+  if (reglages.modele === "celeste") {
+    return creerVarianteModerne(reglages);
+  }
+  return creerVarianteClassiqueAleatoire(reglages);
+}
+
+function creerVarianteClassiqueAleatoire(reglages) {
+  const combo = choisirAleatoire(combosSurprise);
+  const variation = choisirAleatoire(["original", "inverse", "ruban-fond-haut", "ruban-fond-bas"]);
+  const [couleur1, couleur2, couleur3, couleurRuban, couleurTitres, couleurArtiste, couleurMarques] = combo.couleurs;
+  const fondHaut = variation === "inverse" ? couleur3 : couleur2;
+  const fondBas = variation === "inverse" ? couleur2 : couleur3;
+  const ruban = variation === "ruban-fond-haut" ? couleur2 : variation === "ruban-fond-bas" ? couleur3 : couleurRuban;
+  const marques = presetsMarques[combo.marques] || [reglages.marqueGauche || "HIT", reglages.marqueDroite || "OLDY"];
+
+  return {
+    ...reglages,
+    couleur1,
+    couleur2: fondHaut,
+    couleur3: fondBas,
+    couleurRuban: ruban,
+    couleurVignette: variation === "inverse" ? couleur1 : couleurRuban,
+    couleurTitres: couleurLisible(fondHaut, couleurTitres),
+    couleurArtiste: couleurLisible(ruban, couleurArtiste),
+    couleurMarques: couleurLisible(couleur1, couleurMarques),
+    couleurMotif: couleur1,
+    decorPanel: combo.decor,
+    motifType: combo.motif,
+    modeVignette: combo.vignette,
+    intensite: combo.vignette === "aucun" ? reglages.intensite : nombreAleatoire(60, 92, 2),
+    motif: nombreAleatoire(28, 76, 2),
+    angleMotif: nombreAleatoire(-30, 30, 2),
+    vignette: combo.vignette === "aucun" ? reglages.vignette : nombreAleatoire(18, 44, 2),
+    bordure: nombreAleatoire(38, 92, 2),
+    largeurRuban: nombreAleatoire(72, 96, 2),
+    hauteurRuban: nombreAleatoire(22, 34, 1),
+    hauteurBande: reglages.modele === "alice" ? nombreAleatoire(8, 24, 1) : reglages.hauteurBande,
+    afficherMarques: combo.marques !== "aucun",
+    presetMarques: combo.marques === "aucun" ? "custom" : combo.marques,
+    marqueGauche: combo.marques === "aucun" ? "" : marques[0],
+    marqueDroite: combo.marques === "aucun" ? "" : marques[1],
+  };
 }
 
 function creerCarteModeleIndisponible() {
@@ -2017,7 +2089,9 @@ function retablirModification() {
 
 function mettreAJourBoutonsHistorique() {
   elements.annulerReglage.disabled = historiqueReglages.annulations.length === 0;
-  elements.retablirReglage.disabled = historiqueReglages.retablissements.length === 0;
+  const retablirDisponible = historiqueReglages.retablissements.length > 0;
+  elements.retablirReglage.disabled = !retablirDisponible;
+  elements.retablirReglage.hidden = !retablirDisponible;
 }
 
 const { obtenirFavoris, enregistrerFavoris, signatureReglages } = creerGestionFavoris({

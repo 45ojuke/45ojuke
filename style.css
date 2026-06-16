@@ -1270,14 +1270,43 @@ body:not(.is-intro-active) .hero-site__contenu {
   text-align: center;
 }
 
-.carte-modele img {
+.carte-modele__apercu {
+  position: relative;
   width: 100%;
   aspect-ratio: var(--ratio-etiquette, 3 / 1);
   display: block;
-  object-fit: contain;
   background: #fffaf0;
   border-radius: 6px;
   box-shadow: 0 5px 12px rgba(31, 21, 14, 0.12);
+  overflow: hidden;
+}
+
+.carte-modele__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  transition: opacity 180ms ease;
+}
+
+.carte-modele__image--base {
+  opacity: 1;
+}
+
+.carte-modele__image--variante {
+  opacity: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .carte-modele:not(.carte-modele--indisponible):hover .carte-modele__image--base {
+    opacity: 0;
+  }
+
+  .carte-modele:not(.carte-modele--indisponible):hover .carte-modele__image--variante {
+    opacity: 1;
+  }
 }
 
 .carte-modele__teaser {
