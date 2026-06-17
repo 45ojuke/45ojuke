@@ -255,11 +255,21 @@ const elements = {
   retablirReglage: document.querySelector("#retablirReglage"),
   reinitialiserReglage: document.querySelector("#reinitialiserReglage"),
   inverser: document.querySelector("#inverser"),
+  teinte: document.querySelector("#teinte"),
   precedent: document.querySelector("#precedent"),
   suivant: document.querySelector("#suivant"),
   etat: document.querySelector("#etat"),
   statutPlanche: document.querySelector("#statutPlanche"),
 };
+
+const PALETTES_TEINTES = [
+  { nom: "rouge", cadre: "#9f1d24", fondHaut: "#fff7df", fondBas: "#f3d59b", ruban: "#b8242e", vignette: "#7c151b", motif: "#8b1a20", secondaire: "#d0a24d", titre: "#5c1015", artiste: "#fff7df", marques: "#fff0c0" },
+  { nom: "vert", cadre: "#176a46", fondHaut: "#fff6dc", fondBas: "#d9c47a", ruban: "#1f7a53", vignette: "#125439", motif: "#176a46", secondaire: "#b49543", titre: "#103f2c", artiste: "#fff7df", marques: "#f1dd91" },
+  { nom: "bleu", cadre: "#1e4f85", fondHaut: "#fff5dd", fondBas: "#d6bd78", ruban: "#285f96", vignette: "#173f69", motif: "#1e4f85", secondaire: "#b78f3e", titre: "#14365c", artiste: "#fff7df", marques: "#efd487" },
+  { nom: "violet", cadre: "#64356f", fondHaut: "#fff4dc", fondBas: "#d5b978", ruban: "#76407d", vignette: "#4f2857", motif: "#64356f", secondaire: "#b68a3d", titre: "#3d2145", artiste: "#fff7df", marques: "#efd182" },
+  { nom: "orange", cadre: "#a44d1f", fondHaut: "#fff4dc", fondBas: "#d9bd76", ruban: "#b85c24", vignette: "#7b3517", motif: "#a44d1f", secondaire: "#9c6f32", titre: "#663016", artiste: "#fff7df", marques: "#efd48a" },
+  { nom: "jaune", cadre: "#8a6a1f", fondHaut: "#fff2d1", fondBas: "#d0ad4f", ruban: "#9a7622", vignette: "#6d5319", motif: "#8a6a1f", secondaire: "#725426", titre: "#513f16", artiste: "#fff7df", marques: "#e7c15d" },
+];
 
 let vinyles = [];
 let indexApercu = 0;
@@ -272,6 +282,7 @@ let frameAnimationApercu = null;
 let gesteApercu = null;
 let signatureDerniereVarianteCouleur = "";
 let cycleVarianteBouton = null;
+let indexTeinteActif = -1;
 let ignorerProchainClicApercu = false;
 let etapeReglageActive = "style";
 const reglagesParEtiquette = {
@@ -423,6 +434,7 @@ function brancherEvenements() {
     radio.addEventListener("change", changerEtiquetteActive);
   });
   elements.inverser.addEventListener("click", inverserStyle);
+  elements.teinte.addEventListener("click", applyNextTint);
   elements.annulerReglage.addEventListener("click", annulerDerniereModification);
   elements.retablirReglage.addEventListener("click", retablirModification);
   elements.reinitialiserReglage.addEventListener("click", reinitialiserStyleDefaut);
@@ -1141,6 +1153,7 @@ function appliquerLangueSite(langue, options = {}) {
   definirTexteElement(".accueil-apercu h2", traduire("styleTitle"));
   definirTexteElement(".accueil-apercu__description", traductionCourante().styleDescription || traductions.fr.styleDescription);
   elements.inverser.textContent = traduire("variant");
+  elements.teinte.textContent = traduirePhrase("Teinte");
   elements.reinitialiserReglage.textContent = traduirePhrase("Reset");
   elements.reinitialiserReglage.setAttribute("aria-label", traduirePhrase("Revenir au style par défaut"));
   elements.reinitialiserReglage.title = traduirePhrase("Style par défaut");
@@ -1657,8 +1670,7 @@ function obtenirModelesCategorie(categorie) {
 
 function remplirModelesTheme() {
   const modeles = obtenirModelesCategorie("tout");
-  const valeurPrincipale = elements.modele.value || modeles[0][0];
-  const modelesSecondaires = obtenirModelesCategorie("tout").filter(([valeur]) => valeur !== valeurPrincipale);
+  const modelesSecondaires = obtenirModelesCategorie("tout");
   const valeurActuelle = elements.modele.value;
   const valeurSecondaire = elements.modeleSecondaire.value;
   elements.modele.replaceChildren(...modeles.map(([valeur, libelle]) => new Option(libelle, valeur)));
@@ -1675,8 +1687,8 @@ function remplirModelesTheme() {
 function mettreAJourGalerieModeles() {
   const modelesAccueil = obtenirModelesAccueil("tout");
   const deuxiemeActive = deuxiemeEtiquetteActive();
+  const modelesSecondaires = obtenirStylesEtiquettes("tout");
   const modelePrincipal = lireReglages("1").modele || elements.modele.value;
-  const modelesSecondaires = obtenirStylesEtiquettes("tout").filter((style) => style.reglages.modele !== modelePrincipal);
   const modeleSecondaire = lireReglages("2").modele || elements.modeleSecondaire.value;
   const ligneDemo = obtenirLignes()[indexApercu] || {
     titreA: "En Rouge Et Noir",
@@ -1776,8 +1788,7 @@ function mettreAJourBoutonsNavigationModeles(precedent, suivant, total, pageSize
 }
 
 function changerPageModeles(cible, delta) {
-  const modelePrincipal = lireReglages("1").modele || elements.modele.value;
-  const totalSecondaires = obtenirStylesEtiquettes("tout").filter((style) => style.reglages.modele !== modelePrincipal).length;
+  const totalSecondaires = obtenirStylesEtiquettes("tout").length;
   pageModelesSecondaires = normaliserPage(
     pageModelesSecondaires + delta,
     totalSecondaires,
@@ -2067,7 +2078,11 @@ function choisirModeleSecondaireDepuisGalerie(evenement) {
   synchroniserBoutonDeuxiemeEtiquette(true);
   afficherApercuApresChoixModele();
   const style = bouton.dataset.styleId ? obtenirStyleEtiquette(bouton.dataset.styleId) : null;
-  reglagesParEtiquette[2] = style ? normaliserReglagesImportes(style.reglages) : creerReglagesSecondaires();
+  const reglagesPrincipaux = lireReglages("1");
+  const memeModeleQuePrincipal = bouton.dataset.modele === reglagesPrincipaux.modele;
+  reglagesParEtiquette[2] = memeModeleQuePrincipal
+    ? creerVarianteCouleur(reglagesPrincipaux)
+    : style ? normaliserReglagesImportes(style.reglages) : creerReglagesSecondaires();
   etiquetteActive = "2";
   elements.editionEtiquette.forEach((radio) => {
     radio.checked = radio.value === "2";
@@ -2780,8 +2795,7 @@ function changerActivationDeuxiemeEtiquette() {
     return;
   }
 
-  const modelePrincipal = lireReglages("1").modele || elements.modele.value;
-  const modeles = obtenirModelesCategorie("tout").filter(([valeur]) => valeur !== modelePrincipal);
+  const modeles = obtenirModelesCategorie("tout");
   if (!modeles.some(([valeur]) => valeur === elements.modeleSecondaire.value)) {
     elements.modeleSecondaire.value = modeles[0][0];
   }
@@ -3529,6 +3543,43 @@ function inverserStyle() {
   signatureDerniereVarianteCouleur = signatureBaseVariante(lireReglagesFormulaire());
   enregistrerReglagesActifs();
   mettreAJour();
+}
+
+function applyNextTint() {
+  const reglages = lireReglagesFormulaire();
+  indexTeinteActif = (indexTeinteActif + 1) % PALETTES_TEINTES.length;
+  enregistrerHistoriqueAvantAction();
+  appliquerReglagesAuFormulaire(appliquerPaletteTeinte(reglages, PALETTES_TEINTES[indexTeinteActif]));
+  signatureDerniereVarianteCouleur = "";
+  cycleVarianteBouton = null;
+  enregistrerReglagesActifs();
+  mettreAJour();
+}
+
+function appliquerPaletteTeinte(reglages, palette) {
+  const couleurTitres = couleurLisible(palette.fondHaut, palette.titre);
+  const couleurArtiste = couleurLisible(palette.ruban, palette.artiste);
+  const couleurMarques = couleurLisible(palette.cadre, palette.marques);
+  return {
+    ...reglages,
+    couleur1: palette.cadre,
+    couleur2: palette.fondHaut,
+    couleur3: palette.fondBas,
+    couleurRuban: palette.ruban,
+    couleurVignette: palette.vignette,
+    couleurFondModerne: palette.fondHaut,
+    couleurBandeGauche: palette.cadre,
+    couleurBandeDroite: palette.fondBas,
+    couleurTitres,
+    couleurArtiste,
+    couleurMotif: palette.motif,
+    couleurMotifRuban: palette.secondaire,
+    couleurTraitsModernes: palette.secondaire,
+    couleurPapierVieilli: palette.vignette,
+    couleurMarques,
+    couleurMarqueGauche: couleurMarques,
+    couleurMarqueDroite: couleurMarques,
+  };
 }
 
 function estStyleParDefautVariante(style, modele) {

@@ -398,6 +398,7 @@ Object.assign(phrasesInterface, {
   "Suivant": phrase("Next", "Volgende", "Weiter", "Siguiente", "Avanti"),
   "Nouveau style": phrase("New style", "Nieuwe stijl", "Neuer Stil", "Nuevo estilo", "Nuovo stile"),
   "Variante": phrase("Variant", "Variant", "Variante", "Variante", "Variante"),
+  "Teinte": phrase("Tint", "Tint", "Farbton", "Tono", "Tinta"),
   "Favoris": phrase("Favorites", "Favorieten", "Favoriten", "Favoritos", "Preferiti"),
   "Ajouter aux favoris": phrase("Add to favorites", "Toevoegen aan favorieten", "Zu Favoriten hinzufügen", "Añadir a favoritos", "Aggiungi ai preferiti"),
   "Retirer des favoris": phrase("Remove from favorites", "Verwijderen uit favorieten", "Aus Favoriten entfernen", "Quitar de favoritos", "Rimuovi dai preferiti"),
