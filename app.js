@@ -37,7 +37,7 @@ import {
 } from "./impression.js";
 import { envoyerJsonStyle } from "./analytics.js";
 
-const EMAIL_CONTACT = "contact45ojuke@gmail.com";
+const EMAIL_CONTACT = "contact@45ojuke.fr";
 const EPAISSEUR_BORDURE_MIN = 1;
 const LIEN_FACEBOOK_CONTACT = "https://www.facebook.com/45.O.Juke/";
 const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
