@@ -269,6 +269,16 @@ const PALETTES_TEINTES = [
   { nom: "violet", cadre: "#64356f", fondHaut: "#fff4dc", fondBas: "#d5b978", ruban: "#76407d", vignette: "#4f2857", motif: "#64356f", secondaire: "#b68a3d", titre: "#3d2145", artiste: "#fff7df", marques: "#efd182" },
   { nom: "orange", cadre: "#a44d1f", fondHaut: "#fff4dc", fondBas: "#d9bd76", ruban: "#b85c24", vignette: "#7b3517", motif: "#a44d1f", secondaire: "#9c6f32", titre: "#663016", artiste: "#fff7df", marques: "#efd48a" },
   { nom: "jaune", cadre: "#8a6a1f", fondHaut: "#fff2d1", fondBas: "#d0ad4f", ruban: "#9a7622", vignette: "#6d5319", motif: "#8a6a1f", secondaire: "#725426", titre: "#513f16", artiste: "#fff7df", marques: "#e7c15d" },
+  { nom: "rose", cadre: "#a21d5d", fondHaut: "#fff4e5", fondBas: "#e6b77c", ruban: "#bd2f74", vignette: "#7c1747", motif: "#a21d5d", secondaire: "#b47b35", titre: "#65143d", artiste: "#fff7df", marques: "#efd08b" },
+  { nom: "turquoise", cadre: "#0f6f78", fondHaut: "#fff6df", fondBas: "#d4bd75", ruban: "#16828c", vignette: "#0b5961", motif: "#0f6f78", secondaire: "#aa8c3f", titre: "#0b454b", artiste: "#fff7df", marques: "#ecd389" },
+  { nom: "indigo", cadre: "#34427d", fondHaut: "#fff5dd", fondBas: "#d7bd78", ruban: "#43519a", vignette: "#283363", motif: "#34427d", secondaire: "#b48f42", titre: "#222b55", artiste: "#fff7df", marques: "#efd489" },
+  { nom: "bordeaux", cadre: "#7f2432", fondHaut: "#fff4dd", fondBas: "#d8b474", ruban: "#973044", vignette: "#641a27", motif: "#7f2432", secondaire: "#a87b38", titre: "#521622", artiste: "#fff7df", marques: "#ebcb80" },
+  { nom: "menthe", cadre: "#2f7a55", fondHaut: "#fff7e1", fondBas: "#d8c07c", ruban: "#3d9368", vignette: "#235d40", motif: "#2f7a55", secondaire: "#b08c3e", titre: "#214c37", artiste: "#fff7df", marques: "#edd28a" },
+  { nom: "marine", cadre: "#1f3f67", fondHaut: "#fff5dc", fondBas: "#d2b979", ruban: "#2b507c", vignette: "#182f4f", motif: "#1f3f67", secondaire: "#aa8640", titre: "#172d49", artiste: "#fff7df", marques: "#ecd18a" },
+  { nom: "prune", cadre: "#70345d", fondHaut: "#fff4de", fondBas: "#d7b879", ruban: "#86406f", vignette: "#562848", motif: "#70345d", secondaire: "#ad843c", titre: "#48223d", artiste: "#fff7df", marques: "#ecd086" },
+  { nom: "olive", cadre: "#69712a", fondHaut: "#fff4d8", fondBas: "#d0b565", ruban: "#7b8431", vignette: "#515720", motif: "#69712a", secondaire: "#8b6b30", titre: "#414719", artiste: "#fff7df", marques: "#e2c36c" },
+  { nom: "corail", cadre: "#b04434", fondHaut: "#fff4df", fondBas: "#ddb477", ruban: "#c45140", vignette: "#843126", motif: "#b04434", secondaire: "#a97736", titre: "#6e2b22", artiste: "#fff7df", marques: "#ebcc83" },
+  { nom: "ardoise", cadre: "#4d5865", fondHaut: "#fff5df", fondBas: "#d1bb7b", ruban: "#5d6876", vignette: "#3b444f", motif: "#4d5865", secondaire: "#a78643", titre: "#343c45", artiste: "#fff7df", marques: "#ead088" },
 ];
 
 let vinyles = [];
@@ -1883,7 +1893,7 @@ function creerCycleVariante(reglages) {
       .filter((motif) => motif && motif !== "aucun")
       .forEach((motif) => motifsDecorRecents.push(motif));
     motifsDecorRecents.splice(0, Math.max(0, motifsDecorRecents.length - 4));
-    return varianteAvecDecor;
+    return appliquerBordureVisibleAleatoire(varianteAvecDecor);
   };
 
   const prochaine = () => {
@@ -1925,6 +1935,15 @@ function creerVarianteCouleur(reglages) {
     return creerVarianteModerne(reglages);
   }
   return creerVarianteClassique(reglages);
+}
+
+function appliquerBordureVisibleAleatoire(reglages) {
+  const mode = choisirAleatoire(["horizontale", "verticale", "complete"]);
+  return {
+    ...reglages,
+    bordureHorizontale: mode !== "verticale",
+    bordureVerticale: mode !== "horizontale",
+  };
 }
 
 function appliquerDecorMotifVariante(reglages, reglagesBase = reglages, motifsExclus = []) {
@@ -2081,7 +2100,7 @@ function choisirModeleSecondaireDepuisGalerie(evenement) {
   const reglagesPrincipaux = lireReglages("1");
   const memeModeleQuePrincipal = bouton.dataset.modele === reglagesPrincipaux.modele;
   reglagesParEtiquette[2] = memeModeleQuePrincipal
-    ? creerVarianteCouleur(reglagesPrincipaux)
+    ? appliquerBordureVisibleAleatoire(creerVarianteCouleur(reglagesPrincipaux))
     : style ? normaliserReglagesImportes(style.reglages) : creerReglagesSecondaires();
   etiquetteActive = "2";
   elements.editionEtiquette.forEach((radio) => {
@@ -3124,6 +3143,8 @@ function signatureStyleEnregistre(reglages) {
     reglages.motifType,
     reglages.modeVignette,
     reglages.bordure,
+    reglages.bordureHorizontale,
+    reglages.bordureVerticale,
     reglages.largeurRuban,
     reglages.hauteurRuban,
     reglages.hauteurBande,
@@ -3557,19 +3578,26 @@ function applyNextTint() {
 }
 
 function appliquerPaletteTeinte(reglages, palette) {
-  const couleurTitres = couleurLisible(palette.fondHaut, palette.titre);
-  const couleurArtiste = couleurLisible(palette.ruban, palette.artiste);
-  const couleurMarques = couleurLisible(palette.cadre, palette.marques);
+  const fondHaut = couleurFondTeintee(reglages.couleur2, palette.fondHaut);
+  const fondBas = couleurFondTeintee(reglages.couleur3, palette.fondBas);
+  const ruban = couleurFondTeintee(reglages.couleurRuban, palette.ruban);
+  const fondModerne = couleurFondTeintee(reglages.couleurFondModerne, palette.fondHaut);
+  const couleurTitres = couleurTexteTeintee(reglages.couleurTitres, palette.titre, fondHaut);
+  const couleurArtisteSource = estFondPreserveParTeinte(reglages.couleurRuban) ? palette.cadre : palette.artiste;
+  const couleurArtiste = couleurTexteTeintee(reglages.couleurArtiste, couleurArtisteSource, ruban);
+  const couleurMarques = couleurFondTeintee(reglages.couleurMarques, palette.marques);
+  const couleurMarqueGauche = couleurFondTeintee(reglages.couleurMarqueGauche, couleurMarques);
+  const couleurMarqueDroite = couleurFondTeintee(reglages.couleurMarqueDroite, couleurMarques);
   return {
     ...reglages,
     couleur1: palette.cadre,
-    couleur2: palette.fondHaut,
-    couleur3: palette.fondBas,
-    couleurRuban: palette.ruban,
+    couleur2: fondHaut,
+    couleur3: fondBas,
+    couleurRuban: ruban,
     couleurVignette: palette.vignette,
-    couleurFondModerne: palette.fondHaut,
+    couleurFondModerne: fondModerne,
     couleurBandeGauche: palette.cadre,
-    couleurBandeDroite: palette.fondBas,
+    couleurBandeDroite: couleurFondTeintee(reglages.couleurBandeDroite, palette.fondBas),
     couleurTitres,
     couleurArtiste,
     couleurMotif: palette.motif,
@@ -3577,8 +3605,141 @@ function appliquerPaletteTeinte(reglages, palette) {
     couleurTraitsModernes: palette.secondaire,
     couleurPapierVieilli: palette.vignette,
     couleurMarques,
-    couleurMarqueGauche: couleurMarques,
-    couleurMarqueDroite: couleurMarques,
+    couleurMarqueGauche,
+    couleurMarqueDroite,
+  };
+}
+
+function couleurFondTeintee(couleurActuelle, couleurTeinte) {
+  if (estFondPreserveParTeinte(couleurActuelle)) {
+    return normaliserCouleurHex(couleurActuelle);
+  }
+  if (estCouleurClaire(couleurActuelle)) {
+    return appliquerTeinteEnGardantClarte(couleurActuelle, couleurTeinte);
+  }
+  return couleurTeinte;
+}
+
+function couleurTexteTeintee(couleurActuelle, couleurTeinte, couleurFond) {
+  const couleurSource = estCouleurNeutre(couleurActuelle)
+    ? normaliserCouleurHex(couleurActuelle)
+    : couleurTeinte;
+  return couleurLisible(couleurFond, couleurSource);
+}
+
+function estFondPreserveParTeinte(couleur) {
+  const rgb = lireCouleurHex(couleur);
+  if (!rgb) {
+    return false;
+  }
+  const max = Math.max(rgb.rouge, rgb.vert, rgb.bleu);
+  const min = Math.min(rgb.rouge, rgb.vert, rgb.bleu);
+  return min >= 244 && (max - min) <= 12;
+}
+
+function estCouleurNeutre(couleur) {
+  const rgb = lireCouleurHex(couleur);
+  if (!rgb) {
+    return false;
+  }
+  const max = Math.max(rgb.rouge, rgb.vert, rgb.bleu);
+  const min = Math.min(rgb.rouge, rgb.vert, rgb.bleu);
+  return (max - min) <= 10;
+}
+
+function estCouleurClaire(couleur) {
+  const rgb = lireCouleurHex(couleur);
+  if (!rgb) {
+    return false;
+  }
+  return rgbVersHsl(rgb).l >= 0.74;
+}
+
+function appliquerTeinteEnGardantClarte(couleurActuelle, couleurTeinte) {
+  const hslActuel = rgbVersHsl(lireCouleurHex(couleurActuelle));
+  const hslTeinte = rgbVersHsl(lireCouleurHex(couleurTeinte));
+  const saturation = limiterRatio(Math.max(0.16, Math.min(hslActuel.s, 0.36), hslTeinte.s * 0.42), 0.16, 0.42);
+  const clarte = limiterRatio(Math.max(0.78, hslActuel.l), 0.78, 0.94);
+  return hslVersHex(hslTeinte.h, saturation, clarte);
+}
+
+function limiterRatio(valeur, minimum, maximum) {
+  return Math.min(maximum, Math.max(minimum, valeur));
+}
+
+function rgbVersHsl({ rouge, vert, bleu }) {
+  const r = rouge / 255;
+  const g = vert / 255;
+  const b = bleu / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) {
+    return { h: 0, s: 0, l };
+  }
+  const delta = max - min;
+  const s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+  let h = 0;
+  if (max === r) {
+    h = (g - b) / delta + (g < b ? 6 : 0);
+  } else if (max === g) {
+    h = (b - r) / delta + 2;
+  } else {
+    h = (r - g) / delta + 4;
+  }
+  return { h: h / 6, s, l };
+}
+
+function hslVersHex(h, s, l) {
+  const teinteVersRgb = (p, q, t) => {
+    let teinte = t;
+    if (teinte < 0) teinte += 1;
+    if (teinte > 1) teinte -= 1;
+    if (teinte < 1 / 6) return p + (q - p) * 6 * teinte;
+    if (teinte < 1 / 2) return q;
+    if (teinte < 2 / 3) return p + (q - p) * (2 / 3 - teinte) * 6;
+    return p;
+  };
+  if (s === 0) {
+    const gris = Math.round(l * 255);
+    return normaliserRgbEnHex(gris, gris, gris);
+  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return normaliserRgbEnHex(
+    Math.round(teinteVersRgb(p, q, h + 1 / 3) * 255),
+    Math.round(teinteVersRgb(p, q, h) * 255),
+    Math.round(teinteVersRgb(p, q, h - 1 / 3) * 255)
+  );
+}
+
+function normaliserCouleurHex(couleur) {
+  const rgb = lireCouleurHex(couleur);
+  if (!rgb) {
+    return couleur;
+  }
+  return normaliserRgbEnHex(rgb.rouge, rgb.vert, rgb.bleu);
+}
+
+function normaliserRgbEnHex(rouge, vert, bleu) {
+  return `#${[rouge, vert, bleu].map((composant) => composant.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function lireCouleurHex(couleur) {
+  const valeur = String(couleur || "").trim();
+  const court = /^#?([0-9a-f]{3})$/i.exec(valeur);
+  if (court) {
+    const [rouge, vert, bleu] = court[1].split("").map((composant) => parseInt(composant + composant, 16));
+    return { rouge, vert, bleu };
+  }
+  const long = /^#?([0-9a-f]{6})$/i.exec(valeur);
+  if (!long) {
+    return null;
+  }
+  return {
+    rouge: parseInt(long[1].slice(0, 2), 16),
+    vert: parseInt(long[1].slice(2, 4), 16),
+    bleu: parseInt(long[1].slice(4, 6), 16),
   };
 }
 
