@@ -2500,7 +2500,7 @@ function selectionnerEtiquetteDepuisApercu(numero) {
   });
   appliquerReglagesAuFormulaire(lireReglages(numero));
   mettreAJour();
-  activerEtapeReglage("reglages");
+  activerEtapeReglage("texte");
 }
 
 function changerModeleSecondaire() {
