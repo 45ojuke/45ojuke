@@ -30,7 +30,7 @@ export const traductions = {
     assistant: {
       style: { titre: "Ajouter une deuxième étiquette", aide: "Ajouter une deuxième étiquette permet d'alterner deux styles différents lors de l'impression." },
       reglages: { titre: "Ajustez la taille", aide: "Définissez la taille finale de vos étiquettes." },
-      texte: { titre: "Réglez les textes", aide: "Personnalisez les titres, artistes et tailles." },
+      texte: { titre: "Réglez les textes", aide: "Personnalisez les titres, artistes, couleurs et tailles." },
       cote: { titre: "Ajoutez des mentions latérales", aide: "Affichez de courtes inscriptions sur les côtés de l’étiquette." },
       couleurs: { titre: "Choisissez les couleurs", aide: "Personnalisez les couleurs principales de l’étiquette." },
       decor: { titre: "Ajoutez un décor", aide: "Choisissez les éléments du décor à personnaliser." },
@@ -59,7 +59,7 @@ export const traductions = {
     assistant: {
       style: { titre: "Add a second label", aide: "A second label alternates two different styles when printing." },
       reglages: { titre: "Adjust the size", aide: "Set the final size of your labels." },
-      texte: { titre: "Set the text", aide: "Customize titles, artists, and sizes." },
+      texte: { titre: "Set the text", aide: "Customize titles, artists, colors, and sizes." },
       cote: { titre: "Add side notes", aide: "Show short inscriptions on the sides of the label." },
       couleurs: { titre: "Choose colors", aide: "Customize the main colors of the label." },
       decor: { titre: "Add decoration", aide: "Choose which decoration elements to customize." },
@@ -88,7 +88,7 @@ export const traductions = {
     assistant: {
       style: { titre: "Add a second label", aide: "A second label alternates two different styles when printing." },
       reglages: { titre: "Adjust the size", aide: "Set the final size of your labels." },
-      texte: { titre: "Set the text", aide: "Customize titles, artists, and sizes." },
+      texte: { titre: "Set the text", aide: "Customize titles, artists, colors, and sizes." },
       cote: { titre: "Add side notes", aide: "Show short inscriptions on the sides of the label." },
       couleurs: { titre: "Choose colors", aide: "Customize the main colors of the label." },
       decor: { titre: "Add decoration", aide: "Choose which decoration elements to customize." },
@@ -117,7 +117,7 @@ export const traductions = {
     assistant: {
       style: { titre: "Tweede label toevoegen", aide: "Met een tweede label wissel je twee stijlen af bij het afdrukken." },
       reglages: { titre: "Pas de grootte aan", aide: "Bepaal de uiteindelijke grootte van je labels." },
-      texte: { titre: "Stel de teksten in", aide: "Personaliseer titels, artiesten en groottes." },
+      texte: { titre: "Stel de teksten in", aide: "Personaliseer titels, artiesten, kleuren en groottes." },
       cote: { titre: "Voeg zijvermeldingen toe", aide: "Toon korte opschriften aan de zijkanten van het label." },
       couleurs: { titre: "Kies de kleuren", aide: "Personaliseer de hoofdkleuren van het label." },
       decor: { titre: "Voeg decoratie toe", aide: "Kies welke decoratie-elementen je wilt aanpassen." },
@@ -146,7 +146,7 @@ export const traductions = {
     assistant: {
       style: { titre: "Zweites Etikett hinzufügen", aide: "Ein zweites Etikett wechselt beim Drucken zwei Stile ab." },
       reglages: { titre: "Größe anpassen", aide: "Legen Sie die endgültige Größe Ihrer Etiketten fest." },
-      texte: { titre: "Texte einstellen", aide: "Passen Sie Titel, Künstler und Größen an." },
+      texte: { titre: "Texte einstellen", aide: "Passen Sie Titel, Künstler, Farben und Größen an." },
       cote: { titre: "Seitliche Hinweise hinzufügen", aide: "Zeigen Sie kurze Beschriftungen an den Seiten des Etiketts an." },
       couleurs: { titre: "Farben wählen", aide: "Passen Sie die Hauptfarben des Etiketts an." },
       decor: { titre: "Dekor hinzufügen", aide: "Wählen Sie die Dekorelemente aus, die Sie anpassen möchten." },
@@ -175,7 +175,7 @@ export const traductions = {
     assistant: {
       style: { titre: "Añadir segunda etiqueta", aide: "Una segunda etiqueta alterna dos estilos al imprimir." },
       reglages: { titre: "Ajusta el tamaño", aide: "Define el tamaño final de tus etiquetas." },
-      texte: { titre: "Ajusta los textos", aide: "Personaliza títulos, artistas y tamaños." },
+      texte: { titre: "Ajusta los textos", aide: "Personaliza títulos, artistas, colores y tamaños." },
       cote: { titre: "Añade menciones laterales", aide: "Muestra inscripciones cortas en los laterales de la etiqueta." },
       couleurs: { titre: "Elige los colores", aide: "Personaliza los colores principales de la etiqueta." },
       decor: { titre: "Añade decoración", aide: "Elige los elementos decorativos que quieres personalizar." },
@@ -204,7 +204,7 @@ export const traductions = {
     assistant: {
       style: { titre: "Aggiungi seconda etichetta", aide: "Una seconda etichetta alterna due stili in stampa." },
       reglages: { titre: "Regola la dimensione", aide: "Definisci la dimensione finale delle etichette." },
-      texte: { titre: "Regola i testi", aide: "Personalizza titoli, artisti e dimensioni." },
+      texte: { titre: "Regola i testi", aide: "Personalizza titoli, artisti, colori e dimensioni." },
       cote: { titre: "Aggiungi diciture laterali", aide: "Mostra brevi scritte sui lati dell'etichetta." },
       couleurs: { titre: "Scegli i colori", aide: "Personalizza i colori principali dell'etichetta." },
       decor: { titre: "Aggiungi decorazioni", aide: "Scegli gli elementi decorativi da personalizzare." },
