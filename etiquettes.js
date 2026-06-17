@@ -426,7 +426,8 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
     dessinerPapierVieilli(ctx, reglages, largeur, hauteur);
   }
 
-  dessinerMotif(ctx, reglages, largeur, hauteur);
+  dessinerMotifZone(ctx, reglages, 0, 0, largeur, yHaut);
+  dessinerMotifZone(ctx, reglages, 0, yBas, largeur, hauteur - yBas);
   dessinerTraitsModernes(ctx, reglages, largeur, hauteur);
   dessinerMotifRuban(ctx, reglages, 0, yHaut, largeur, yBas - yHaut);
   if (reglages.modeVignette === "fond" || reglages.modeVignette === "global") {
@@ -1136,6 +1137,19 @@ function dessinerMotif(ctx, reglages, largeur, hauteur) {
     return;
   }
   dessinerMotifLibre(ctx, type, reglages.couleurMotif || reglages.couleur1, opacite, largeur, hauteur, angle);
+}
+
+function dessinerMotifZone(ctx, reglages, x, y, largeur, hauteur) {
+  if (reglages.motifFond === false || largeur <= 0 || hauteur <= 0) {
+    return;
+  }
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, largeur, hauteur);
+  ctx.clip();
+  ctx.translate(x, y);
+  dessinerMotif(ctx, reglages, largeur, hauteur);
+  ctx.restore();
 }
 
 function dessinerMotifRuban(ctx, reglages, x, y, largeur, hauteur, rayon = 0, tracerClip = null) {

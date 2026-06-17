@@ -4325,7 +4325,7 @@ function mettreAJourInterfaceConditionnelle(reglages) {
 }
 
 function mettreAJourPanneauxSelonContenu() {
-  const panneauxToujoursUtiles = new Set(["style", "reglages", "donnees", "couleurs", "texte", "decor", "favoris"]);
+  const panneauxToujoursUtiles = new Set(["style", "reglages", "donnees", "texte", "ruban", "decor", "favoris"]);
   elements.panneauxReglages.forEach((panneau) => {
     if (panneauxToujoursUtiles.has(panneau.dataset.tabPanel)) {
       panneau.dataset.tabDisabled = "false";
