@@ -3199,7 +3199,7 @@ function creerApercuStylePourEmail(reglages, nom) {
     const apercu = redimensionnerCanvasPourEmail(canvas);
     return {
       name: `45ojuke-apercu-${nom}.jpg`,
-      dataUrl: apercu.toDataURL("image/jpeg", 0.42),
+      dataUrl: apercu.toDataURL("image/jpeg", 0.7),
     };
   } catch {
     return null;
@@ -3221,7 +3221,7 @@ function creerLigneAnonymePourApercuEmail() {
 }
 
 function redimensionnerCanvasPourEmail(source) {
-  const largeurMax = 220;
+  const largeurMax = 420;
   const ratio = Math.min(1, largeurMax / source.width);
   if (ratio >= 1) {
     return source;
