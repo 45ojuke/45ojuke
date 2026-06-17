@@ -3451,7 +3451,8 @@ body.is-favoris-ouverts .scene {
   }
 
   .assistant-reglages__aide {
-    display: none;
+    font-size: 0.68rem;
+    line-height: 1.28;
   }
 
   .groupe {
