@@ -453,10 +453,15 @@ function brancherEvenements() {
   window.addEventListener("resize", () => {
     clearTimeout(temporisateurRedimensionnement);
     temporisateurRedimensionnement = setTimeout(() => {
+      const editionTexteActive = champEditionTexteActif();
       placerMenuActionsMobile();
-      placerEditeurTexteMobile(document.body.classList.contains("is-edition-texte-mobile"));
+      if (!editionTexteActive) {
+        placerEditeurTexteMobile(document.body.classList.contains("is-edition-texte-mobile"));
+      }
       ajusterHauteurPanneauOptionsMobile();
-      mettreAJour();
+      if (!editionTexteActive) {
+        mettreAJour();
+      }
     }, 120);
   });
   window.visualViewport?.addEventListener("resize", ajusterHauteurPanneauOptionsMobile);
@@ -1365,12 +1370,19 @@ function definirEditionTexteMobile(ouverte) {
 
 function placerEditeurTexteMobile(ouverte) {
   if (ouverte && MEDIA_MOBILE.matches) {
-    elements.formulaire.insertBefore(elements.editionTexte, elements.assistantNavigation);
+    if (elements.editionTexte.parentElement !== elements.formulaire
+      || elements.editionTexte.nextElementSibling !== elements.assistantNavigation) {
+      elements.formulaire.insertBefore(elements.editionTexte, elements.assistantNavigation);
+    }
     return;
   }
   if (elements.editionTexte.parentElement !== elements.scene) {
     elements.scene.append(elements.editionTexte);
   }
+}
+
+function champEditionTexteActif() {
+  return [elements.texteFaceA, elements.texteArtiste, elements.texteFaceB].includes(document.activeElement);
 }
 
 function fermerEditionTexteMobile() {
