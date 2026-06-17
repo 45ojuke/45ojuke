@@ -110,6 +110,7 @@
         </a>
         <button class="installer-app-btn installer-app-btn--menu" id="installerAppMenu" type="button">Installer l'application</button>
         <button class="soutien-menu-btn" id="ouvrirSoutienMenu" type="button">♡ Soutien / Contact</button>
+        <button class="confidentialite-menu-btn" id="ouvrirConfidentialiteMenu" type="button">Confidentialité</button>
       </div>
     </div>
 
@@ -186,6 +187,22 @@
               <p>Pour toute demande d’autorisation, contactez l’auteur du projet.</p>
             </div>
           </section>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="about-modal confidentialite-modal" id="confidentialiteModal" aria-labelledby="confidentialiteTitle">
+      <div class="about-box">
+        <div class="about-header">
+          <h2 id="confidentialiteTitle">Confidentialité</h2>
+          <button class="close-about" type="button" id="fermerConfidentialite" aria-label="Fermer">×</button>
+        </div>
+        <div class="about-content confidentialite-content">
+          <p>45’O’Juke fonctionne directement sur votre appareil, que vous l’utilisiez depuis le site ou comme application installée.</p>
+          <p>Vos titres, artistes et données musicales restent sur votre appareil. Ils ne sont pas envoyés à 45’O’Juke.</p>
+          <p>Aucun outil de suivi publicitaire ou marketing n’est utilisé.</p>
+          <p>Seuls les réglages de style et un aperçu visuel anonymisé peuvent être transmis à 45’O’Juke pour améliorer le projet. L’aperçu contient uniquement des textes neutres, jamais vos titres ni vos artistes.</p>
+          <p>Pour toute question, vous pouvez écrire à contact45ojuke@gmail.com.</p>
         </div>
       </div>
     </dialog>
@@ -670,6 +687,7 @@
     <footer class="pied-site">
       <button class="installer-app-btn" id="installerApp" type="button">Installer l'application</button>
       <button class="soutien-lien" id="ouvrirSoutien" type="button">♡ Soutien / Contact</button>
+      <button class="confidentialite-lien" id="ouvrirConfidentialite" type="button">Confidentialité</button>
       <noscript>
         <p class="soutien-noscript">
           JavaScript est désactivé : contactez 45'O'Juke par

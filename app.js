@@ -57,6 +57,10 @@ const elements = {
   menuMobileActions: document.querySelector("#menuMobileActions"),
   fermerAPropos: document.querySelector("#fermerAPropos"),
   aboutModal: document.querySelector("#aboutModal"),
+  ouvrirConfidentialite: document.querySelector("#ouvrirConfidentialite"),
+  ouvrirConfidentialiteMenu: document.querySelector("#ouvrirConfidentialiteMenu"),
+  fermerConfidentialite: document.querySelector("#fermerConfidentialite"),
+  confidentialiteModal: document.querySelector("#confidentialiteModal"),
   bandeauRestauration: document.querySelector("#bandeauRestauration"),
   dateRestauration: document.querySelector("#dateRestauration"),
   restaurerReglagesAuto: document.querySelector("#restaurerReglagesAuto"),
@@ -627,15 +631,27 @@ function brancherAccueilIntro() {
   });
   elements.menuMobileActions.addEventListener("click", () => fermerMenuActionsMobile());
   elements.boutonAPropos.addEventListener("click", () => elements.aboutModal.showModal());
+  elements.ouvrirConfidentialite.addEventListener("click", ouvrirConfidentialite);
+  elements.ouvrirConfidentialiteMenu.addEventListener("click", ouvrirConfidentialite);
   elements.fermerAPropos.addEventListener("click", fermerAPropos);
+  elements.fermerConfidentialite.addEventListener("click", fermerConfidentialite);
   elements.aboutModal.addEventListener("click", (evenement) => {
     if (evenement.target === elements.aboutModal) {
       fermerAPropos();
     }
   });
+  elements.confidentialiteModal.addEventListener("click", (evenement) => {
+    if (evenement.target === elements.confidentialiteModal) {
+      fermerConfidentialite();
+    }
+  });
   elements.aboutModal.addEventListener("cancel", (evenement) => {
     evenement.preventDefault();
     fermerAPropos();
+  });
+  elements.confidentialiteModal.addEventListener("cancel", (evenement) => {
+    evenement.preventDefault();
+    fermerConfidentialite();
   });
   document.addEventListener("keydown", (evenement) => {
     if (evenement.key === "Escape") {
@@ -643,6 +659,9 @@ function brancherAccueilIntro() {
     }
     if (evenement.key === "Escape" && elements.aboutModal.open) {
       fermerAPropos();
+    }
+    if (evenement.key === "Escape" && elements.confidentialiteModal.open) {
+      fermerConfidentialite();
     }
   });
 }
@@ -1109,6 +1128,16 @@ function synchroniserBoutonsLangue() {
 function fermerAPropos() {
   if (elements.aboutModal.open) {
     elements.aboutModal.close();
+  }
+}
+
+function ouvrirConfidentialite() {
+  elements.confidentialiteModal.showModal();
+}
+
+function fermerConfidentialite() {
+  if (elements.confidentialiteModal.open) {
+    elements.confidentialiteModal.close();
   }
 }
 

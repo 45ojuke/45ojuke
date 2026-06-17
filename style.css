@@ -298,7 +298,8 @@ body:not(.is-intro-active) .top-actions.is-menu-ouvert .top-actions__menu {
 body:not(.is-intro-active) .top-actions__menu .about-btn,
 body:not(.is-intro-active) .top-actions__menu .facebook-btn,
 body:not(.is-intro-active) .top-actions__menu .installer-app-btn,
-body:not(.is-intro-active) .top-actions__menu .soutien-menu-btn {
+body:not(.is-intro-active) .top-actions__menu .soutien-menu-btn,
+body:not(.is-intro-active) .top-actions__menu .confidentialite-menu-btn {
   width: 100%;
   min-height: 34px;
   display: inline-flex;
@@ -364,7 +365,8 @@ body:not(.is-intro-active) .top-actions__menu .facebook-text {
     color: #fff;
   }
 
-.soutien-menu-btn {
+.soutien-menu-btn,
+.confidentialite-menu-btn {
   display: none;
 }
 
@@ -2663,7 +2665,8 @@ body.is-favoris-ouverts .scene {
   color: var(--texte-doux);
 }
 
-.soutien-lien {
+.soutien-lien,
+.confidentialite-lien {
   min-height: 32px;
   border: 1px solid rgba(145, 26, 16, 0.14);
   border-radius: 999px;
@@ -2675,7 +2678,8 @@ body.is-favoris-ouverts .scene {
   font-weight: 900;
 }
 
-.soutien-lien:hover {
+.soutien-lien:hover,
+.confidentialite-lien:hover {
   border-color: rgba(145, 26, 16, 0.28);
   background: rgba(255, 250, 241, 0.96);
   color: var(--accent-2);
@@ -2869,7 +2873,8 @@ body.is-favoris-ouverts .scene {
   body:not(.is-intro-active) .top-actions__menu .about-btn,
   body:not(.is-intro-active) .top-actions__menu .facebook-btn,
   body:not(.is-intro-active) .top-actions__menu .installer-app-btn,
-  body:not(.is-intro-active) .top-actions__menu .soutien-menu-btn {
+  body:not(.is-intro-active) .top-actions__menu .soutien-menu-btn,
+  body:not(.is-intro-active) .top-actions__menu .confidentialite-menu-btn {
     width: 100%;
     min-height: 34px;
     display: inline-flex;
@@ -2897,7 +2902,8 @@ body.is-favoris-ouverts .scene {
     gap: 8px;
   }
 
-  body.is-intro-active .soutien-menu-btn {
+  body.is-intro-active .soutien-menu-btn,
+  body.is-intro-active .confidentialite-menu-btn {
     display: none;
   }
 
@@ -2997,7 +3003,8 @@ body.is-favoris-ouverts .scene {
     display: none;
   }
 
-  .soutien-lien {
+  .soutien-lien,
+  .confidentialite-lien {
     flex: 1 1 0;
     max-width: 220px;
     min-height: 28px;
