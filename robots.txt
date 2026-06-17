@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://45ojuke.github.io/45ojuke/sitemap.xml
+Sitemap: https://45ojuke.fr/sitemap.xml
