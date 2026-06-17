@@ -1,376 +1,4 @@
-function dimensionsEtiquetteDefaut() {
-  return {
-    largeurEtiquette: 75,
-    hauteurEtiquette: 25,
-  };
-}
-
-export const presets = {
-  alice: {
-    theme: "classique",
-    modele: "alice",
-    couleur1: "#942193",
-    couleur2: "#ffffff",
-    couleur3: "#ffffff",
-    couleurRuban: "#ecdef6",
-    couleurVignette: "#d9b6ee",
-    couleurTitres: "#17120e",
-    couleurArtiste: "#942193",
-    decorPanel: "motif",
-    angle: 0,
-    intensite: 0,
-    motifType: "aucun",
-    couleurMotif: "#7c007c",
-    motif: 45,
-    angleMotif: 0,
-    modeVignette: "fond",
-    vignette: 0,
-    bordure: 60,
-    arrondiInterieurBordure: false,
-    largeurRuban: 85,
-    hauteurRuban: 25,
-    hauteurBande: 15,
-    policeTitres: "terminal-carre",
-    policeArtiste: "luxe-fin",
-    tailleTitres: 140,
-    tailleArtiste: 150,
-    styleTitres: "normal",
-    styleArtiste: "gras",
-    guillemetsTitres: true,
-    afficherMarques: true,
-    couleurMarques: "#ffffff",
-    presetMarques: "custom",
-    marqueGauche: "HIT",
-    marqueDroite: "OLDY",
-    policeMarques: "compacte",
-    positionMarques: 6,
-    hauteurMarques: 50,
-    angleMarques: 0,
-    tailleMarques: 155,
-    limiterMarquesBandeSurprise: false,
-    ...dimensionsEtiquetteDefaut(),
-  },
-  martin: {
-    theme: "classique",
-    modele: "martin",
-    couleur1: "#0a4f95",
-    couleur2: "#fffdf8",
-    couleur3: "#fffdf8",
-    couleurRuban: "#c8ddf8",
-    couleurVignette: "#c8ddf8",
-    couleurTitres: "#101923",
-    couleurArtiste: "#084f95",
-    decorPanel: "vignette",
-    angle: 70,
-    intensite: 80,
-    motifType: "aucun",
-    couleurMotif: "#0a4f95",
-    motif: 45,
-    angleMotif: 0,
-    modeVignette: "fond",
-    vignette: 80,
-    bordure: 50,
-    arrondiInterieurBordure: false,
-    largeurRuban: 96,
-    hauteurRuban: 25,
-    hauteurBande: 0,
-    afficherMarques: false,
-    marqueGauche: "VINYL",
-    marqueDroite: "CLUB",
-    couleurMarques: "#ffffff",
-    policeMarques: "compacte",
-    positionMarques: 7.2,
-    hauteurMarques: 50,
-    angleMarques: -90,
-    tailleMarques: 190,
-    limiterMarquesBandeSurprise: false,
-    policeTitres: "mono-moderne",
-    policeArtiste: "elegante",
-    tailleTitres: 110,
-    tailleArtiste: 100,
-    styleTitres: "gras",
-    styleArtiste: "normal",
-    guillemetsTitres: true,
-    ...dimensionsEtiquetteDefaut(),
-  },
-  simple: {
-    theme: "tout",
-    modele: "simple",
-    couleur1: "#d01b2b",
-    couleur2: "#fffef7",
-    couleur3: "#fffef7",
-    couleurRuban: "#f1c2cd",
-    couleurVignette: "#f1c2cd",
-    couleurTitres: "#000000",
-    couleurArtiste: "#d01c2a",
-    decorPanel: "vignette",
-    angle: 90,
-    intensite: 100,
-    motifType: "aucun",
-    couleurMotif: "#d01b2b",
-    motif: 0,
-    angleMotif: 0,
-    modeVignette: "fond",
-    vignette: 80,
-    bordure: 80,
-    arrondiInterieurBordure: false,
-    largeurRuban: 82,
-    hauteurRuban: 25,
-    hauteurBande: 2,
-    afficherMarques: false,
-    couleurMarques: "#ffffff",
-    presetMarques: "custom",
-    marqueGauche: "HIT",
-    marqueDroite: "OLDY",
-    policeMarques: "compacte",
-    positionMarques: 6,
-    hauteurMarques: 50,
-    angleMarques: 0,
-    tailleMarques: 155,
-    limiterMarquesBandeSurprise: false,
-    policeTitres: "dactylo-seche",
-    policeArtiste: "elegante",
-    tailleTitres: 170,
-    tailleArtiste: 145,
-    styleTitres: "normal",
-    styleArtiste: "gras",
-    guillemetsTitres: true,
-    ...dimensionsEtiquetteDefaut(),
-  },
-  manu: {
-    theme: "classique",
-    modele: "manu",
-    couleur1: "#111827",
-    couleur2: "#ffffff",
-    couleur3: "#ffffff",
-    couleurRuban: "#ffffff",
-    couleurVignette: "#000000",
-    couleurFondModerne: "#000000",
-    couleurBandeGauche: "#000000",
-    couleurBandeDroite: "#000000",
-    couleurTitres: "#111827",
-    couleurArtiste: "#dc2626",
-    decorPanel: "vignette",
-    angle: 0,
-    intensite: 0,
-    motifType: "diagonales",
-    couleurMotif: "#111827",
-    motif: 20,
-    angleMotif: 12,
-    afficherTraitsModernes: false,
-    motifTraitsModernes: "grille",
-    couleurTraitsModernes: "#000000",
-    opaciteTraitsModernes: 50,
-    angleTraitsModernes: 0,
-    modeVignette: "fond",
-    vignette: 80,
-    papierVieilli: false,
-    couleurPapierVieilli: "#d9b6ee",
-    jaunissementPapier: 50,
-    froissagePapier: 30,
-    imperfectionsPapier: 35,
-    usureBordsPapier: 40,
-    bordure: 33,
-    arrondiInterieurBordure: true,
-    largeurRuban: 62,
-    hauteurRuban: 29,
-    hauteurBande: 33,
-    epaisseurTraitsLeon: 3,
-    positionTraitsLeon: 50,
-    ecartTraitsLeon: 24,
-    tailleBandeGauche: 30,
-    angleBandeGauche: 0,
-    tailleBandeDroite: 30,
-    angleBandeDroite: 0,
-    afficherMarques: true,
-    couleurMarques: "#dc2626",
-    presetMarques: "45-o-juke",
-    marqueGauche: "45’O",
-    marqueDroite: "JUKE",
-    policeMarques: "compacte",
-    positionMarques: 8,
-    hauteurMarques: 50,
-    angleMarques: -25,
-    tailleMarques: 180,
-    formePastille: "losange",
-    diametrePastille: 28,
-    marqueGaucheTexte: "45’O",
-    marqueDroiteTexte: "JUKE",
-    couleurMarqueGauche: "#dc2626",
-    couleurMarqueDroite: "#dc2626",
-    formePastilleGauche: "losange",
-    formePastilleDroite: "losange",
-    policeMarqueGauche: "compacte",
-    policeMarqueDroite: "compacte",
-    styleMarqueGauche: "gras",
-    styleMarqueDroite: "gras",
-    tailleMarqueGauche: 180,
-    tailleMarqueDroite: 180,
-    diametrePastilleGauche: 28,
-    diametrePastilleDroite: 28,
-    angleMarqueGauche: -25,
-    angleMarqueDroite: 25,
-    positionMarqueGauche: 8,
-    positionMarqueDroite: 8,
-    hauteurMarqueGauche: 50,
-    hauteurMarqueDroite: 50,
-    limiterMarquesBandeSurprise: false,
-    policeTitres: "dactylo-ronde",
-    policeArtiste: "sans-serree",
-    tailleTitres: 130,
-    tailleArtiste: 150,
-    styleTitres: "normal",
-    styleArtiste: "gras",
-    guillemetsTitres: true,
-    ...dimensionsEtiquetteDefaut(),
-  },
-  celeste: {
-    theme: "tout",
-    modele: "celeste",
-    couleur1: "#6d28d9",
-    couleur2: "#e0f2fe",
-    couleur3: "#fef08a",
-    couleurRuban: "#fef08a",
-    couleurVignette: "#f472b6",
-    couleurFondModerne: "#ffffff",
-    couleurBandeGauche: "#f472b6",
-    couleurBandeDroite: "#6d28d9",
-    couleurTitres: "#231033",
-    couleurArtiste: "#3b1670",
-    decorPanel: "motif",
-    angle: 70,
-    intensite: 90,
-    motifType: "points",
-    couleurMotif: "#6d28d9",
-    motif: 22,
-    angleMotif: 0,
-    afficherTraitsModernes: false,
-    motifTraitsModernes: "grille",
-    couleurTraitsModernes: "#111827",
-    opaciteTraitsModernes: 24,
-    angleTraitsModernes: 28,
-    modeVignette: "fond",
-    vignette: 42,
-    bordure: 79,
-    arrondiInterieurBordure: false,
-    largeurRuban: 71,
-    hauteurRuban: 23,
-    hauteurBande: 0,
-    tailleBandeGauche: 8,
-    angleBandeGauche: -35,
-    tailleBandeDroite: 11,
-    angleBandeDroite: -35,
-    policeTitres: "dactylo-ronde",
-    policeArtiste: "elegante",
-    tailleTitres: 130,
-    tailleArtiste: 115,
-    styleTitres: "normal",
-    styleArtiste: "gras",
-    guillemetsTitres: true,
-    afficherMarques: false,
-    couleurMarques: "#fff7ff",
-    presetMarques: "vinyl-select",
-    marqueGauche: "VINYL",
-    marqueDroite: "SELECT",
-    policeMarques: "mono-moderne",
-    positionMarques: 6,
-    hauteurMarques: 50,
-    angleMarques: -90,
-    tailleMarques: 125,
-    limiterMarquesBandeSurprise: false,
-    ...dimensionsEtiquetteDefaut(),
-  },
-  leon: {
-    theme: "classique",
-    modele: "leon",
-    couleur1: "#2a241c",
-    couleur2: "#efe3c3",
-    couleur3: "#efe3c3",
-    couleurRuban: "#e3d6b3",
-    couleurVignette: "#8a6b3f",
-    couleurFondModerne: "#efe3c3",
-    couleurBandeGauche: "#2a241c",
-    couleurBandeDroite: "#2a241c",
-    couleurTitres: "#19140f",
-    couleurArtiste: "#485800",
-    decorPanel: "papier",
-    angle: 90,
-    intensite: 42,
-    motifType: "aucun",
-    couleurMotif: "#7b623d",
-    motif: 12,
-    angleMotif: 0,
-    afficherTraitsModernes: false,
-    motifTraitsModernes: "grille",
-    couleurTraitsModernes: "#7b623d",
-    opaciteTraitsModernes: 10,
-    angleTraitsModernes: 0,
-    modeVignette: "aucun",
-    vignette: 32,
-    papierVieilli: true,
-    couleurPapierVieilli: "#b28a52",
-    jaunissementPapier: 0,
-    froissagePapier: 50,
-    imperfectionsPapier: 14,
-    usureBordsPapier: 54,
-    bordure: 1,
-    arrondiInterieurBordure: false,
-    largeurRuban: 0,
-    hauteurRuban: 0,
-    hauteurBande: 0,
-    epaisseurTraitsLeon: 1.5,
-    positionTraitsLeon: 50,
-    ecartTraitsLeon: 24,
-    tailleBandeGauche: 30,
-    angleBandeGauche: 0,
-    tailleBandeDroite: 30,
-    angleBandeDroite: 0,
-    margeArtisteJean: 28,
-    policeTitres: "dactylo-seche",
-    policeArtiste: "elegante",
-    tailleTitres: 150,
-    tailleArtiste: 90,
-    styleTitres: "normal",
-    styleArtiste: "gras",
-    guillemetsTitres: true,
-    afficherMarques: false,
-    couleurMarques: "#2a241c",
-    formePastille: "rond",
-    diametrePastille: 33,
-    presetMarques: "custom",
-    synchroniserMarques: true,
-    marqueGauche: "A",
-    marqueDroite: "B",
-    policeMarques: "compacte",
-    marqueGaucheTexte: "HIT",
-    marqueDroiteTexte: "OLDY",
-    couleurMarqueGauche: "#2a241c",
-    couleurMarqueDroite: "#2a241c",
-    formePastilleGauche: "rond",
-    formePastilleDroite: "rond",
-    policeMarqueGauche: "compacte",
-    policeMarqueDroite: "compacte",
-    styleMarqueGauche: "gras",
-    styleMarqueDroite: "gras",
-    tailleMarqueGauche: 155,
-    tailleMarqueDroite: 155,
-    diametrePastilleGauche: 33,
-    diametrePastilleDroite: 33,
-    angleMarqueGauche: 0,
-    angleMarqueDroite: 0,
-    positionMarqueGauche: 6,
-    positionMarqueDroite: 6,
-    hauteurMarqueGauche: 50,
-    hauteurMarqueDroite: 50,
-    positionMarques: 6,
-    hauteurMarques: 50,
-    angleMarques: 0,
-    tailleMarques: 155,
-    limiterMarquesBandeSurprise: false,
-    compositionJean: "centre",
-    ...dimensionsEtiquetteDefaut(),
-  },
-};
+export const presets = {};
 
 export const combosSurprise = [
   {
@@ -517,24 +145,111 @@ export const palettesVariantesModernes = [
 
 export const modelesParTheme = {
   tout: [
-    ["alice", "ALICE"],
-    ["martin", "MARTIN"],
-    ["simple", "JUJU"],
-    ["manu", "MANU"],
-    ["celeste", "CELESTE"],
-    ["leon", "LEON"],
+    ["ALICE", "ALICE"],
+    ["MARTIN", "MARTIN"],
+    ["JUJU", "JUJU"],
+    ["MANU", "MANU"],
+    ["CELESTE", "CELESTE"],
+    ["LEON", "LEON"],
   ],
   classique: [
-    ["alice", "ALICE"],
-    ["martin", "MARTIN"],
-    ["simple", "JUJU"],
-    ["manu", "MANU"],
-    ["leon", "LEON"],
+    ["ALICE", "ALICE"],
+    ["MARTIN", "MARTIN"],
+    ["JUJU", "JUJU"],
+    ["MANU", "MANU"],
+    ["LEON", "LEON"],
   ],
   moderne: [
-    ["celeste", "CELESTE"],
+    ["CELESTE", "CELESTE"],
   ],
 };
+
+let stylesEtiquettes = [];
+
+function modeleConnu(modele) {
+  return modelesParTheme.tout.some(([valeur]) => valeur === modele);
+}
+
+function synchroniserPresetsDepuisStyles(styles) {
+  Object.keys(presets).forEach((cle) => {
+    delete presets[cle];
+  });
+  styles.forEach((style) => {
+    presets[style.reglages.modele] = { ...style.reglages };
+  });
+}
+
+function normaliserStyleEtiquette(style, index) {
+  if (!style || typeof style !== "object" || Array.isArray(style)) {
+    return null;
+  }
+  const reglages = style.reglages && typeof style.reglages === "object" && !Array.isArray(style.reglages)
+    ? style.reglages
+    : style;
+  const modele = String(reglages.modele || style.modele || "").trim();
+  if (!modele || !modeleConnu(modele)) {
+    return null;
+  }
+  const idSource = String(style.id || `${modele}-${index + 1}`).trim() || `${modele}-${index + 1}`;
+  const id = idSource;
+  const nomModele = modelesParTheme.tout.find(([valeur]) => valeur === modele)?.[1] || modele;
+  return {
+    id,
+    nom: id === modele ? nomModele : String(style.nom || style.label || nomModele),
+    theme: String(style.theme || reglages.theme || "tout"),
+    reglages: {
+      ...reglages,
+      modele,
+    },
+  };
+}
+
+function normaliserStylesEtiquettes(donnees) {
+  const styles = Array.isArray(donnees) ? donnees : donnees?.styles;
+  if (!Array.isArray(styles)) {
+    return [];
+  }
+  const stylesNormalises = styles
+    .map(normaliserStyleEtiquette)
+    .filter(Boolean);
+  const idsVus = new Set();
+  return stylesNormalises.filter((style) => {
+    if (idsVus.has(style.id)) {
+      return false;
+    }
+    idsVus.add(style.id);
+    return true;
+  });
+}
+
+export async function chargerStylesEtiquettes() {
+  try {
+    const reponse = await fetch("./label-styles.json", { cache: "no-store" });
+    if (!reponse.ok) {
+      throw new Error("Styles indisponibles");
+    }
+    const styles = normaliserStylesEtiquettes(await reponse.json());
+    stylesEtiquettes = styles;
+  } catch {
+    stylesEtiquettes = [];
+  }
+  synchroniserPresetsDepuisStyles(stylesEtiquettes);
+  return obtenirStylesEtiquettes();
+}
+
+export function obtenirStylesEtiquettes(theme = "tout") {
+  const styles = stylesEtiquettes;
+  if (theme === "tout") {
+    return styles.map((style) => ({ ...style, reglages: { ...style.reglages } }));
+  }
+  return styles
+    .filter((style) => style.theme === theme || style.theme === "tout")
+    .map((style) => ({ ...style, reglages: { ...style.reglages } }));
+}
+
+export function obtenirStyleEtiquette(id) {
+  return obtenirStylesEtiquettes("tout").find((style) => style.id === id) || null;
+}
 
 export const themesModeles = {
   tout: "Tout",
@@ -543,32 +258,32 @@ export const themesModeles = {
 };
 
 export const capacitesModeles = {
-  alice: {
+  ALICE: {
     marques: true,
     ruban: true,
     bandeCentrale: true,
   },
-  martin: {
+  MARTIN: {
     marques: true,
     ruban: true,
     bandeCentrale: true,
   },
-  simple: {
+  JUJU: {
     marques: true,
     ruban: true,
     bandeCentrale: true,
   },
-  manu: {
+  MANU: {
     marques: true,
     ruban: true,
     bandeCentrale: true,
   },
-  celeste: {
+  CELESTE: {
     marques: true,
     ruban: true,
     bandeCentrale: false,
   },
-  leon: {
+  LEON: {
     marques: false,
     ruban: false,
     bandeCentrale: false,

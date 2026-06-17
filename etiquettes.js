@@ -1,6 +1,14 @@
-import { presets } from "./modeles.js";
-
 window.PX_PAR_MM = window.PX_PAR_MM || 12;
+
+const VALEURS_CELESTE_DEFAUT = {
+  couleurFondModerne: "#ffffff",
+  couleurBandeDroite: "#6d28d9",
+  tailleBandeDroite: 11,
+  angleBandeDroite: -35,
+  couleurBandeGauche: "#f472b6",
+  tailleBandeGauche: 8,
+  angleBandeGauche: -35,
+};
 
 export function dessinerEtiquette(ligne, reglages) {
   const largeur = reglages.largeurEtiquette * window.PX_PAR_MM;
@@ -22,17 +30,17 @@ export function dessinerEtiquette(ligne, reglages) {
   const bandeH = hauteur * reglages.hauteurBande / 100;
   const bandeY = (hauteur - bandeH) / 2;
 
-  if (reglages.modele === "celeste") {
+  if (reglages.modele === "CELESTE") {
     dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH);
     return canvas;
   }
 
-  if (reglages.modele === "leon") {
+  if (reglages.modele === "LEON") {
     dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure);
     return canvas;
   }
 
-  if (reglages.modele === "manu") {
+  if (reglages.modele === "MANU") {
     dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH, bandeH, bandeY);
     return canvas;
   }
@@ -52,13 +60,14 @@ export function dessinerEtiquette(ligne, reglages) {
   }
 
   if (bandeH > 0) {
+    const margeBande = reglages.bordureVerticale === false ? 0 : bordure / 2;
     ctx.fillStyle = reglages.couleur1;
-    ctx.fillRect(bordure / 2, bandeY, largeur - bordure, bandeH);
+    ctx.fillRect(margeBande, bandeY, largeur - margeBande * 2, bandeH);
   }
 
   let traitRuban = 0;
   if (rubanVisible) {
-    if (reglages.modele === "alice") {
+    if (reglages.modele === "ALICE") {
       traitRuban = Math.max(2, rubanH * 0.075);
       ctx.fillStyle = reglages.couleurRuban;
       ctx.fillRect(rubanX, rubanY, rubanW, rubanH);
@@ -72,7 +81,7 @@ export function dessinerEtiquette(ligne, reglages) {
         rubanH - ctx.lineWidth,
       );
       dessinerFlechesAlice(ctx, reglages, largeur, rubanX, rubanY, rubanW, rubanH);
-    } else if (reglages.modele === "simple") {
+    } else if (reglages.modele === "JUJU") {
       traitRuban = dessinerRubanSimple(ctx, reglages, rubanX, rubanY, rubanW, rubanH);
     } else {
       dessinerRubanMartin(ctx, reglages, rubanX, rubanY, rubanW, rubanH);
@@ -113,7 +122,7 @@ export function dessinerEtiquette(ligne, reglages) {
     ligne.artiste,
     largeur / 2,
     hauteur / 2,
-    rubanVisible ? rubanW * (reglages.modele === "martin" ? 0.72 : 0.7) : largeur * 0.58,
+    rubanVisible ? rubanW * (reglages.modele === "MARTIN" ? 0.72 : 0.7) : largeur * 0.58,
     reglages,
     rubanVisible ? reglages.couleurRuban : (bandeH > 0 ? reglages.couleur1 : reglages.couleur2),
   );
@@ -206,7 +215,7 @@ function limiteBandeModerneAuY(cote, taillePourcent, angleDegres, largeur, haute
 }
 
 function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH) {
-  ctx.fillStyle = reglages.couleurFondModerne || presets.celeste.couleurFondModerne;
+  ctx.fillStyle = reglages.couleurFondModerne || VALEURS_CELESTE_DEFAUT.couleurFondModerne;
   ctx.fillRect(0, 0, largeur, hauteur);
 
   if (reglages.papierVieilli) {
@@ -219,9 +228,9 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
   dessinerBandeModerne(
     ctx,
     "droite",
-    reglages.couleurBandeDroite || presets.celeste.couleurBandeDroite,
-    reglages.tailleBandeDroite ?? presets.celeste.tailleBandeDroite,
-    reglages.angleBandeDroite ?? presets.celeste.angleBandeDroite,
+    reglages.couleurBandeDroite || VALEURS_CELESTE_DEFAUT.couleurBandeDroite,
+    reglages.tailleBandeDroite ?? VALEURS_CELESTE_DEFAUT.tailleBandeDroite,
+    reglages.angleBandeDroite ?? VALEURS_CELESTE_DEFAUT.angleBandeDroite,
     largeur,
     hauteur,
     0.9,
@@ -229,9 +238,9 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
   dessinerBandeModerne(
     ctx,
     "gauche",
-    reglages.couleurBandeGauche || presets.celeste.couleurBandeGauche,
-    reglages.tailleBandeGauche ?? presets.celeste.tailleBandeGauche,
-    reglages.angleBandeGauche ?? presets.celeste.angleBandeGauche,
+    reglages.couleurBandeGauche || VALEURS_CELESTE_DEFAUT.couleurBandeGauche,
+    reglages.tailleBandeGauche ?? VALEURS_CELESTE_DEFAUT.tailleBandeGauche,
+    reglages.angleBandeGauche ?? VALEURS_CELESTE_DEFAUT.angleBandeGauche,
     largeur,
     hauteur,
     0.96,
@@ -306,7 +315,7 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
     hauteur / 2,
     Math.min(rubanW * 0.62, largeurTexteModerne(reglages, largeur, hauteur, hauteur / 2, largeur * 0.66)),
     reglages,
-    rubanW > 0.5 && rubanH > 0.5 ? reglages.couleurRuban : (reglages.couleurFondModerne || presets.celeste.couleurFondModerne),
+    rubanW > 0.5 && rubanH > 0.5 ? reglages.couleurRuban : (reglages.couleurFondModerne || VALEURS_CELESTE_DEFAUT.couleurFondModerne),
   );
 
   if (reglages.papierVieilli) {
@@ -409,9 +418,9 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
   const fondHaut = reglages.couleur2 || "#efe3c3";
   const fondBas = reglages.couleur3 || fondHaut;
   const fondArtiste = reglages.couleurRuban || fondHaut;
-  const centreTraits = hauteur * limiterNombre(Number(reglages.positionTraitsLeon) || 50, 25, 75) / 100;
-  const ecartTraits = hauteur * limiterNombre(Number(reglages.ecartTraitsLeon) || 24, 10, 42) / 100;
-  const epaisseurTraits = Math.max(1, Number(reglages.epaisseurTraitsLeon) || 3);
+  const centreTraits = hauteur * limiterNombre(Number(reglages.positionTraitsLEON) || 50, 25, 75) / 100;
+  const ecartTraits = hauteur * limiterNombre(Number(reglages.ecartTraitsLEON) || 24, 10, 42) / 100;
+  const epaisseurTraits = Math.max(1, Number(reglages.epaisseurTraitsLEON) || 3);
   const yHaut = limiterNombre(centreTraits - ecartTraits / 2, traitBordure + epaisseurTraits, hauteur - traitBordure - epaisseurTraits);
   const yBas = limiterNombre(centreTraits + ecartTraits / 2, traitBordure + epaisseurTraits, hauteur - traitBordure - epaisseurTraits);
 
@@ -1699,59 +1708,6 @@ function ratioContraste(couleurA, couleurB) {
   const clair = Math.max(luminanceA, luminanceB);
   const fonce = Math.min(luminanceA, luminanceB);
   return (clair + 0.05) / (fonce + 0.05);
-}
-
-function couleurHexDepuisRgb(rouge, vert, bleu) {
-  const canal = (valeur) => Math.round(limiterNombre(valeur, 0, 255)).toString(16).padStart(2, "0");
-  return `#${canal(rouge)}${canal(vert)}${canal(bleu)}`;
-}
-
-function couleurFondMoyenneCanvas(ctx, x, y, largeur, hauteur) {
-  const canvas = ctx.canvas;
-  if (!canvas) {
-    return null;
-  }
-  const margeX = Math.max(1, largeur / 2);
-  const margeY = Math.max(1, hauteur / 2);
-  const gauche = Math.floor(limiterNombre(x - margeX, 0, canvas.width - 1));
-  const haut = Math.floor(limiterNombre(y - margeY, 0, canvas.height - 1));
-  const droite = Math.ceil(limiterNombre(x + margeX, gauche + 1, canvas.width));
-  const bas = Math.ceil(limiterNombre(y + margeY, haut + 1, canvas.height));
-  const largeurZone = droite - gauche;
-  const hauteurZone = bas - haut;
-  if (largeurZone <= 0 || hauteurZone <= 0) {
-    return null;
-  }
-  try {
-    const pixels = ctx.getImageData(gauche, haut, largeurZone, hauteurZone).data;
-    const pasX = Math.max(1, Math.floor(largeurZone / 24));
-    const pasY = Math.max(1, Math.floor(hauteurZone / 8));
-    let total = 0;
-    let rouge = 0;
-    let vert = 0;
-    let bleu = 0;
-    for (let yy = Math.floor(pasY / 2); yy < hauteurZone; yy += pasY) {
-      for (let xx = Math.floor(pasX / 2); xx < largeurZone; xx += pasX) {
-        const index = (yy * largeurZone + xx) * 4;
-        const alpha = pixels[index + 3] / 255;
-        if (alpha <= 0.02) {
-          continue;
-        }
-        rouge += pixels[index] * alpha + 255 * (1 - alpha);
-        vert += pixels[index + 1] * alpha + 255 * (1 - alpha);
-        bleu += pixels[index + 2] * alpha + 255 * (1 - alpha);
-        total += 1;
-      }
-    }
-    return total ? couleurHexDepuisRgb(rouge / total, vert / total, bleu / total) : null;
-  } catch {
-    return null;
-  }
-}
-
-function couleurLisibleSurCanvas(ctx, x, y, largeur, hauteur, couleurFondSecours, couleurPreferee, contrasteMinimum = 4.5) {
-  const couleurFond = couleurFondMoyenneCanvas(ctx, x, y, largeur, hauteur) || couleurFondSecours;
-  return couleurLisible(couleurFond, couleurPreferee, contrasteMinimum);
 }
 
 export function couleurLisible(couleurFond, couleurPreferee, contrasteMinimum = 4.5) {

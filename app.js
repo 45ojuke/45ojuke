@@ -1,8 +1,11 @@
 import { couleurLisible, couleurTexteContraste, dessinerEtiquette } from "./etiquettes.js";
 import {
   capacitesModeles,
+  chargerStylesEtiquettes,
   combosSurprise,
   modelesParTheme,
+  obtenirStyleEtiquette,
+  obtenirStylesEtiquettes,
   palettesVariantesModernes,
   presets,
   presetsMarques,
@@ -40,6 +43,8 @@ import { envoyerJsonStyle } from "./analytics.js";
 const EMAIL_CONTACT = "contact@45ojuke.fr";
 const EPAISSEUR_BORDURE_MIN = 1;
 const LIEN_FACEBOOK_CONTACT = "https://www.facebook.com/45.O.Juke/";
+const MOTIFS_DECOR_VARIANTES = ["grille", "rayures", "points", "diagonales", "chevrons", "croisillons", "vagues"];
+const REPARTITION_DECOR_VARIANTES = ["aucun", "aucun", "aucun", "aucun", "aucun", "aucun", "ruban", "ruban", "fond", "fond", "deux"];
 const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
 const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
 const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -156,9 +161,9 @@ const elements = {
   largeurRuban: document.querySelector("#largeurRuban"),
   hauteurRuban: document.querySelector("#hauteurRuban"),
   hauteurBande: document.querySelector("#hauteurBande"),
-  epaisseurTraitsLeon: document.querySelector("#epaisseurTraitsLeon"),
-  positionTraitsLeon: document.querySelector("#positionTraitsLeon"),
-  ecartTraitsLeon: document.querySelector("#ecartTraitsLeon"),
+  epaisseurTraitsLEON: document.querySelector("#epaisseurTraitsLEON"),
+  positionTraitsLEON: document.querySelector("#positionTraitsLEON"),
+  ecartTraitsLEON: document.querySelector("#ecartTraitsLEON"),
   modifierTextesMiseEnPage: document.querySelector("#modifierTextesMiseEnPage"),
   reglagesTextePrincipaux: document.querySelector("#reglagesTextePrincipaux"),
   reglagesTexteMiseEnPage: document.querySelector("#reglagesTexteMiseEnPage"),
@@ -248,7 +253,7 @@ const elements = {
   imprimer: document.querySelector("#imprimer"),
   annulerReglage: document.querySelector("#annulerReglage"),
   retablirReglage: document.querySelector("#retablirReglage"),
-  surprise: document.querySelector("#surprise"),
+  reinitialiserReglage: document.querySelector("#reinitialiserReglage"),
   inverser: document.querySelector("#inverser"),
   precedent: document.querySelector("#precedent"),
   suivant: document.querySelector("#suivant"),
@@ -265,13 +270,14 @@ let temporisateurRedimensionnement = null;
 let temporisateurAnimationApercu = null;
 let frameAnimationApercu = null;
 let gesteApercu = null;
+let signatureDerniereVarianteCouleur = "";
+let cycleVarianteBouton = null;
 let ignorerProchainClicApercu = false;
 let etapeReglageActive = "style";
 const reglagesParEtiquette = {
   1: null,
   2: null,
 };
-const signaturesSurpriseRecentes = [];
 const modelesAccueilMelanges = new Map();
 const MAX_MODELES_ACCUEIL_AVEC_TEASER = Math.max(1, MAX_MODELES_ACCUEIL - 1);
 let pageModelesSecondaires = 0;
@@ -299,10 +305,12 @@ async function initialiser() {
   appliquerLangueSite(langueActive, { memoriser: false });
   document.body.classList.add("is-accueil-selection");
   appliquerDimensionsEtiquetteDefaut();
+  await chargerStylesEtiquettes();
   remplirPolicesTextesLateraux();
   remplirModelesTheme();
   synchroniserOptionsMotifSecondaire();
-  appliquerReglagesAuFormulaire({ ...presets.alice, theme: "tout" });
+  const styleInitial = obtenirStylesEtiquettes("tout")[0]?.reglages || presets.ALICE;
+  appliquerReglagesAuFormulaire({ ...styleInitial, theme: styleInitial.theme || "tout" });
   reglagesParEtiquette[1] = lireReglagesFormulaire();
   brancherEvenements();
   installerAidesOptions();
@@ -414,10 +422,10 @@ function brancherEvenements() {
   elements.editionEtiquette.forEach((radio) => {
     radio.addEventListener("change", changerEtiquetteActive);
   });
-  elements.surprise.addEventListener("click", melanger);
   elements.inverser.addEventListener("click", inverserStyle);
   elements.annulerReglage.addEventListener("click", annulerDerniereModification);
   elements.retablirReglage.addEventListener("click", retablirModification);
+  elements.reinitialiserReglage.addEventListener("click", reinitialiserStyleDefaut);
   elements.copierReglagesFavoris.addEventListener("click", copierReglages);
   elements.copierReglagesDonnees.addEventListener("click", copierReglages);
   elements.importerReglagesFavoris.addEventListener("click", importerReglages);
@@ -1132,8 +1140,10 @@ function appliquerLangueSite(langue, options = {}) {
   definirTexteElement(".accueil-apercu__surtitre", `${traduire("step")} 1`);
   definirTexteElement(".accueil-apercu h2", traduire("styleTitle"));
   definirTexteElement(".accueil-apercu__description", traductionCourante().styleDescription || traductions.fr.styleDescription);
-  elements.surprise.textContent = traduire("newStyle");
   elements.inverser.textContent = traduire("variant");
+  elements.reinitialiserReglage.textContent = traduirePhrase("Reset");
+  elements.reinitialiserReglage.setAttribute("aria-label", traduirePhrase("Revenir au style par défaut"));
+  elements.reinitialiserReglage.title = traduirePhrase("Style par défaut");
   elements.ouvrirTableauCsvApercu.textContent = traduire("data");
   elements.imprimer.textContent = traduire("print");
   elements.ouvrirFavoris.textContent = traduirePhrase("Favoris");
@@ -1599,6 +1609,48 @@ function appliquerPreset(modele) {
   mettreAJour();
 }
 
+function reinitialiserStyleDefaut() {
+  const modele = lireReglagesFormulaire().modele || elements.modele.value;
+  const preset = presets[modele];
+  if (!preset || styleCourantEstStyleDefaut()) {
+    return;
+  }
+  enregistrerHistoriqueAvantAction();
+  elements.modele.value = modele;
+  appliquerReglagesAuFormulaire({ ...lireReglagesFormulaire(), ...preset, theme: preset.theme || "tout", modele });
+  signatureDerniereVarianteCouleur = "";
+  cycleVarianteBouton = null;
+  enregistrerReglagesActifs();
+  mettreAJourGalerieModeles();
+  mettreAJour();
+}
+
+function styleCourantEstStyleDefaut() {
+  const reglages = lireReglagesFormulaire();
+  const modele = reglages.modele || elements.modele.value;
+  const preset = presets[modele];
+  if (!preset) {
+    return true;
+  }
+  const reglagesCourants = normaliserReglagesImportes(reglages);
+  const reglagesDefaut = normaliserReglagesImportes({ ...preset, theme: preset.theme || "tout", modele });
+  return signatureStyleEnregistre(reglagesCourants) === signatureStyleEnregistre(reglagesDefaut);
+}
+
+function appliquerStyleEtiquetteEnregistre(id) {
+  const style = obtenirStyleEtiquette(id);
+  if (!style) {
+    return false;
+  }
+  const reglages = normaliserReglagesImportes(style.reglages);
+  elements.modele.value = reglages.modele;
+  appliquerReglagesAuFormulaire(reglages);
+  enregistrerReglagesActifs();
+  mettreAJourGalerieModeles();
+  mettreAJour();
+  return true;
+}
+
 function obtenirModelesCategorie(categorie) {
   return modelesParTheme[categorie] || modelesParTheme.tout;
 }
@@ -1624,7 +1676,7 @@ function mettreAJourGalerieModeles() {
   const modelesAccueil = obtenirModelesAccueil("tout");
   const deuxiemeActive = deuxiemeEtiquetteActive();
   const modelePrincipal = lireReglages("1").modele || elements.modele.value;
-  const modelesSecondaires = obtenirModelesCategorie("tout").filter(([valeur]) => valeur !== modelePrincipal);
+  const modelesSecondaires = obtenirStylesEtiquettes("tout").filter((style) => style.reglages.modele !== modelePrincipal);
   const modeleSecondaire = lireReglages("2").modele || elements.modeleSecondaire.value;
   const ligneDemo = obtenirLignes()[indexApercu] || {
     titreA: "En Rouge Et Noir",
@@ -1644,13 +1696,15 @@ function mettreAJourGalerieModeles() {
     pageAccueilModeles * MAX_MODELES_ACCUEIL_AVEC_TEASER,
     pageAccueilModeles * MAX_MODELES_ACCUEIL_AVEC_TEASER + MAX_MODELES_ACCUEIL_AVEC_TEASER,
   );
-  elements.galerieModelesAccueil.replaceChildren(...modelesAccueilPage.map(([valeur, libelle]) => creerCarteModele({
-    valeur,
-    libelle,
+  elements.galerieModelesAccueil.replaceChildren(...modelesAccueilPage.map((style) => creerCarteModele({
+    valeur: style.reglages.modele,
+    libelle: style.nom,
+    styleId: style.id,
     ligneDemo: ligneDemoAccueil,
-    actif: modelePrincipal === valeur,
+    actif: modelePrincipal === style.reglages.modele,
     cible: "principale",
     reglagesBase: lireReglages("1"),
+    reglagesStyle: style.reglages,
     vierge: true,
   })), creerCarteModeleIndisponible());
   const navigationAccueilVisible = modelesAccueil.length > MAX_MODELES_ACCUEIL_AVEC_TEASER;
@@ -1668,13 +1722,15 @@ function mettreAJourGalerieModeles() {
     pageModelesSecondaires * MAX_MODELES_SECONDAIRES + MAX_MODELES_SECONDAIRES,
   );
   elements.galerieModelesSecondaires.replaceChildren(
-    ...modelesSecondairesPage.map(([valeur, libelle]) => creerCarteModele({
-      valeur,
-      libelle,
+    ...modelesSecondairesPage.map((style) => creerCarteModele({
+      valeur: style.reglages.modele,
+      libelle: style.nom,
+      styleId: style.id,
       ligneDemo,
-      actif: deuxiemeActive && modeleSecondaire === valeur,
+      actif: deuxiemeActive && modeleSecondaire === style.reglages.modele,
       cible: "secondaire",
       reglagesBase: lireReglages("1"),
+      reglagesStyle: style.reglages,
     })),
   );
   mettreAJourBoutonsNavigationModeles(
@@ -1686,8 +1742,8 @@ function mettreAJourGalerieModeles() {
 }
 
 function obtenirModelesAccueil(categorie) {
-  const modeles = obtenirModelesCategorie(categorie);
-  const signature = modeles.map(([valeur]) => valeur).join("|");
+  const modeles = obtenirStylesEtiquettes(categorie);
+  const signature = modeles.map((style) => style.id).join("|");
   const cache = modelesAccueilMelanges.get(categorie);
   if (cache?.signature === signature) {
     return cache.modeles;
@@ -1721,7 +1777,7 @@ function mettreAJourBoutonsNavigationModeles(precedent, suivant, total, pageSize
 
 function changerPageModeles(cible, delta) {
   const modelePrincipal = lireReglages("1").modele || elements.modele.value;
-  const totalSecondaires = obtenirModelesCategorie("tout").filter(([valeur]) => valeur !== modelePrincipal).length;
+  const totalSecondaires = obtenirStylesEtiquettes("tout").filter((style) => style.reglages.modele !== modelePrincipal).length;
   pageModelesSecondaires = normaliserPage(
     pageModelesSecondaires + delta,
     totalSecondaires,
@@ -1737,12 +1793,15 @@ function changerPageModelesAccueil(delta) {
   mettreAJourGalerieModeles();
 }
 
-function creerCarteModele({ valeur, libelle, ligneDemo, actif, cible, reglagesBase, vierge = false }) {
+function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cible, reglagesBase, reglagesStyle = null, vierge = false }) {
   const bouton = document.createElement("button");
   bouton.className = "carte-modele";
   bouton.type = "button";
   bouton.dataset.modele = valeur;
   bouton.dataset.modeleCible = cible;
+  if (styleId) {
+    bouton.dataset.styleId = styleId;
+  }
   bouton.setAttribute("aria-pressed", String(actif));
   if (actif) {
     bouton.classList.add("is-actif");
@@ -1750,9 +1809,15 @@ function creerCarteModele({ valeur, libelle, ligneDemo, actif, cible, reglagesBa
 
   const reglagesCarte = {
     ...reglagesBase,
-    ...presets[valeur],
+    ...(reglagesStyle || presets[valeur]),
     modele: valeur,
   };
+  if (!Object.prototype.hasOwnProperty.call(reglagesStyle || presets[valeur] || {}, "motifRuban")) {
+    reglagesCarte.motifRuban = false;
+    reglagesCarte.motifRubanType = "aucun";
+    reglagesCarte.opaciteMotifRuban = 45;
+    reglagesCarte.angleMotifRuban = 0;
+  }
   const apercu = document.createElement("span");
   apercu.className = "carte-modele__apercu";
 
@@ -1766,13 +1831,19 @@ function creerCarteModele({ valeur, libelle, ligneDemo, actif, cible, reglagesBa
   imageVariante.alt = "";
   imageVariante.setAttribute("aria-hidden", "true");
 
+  const cycleVariante = creerCycleVariante(reglagesCarte);
   const mettreAJourVariante = () => {
-    imageVariante.src = dessinerEtiquette(ligneDemo, creerVariantePourApercuModele(reglagesCarte)).toDataURL("image/png");
+    imageVariante.src = dessinerEtiquette(ligneDemo, cycleVariante.prochaine()).toDataURL("image/png");
   };
   mettreAJourVariante();
+  let varianteDejaAffichee = false;
   bouton.addEventListener("pointerenter", () => {
     if (MEDIA_SURVOL_PRECIS.matches) {
-      mettreAJourVariante();
+      if (varianteDejaAffichee) {
+        mettreAJourVariante();
+      } else {
+        varianteDejaAffichee = true;
+      }
     }
   });
 
@@ -1785,17 +1856,126 @@ function creerCarteModele({ valeur, libelle, ligneDemo, actif, cible, reglagesBa
   return bouton;
 }
 
-function creerVariantePourApercuModele(reglages) {
-  if (reglages.modele === "manu") {
-    return Math.random() > 0.35 ? creerSurpriseManu(reglages) : creerVarianteManu(reglages);
+function creerCycleVariante(reglages) {
+  const signatureBase = signatureStyleEnregistre(reglages);
+  const stylesEnregistres = obtenirStylesEtiquettes("tout")
+    .filter((item) => item.reglages?.modele === reglages.modele && !estStyleParDefautVariante(item, reglages.modele))
+    .map((item) => normaliserReglagesImportes(item.reglages))
+    .filter((reglagesStyle) => signatureStyleEnregistre(reglagesStyle) !== signatureBase);
+  const signaturesRecentes = [signatureBase];
+  const motifsDecorRecents = [reglages.motifRubanType, reglages.motifType].filter((motif) => motif && motif !== "aucun");
+  let couleurProposee = false;
+  let indexStyle = 0;
+  const avecDecorMotifVarie = (variante) => {
+    const varianteAvecDecor = appliquerDecorMotifVariante(variante, reglages, motifsDecorRecents);
+    [varianteAvecDecor.motifRubanType, varianteAvecDecor.motifType]
+      .filter((motif) => motif && motif !== "aucun")
+      .forEach((motif) => motifsDecorRecents.push(motif));
+    motifsDecorRecents.splice(0, Math.max(0, motifsDecorRecents.length - 4));
+    return varianteAvecDecor;
+  };
+
+  const prochaine = () => {
+    if (!couleurProposee) {
+      couleurProposee = true;
+      const varianteCouleur = avecDecorMotifVarie(creerVarianteCouleur(reglages));
+      const signatureCouleur = signatureStyleEnregistre(varianteCouleur);
+      if (signatureCouleur !== signatureBase) {
+        signaturesRecentes.push(signatureCouleur);
+        return varianteCouleur;
+      }
+    }
+
+    while (indexStyle < stylesEnregistres.length) {
+      const style = stylesEnregistres[indexStyle];
+      indexStyle += 1;
+      const styleAvecMotif = avecDecorMotifVarie(style);
+      const signatureStyle = signatureStyleEnregistre(styleAvecMotif);
+      if (!signaturesRecentes.includes(signatureStyle)) {
+        signaturesRecentes.push(signatureStyle);
+        return styleAvecMotif;
+      }
+    }
+
+    const surprise = avecDecorMotifVarie(creerSurpriseDistinctePourApercu(reglages, signaturesRecentes));
+    signaturesRecentes.push(signatureStyleEnregistre(surprise));
+    signaturesRecentes.splice(0, Math.max(0, signaturesRecentes.length - 12));
+    return surprise;
+  };
+
+  return { prochaine };
+}
+
+function creerVarianteCouleur(reglages) {
+  if (reglages.modele === "MANU") {
+    return creerVarianteManu(reglages);
   }
-  if (reglages.modele === "leon") {
-    return creerSurpriseLeon(reglages);
-  }
-  if (reglages.modele === "celeste") {
+  if (reglages.modele === "CELESTE") {
     return creerVarianteModerne(reglages);
   }
+  return creerVarianteClassique(reglages);
+}
+
+function appliquerDecorMotifVariante(reglages, reglagesBase = reglages, motifsExclus = []) {
+  const rubanDisponible = Boolean(capacitesModeles[reglages.modele]?.ruban);
+  const choixPossibles = rubanDisponible
+    ? REPARTITION_DECOR_VARIANTES
+    : ["aucun", "aucun", "aucun", "fond"];
+  const decorMotif = choisirAleatoire(choixPossibles);
+  if (decorMotif === "aucun") {
+    return {
+      ...reglages,
+      decorPanel: reglages.modeVignette && reglages.modeVignette !== "aucun" ? "vignette" : reglages.decorPanel,
+      motifType: "aucun",
+      motifFond: false,
+      motifRuban: false,
+      motifRubanType: "aucun",
+      afficherTraitsModernes: false,
+    };
+  }
+
+  const motifsAEviter = new Set([reglagesBase.motifRubanType, reglagesBase.motifType, ...motifsExclus].filter(Boolean));
+  const motifsPossibles = MOTIFS_DECOR_VARIANTES.filter((motif) => !motifsAEviter.has(motif));
+  const motifChoisi = choisirAleatoire(motifsPossibles.length ? motifsPossibles : MOTIFS_DECOR_VARIANTES);
+  const motifDansFond = decorMotif === "fond" || decorMotif === "deux";
+  const motifDansRuban = rubanDisponible && (decorMotif === "ruban" || decorMotif === "deux");
+
+  return {
+    ...reglages,
+    decorPanel: "motif",
+    motifType: motifDansFond ? motifChoisi : "aucun",
+    motifFond: motifDansFond,
+    couleurMotif: reglages.couleurMotif || reglages.couleur1,
+    motif: motifDansFond ? nombreAleatoire(10, 18, 1) : (Number(reglages.motif) || 0),
+    angleMotif: motifDansFond ? nombreAleatoire(-35, 35, 5) : (Number(reglages.angleMotif) || 0),
+    motifRuban: motifDansRuban,
+    motifRubanType: motifDansRuban ? motifChoisi : "aucun",
+    couleurMotifRuban: reglages.couleurMotifRuban || reglages.couleurMotif || reglages.couleur1,
+    opaciteMotifRuban: motifDansRuban ? nombreAleatoire(10, 18, 1) : (Number(reglages.opaciteMotifRuban) || 0),
+    angleMotifRuban: motifDansRuban ? nombreAleatoire(-40, 40, 5) : (Number(reglages.angleMotifRuban) || 0),
+    afficherTraitsModernes: false,
+  };
+}
+
+function creerSurprisePourApercuVariante(reglages) {
+  if (reglages.modele === "MANU") {
+    return creerSurpriseManu(reglages);
+  }
+  if (reglages.modele === "LEON") {
+    return creerSurpriseLeon(reglages);
+  }
   return creerVarianteClassiqueAleatoire(reglages);
+}
+
+function creerSurpriseDistinctePourApercu(reglages, signaturesRecentes) {
+  let surprise = null;
+  for (let tentative = 0; tentative < 40; tentative += 1) {
+    surprise = { ...creerSurprisePourApercuVariante(reglages), decalageRetro: "aucun" };
+    if (!signaturesRecentes.includes(signatureStyleEnregistre(surprise))) {
+      return surprise;
+    }
+  }
+  return surprise || { ...reglages, decalageRetro: "aucun" };
 }
 
 function creerVarianteClassiqueAleatoire(reglages) {
@@ -1805,7 +1985,7 @@ function creerVarianteClassiqueAleatoire(reglages) {
   const fondHaut = variation === "inverse" ? couleur3 : couleur2;
   const fondBas = variation === "inverse" ? couleur2 : couleur3;
   const ruban = variation === "ruban-fond-haut" ? couleur2 : variation === "ruban-fond-bas" ? couleur3 : couleurRuban;
-  const marques = presetsMarques[combo.marques] || [reglages.marqueGauche || "HIT", reglages.marqueDroite || "OLDY"];
+  const marques = creerMarquesSurprise(combo, reglages);
 
   return {
     ...reglages,
@@ -1828,11 +2008,8 @@ function creerVarianteClassiqueAleatoire(reglages) {
     bordure: nombreAleatoire(38, 92, 2),
     largeurRuban: nombreAleatoire(72, 96, 2),
     hauteurRuban: nombreAleatoire(22, 34, 1),
-    hauteurBande: reglages.modele === "alice" ? nombreAleatoire(8, 24, 1) : reglages.hauteurBande,
-    afficherMarques: combo.marques !== "aucun",
-    presetMarques: combo.marques === "aucun" ? "custom" : combo.marques,
-    marqueGauche: combo.marques === "aucun" ? "" : marques[0],
-    marqueDroite: combo.marques === "aucun" ? "" : marques[1],
+    hauteurBande: reglages.modele === "ALICE" ? nombreAleatoire(8, 24, 1) : reglages.hauteurBande,
+    ...marques,
   };
 }
 
@@ -1859,6 +2036,14 @@ function choisirModeleDepuisAccueil(evenement) {
     return;
   }
   enregistrerHistoriqueAvantAction();
+  if (bouton.dataset.styleId) {
+    afficherApercuApresChoixModele();
+    if (appliquerStyleEtiquetteEnregistre(bouton.dataset.styleId)) {
+      activerEtapeReglage("style");
+      mettreAJour();
+      return;
+    }
+  }
   elements.modele.value = bouton.dataset.modele;
   appliquerPreset(bouton.dataset.modele);
   if (champDimensionHorsLimites(elements.largeurEtiquette, "largeurEtiquette")
@@ -1881,7 +2066,8 @@ function choisirModeleSecondaireDepuisGalerie(evenement) {
   elements.modeleSecondaire.value = bouton.dataset.modele;
   synchroniserBoutonDeuxiemeEtiquette(true);
   afficherApercuApresChoixModele();
-  reglagesParEtiquette[2] = creerReglagesSecondaires();
+  const style = bouton.dataset.styleId ? obtenirStyleEtiquette(bouton.dataset.styleId) : null;
+  reglagesParEtiquette[2] = style ? normaliserReglagesImportes(style.reglages) : creerReglagesSecondaires();
   etiquetteActive = "2";
   elements.editionEtiquette.forEach((radio) => {
     radio.checked = radio.value === "2";
@@ -1917,9 +2103,9 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.bordureVerticale = reglagesNormalises.bordureVerticale ?? true;
   reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.arrondiInterieurBordure ?? false;
   reglagesNormalises.papierVieilli = reglagesNormalises.papierVieilli ?? false;
-  reglagesNormalises.epaisseurTraitsLeon = reglagesNormalises.epaisseurTraitsLeon ?? 3;
-  reglagesNormalises.positionTraitsLeon = reglagesNormalises.positionTraitsLeon ?? 50;
-  reglagesNormalises.ecartTraitsLeon = reglagesNormalises.ecartTraitsLeon ?? 24;
+  reglagesNormalises.epaisseurTraitsLEON = reglagesNormalises.epaisseurTraitsLEON ?? 3;
+  reglagesNormalises.positionTraitsLEON = reglagesNormalises.positionTraitsLEON ?? 50;
+  reglagesNormalises.ecartTraitsLEON = reglagesNormalises.ecartTraitsLEON ?? 24;
   reglagesNormalises.couleurPapierVieilli = reglagesNormalises.couleurPapierVieilli || reglagesNormalises.couleurVignette || "#8a6b3f";
   reglagesNormalises.jaunissementPapier = reglagesNormalises.jaunissementPapier ?? 50;
   reglagesNormalises.froissagePapier = reglagesNormalises.froissagePapier ?? 30;
@@ -2180,6 +2366,7 @@ function mettreAJourBoutonsHistorique() {
   const retablirDisponible = historiqueReglages.retablissements.length > 0;
   elements.retablirReglage.disabled = !retablirDisponible;
   elements.retablirReglage.hidden = !retablirDisponible;
+  elements.reinitialiserReglage.disabled = styleCourantEstStyleDefaut();
 }
 
 const { obtenirFavoris, enregistrerFavoris, signatureReglages } = creerGestionFavoris({
@@ -2453,9 +2640,9 @@ function lireReglagesFormulaire() {
     largeurRuban: Number(elements.largeurRuban.value),
     hauteurRuban: Number(elements.hauteurRuban.value),
     hauteurBande: Number(elements.hauteurBande.value),
-    epaisseurTraitsLeon: Number(elements.epaisseurTraitsLeon.value),
-    positionTraitsLeon: Number(elements.positionTraitsLeon.value),
-    ecartTraitsLeon: Number(elements.ecartTraitsLeon.value),
+    epaisseurTraitsLEON: Number(elements.epaisseurTraitsLEON.value),
+    positionTraitsLEON: Number(elements.positionTraitsLEON.value),
+    ecartTraitsLEON: Number(elements.ecartTraitsLEON.value),
     tailleBandeGauche: Number(elements.tailleBandeGauche.value),
     angleBandeGauche: Number(elements.angleBandeGauche.value),
     tailleBandeDroite: Number(elements.tailleBandeDroite.value),
@@ -2630,25 +2817,18 @@ function nombreAleatoire(minimum, maximum, pas = 1) {
 
 function creerMarquesSurprise(combo, reglagesBase) {
   const modele = reglagesBase.modele;
-  if (modele === "simple") {
-    return {
-      afficherMarques: Boolean(reglagesBase.afficherMarques),
-      presetMarques: reglagesBase.presetMarques || "custom",
-      marqueGauche: reglagesBase.marqueGauche || "",
-      marqueDroite: reglagesBase.marqueDroite || "",
-    };
-  }
-
-  if (modele === "martin" || combo.marques === "aucun") {
+  if (modele === "JUJU" || modele === "MARTIN" || combo.marques === "aucun") {
     return {
       afficherMarques: false,
-      presetMarques: combo.marques === "aucun" ? "custom" : combo.marques,
+      presetMarques: "custom",
       marqueGauche: "",
       marqueDroite: "",
+      marqueGaucheTexte: "",
+      marqueDroiteTexte: "",
     };
   }
 
-  const preset = Math.random() > 0.18 ? combo.marques : choisirAleatoire([
+  const preset = combo.marques !== "aucun" && Math.random() > 0.18 ? combo.marques : choisirAleatoire([
     "juke-box",
     "vinyl-hit",
     "45-rpm",
@@ -2688,6 +2868,8 @@ function creerMarquesSurprise(combo, reglagesBase) {
     presetMarques: preset,
     marqueGauche: textes[0],
     marqueDroite: textes[1],
+    marqueGaucheTexte: textes[0],
+    marqueDroiteTexte: textes[1],
   };
 }
 
@@ -2704,6 +2886,17 @@ function creerSurpriseLeon(base) {
     { cadre: "#263027", haut: "#e9e2c7", artiste: "#cfd5b0", bas: "#d8cfad", titre: "#151913", artisteTexte: "#1b2019", motif: "#59664e", vignette: "#4a563d" },
     { cadre: "#302b27", haut: "#e8dcc1", artiste: "#d5c2a0", bas: "#cbb795", titre: "#1d1915", artisteTexte: "#221b15", motif: "#6f5a45", vignette: "#5a4632" },
     { cadre: "#452a24", haut: "#f1dfbc", artiste: "#e5c69a", bas: "#d7b98b", titre: "#23110e", artisteTexte: "#311813", motif: "#8b5140", vignette: "#6f352a" },
+    { cadre: "#1f2a2a", haut: "#e6dfc7", artiste: "#c3b98f", bas: "#d3c6a4", titre: "#101616", artisteTexte: "#182121", motif: "#3f5751", vignette: "#2e4a43" },
+    { cadre: "#242b3a", haut: "#e8e3d2", artiste: "#c4c9d4", bas: "#d2d5dd", titre: "#121622", artisteTexte: "#1b2030", motif: "#4d5a73", vignette: "#35445f" },
+    { cadre: "#3b2428", haut: "#efe0cb", artiste: "#d2b3a7", bas: "#ddc3b4", titre: "#211114", artisteTexte: "#30181c", motif: "#7d4b4c", vignette: "#65343b" },
+    { cadre: "#212321", haut: "#eee8d8", artiste: "#c9c1ad", bas: "#d8d0bd", titre: "#141512", artisteTexte: "#202019", motif: "#555145", vignette: "#403c32" },
+    { cadre: "#322a3a", haut: "#ece2d0", artiste: "#c9b7c9", bas: "#d8c7ce", titre: "#1b1421", artisteTexte: "#281d31", motif: "#65516b", vignette: "#4e3b58" },
+    { cadre: "#253326", haut: "#ede4c9", artiste: "#c6c08f", bas: "#d7cca2", titre: "#131a13", artisteTexte: "#1b241a", motif: "#52633e", vignette: "#3f542d" },
+    { cadre: "#3a2d22", haut: "#f0e1c8", artiste: "#d0b18c", bas: "#dfc29b", titre: "#21170e", artisteTexte: "#2d1f14", motif: "#7a5937", vignette: "#5f4327" },
+    { cadre: "#1e2d33", haut: "#e4dfcc", artiste: "#b9c4c2", bas: "#ccd2cc", titre: "#10191d", artisteTexte: "#17242a", motif: "#3f6167", vignette: "#2f5058" },
+    { cadre: "#33251f", haut: "#eadcc8", artiste: "#c7aa91", bas: "#d4bcaa", titre: "#1d120e", artisteTexte: "#2a1a13", motif: "#715245", vignette: "#563a31" },
+    { cadre: "#2b2920", haut: "#f0e8c9", artiste: "#d2c27d", bas: "#ded29d", titre: "#17160f", artisteTexte: "#24210f", motif: "#686028", vignette: "#514b21" },
+    { cadre: "#252733", haut: "#e9e1d1", artiste: "#bdb8a8", bas: "#d1c9bd", titre: "#141620", artisteTexte: "#202230", motif: "#545766", vignette: "#3b3e4c" },
   ];
   const palette = choisirAleatoire(palettesAnciennes);
   const motifType = choisirAleatoire(["aucun", "grille", "rayures", "diagonales"]);
@@ -2738,9 +2931,9 @@ function creerSurpriseLeon(base) {
     usureBordsPapier: nombreAleatoire(28, 78, 1),
     bordure: nombreAleatoire(42, 88, 2),
     arrondiInterieurBordure: Math.random() > 0.58,
-    epaisseurTraitsLeon: nombreAleatoire(1.5, 5.5, 0.5),
-    positionTraitsLeon: nombreAleatoire(45, 55, 1),
-    ecartTraitsLeon: nombreAleatoire(18, 34, 1),
+    epaisseurTraitsLEON: nombreAleatoire(1.5, 5.5, 0.5),
+    positionTraitsLEON: nombreAleatoire(45, 55, 1),
+    ecartTraitsLEON: nombreAleatoire(18, 34, 1),
     tailleTitres: nombreAleatoire(82, 112, 2),
     tailleArtiste: nombreAleatoire(82, 110, 2),
     styleTitres: Math.random() > 0.35 ? "gras" : "normal",
@@ -2770,8 +2963,8 @@ function creerSurpriseManu(base) {
     { cadre: "#121212", haut: "#f8c8dc", bas: "#b8f2e6", ruban: "#ffffff", pastille: "#f15bb5", titre: "#101010", artiste: "#101010", motif: "#121212" },
     { cadre: "#d71920", haut: "#fff6df", bas: "#f4c430", ruban: "#ffffff", pastille: "#0f1115", titre: "#17120b", artiste: "#d71920", motif: "#d71920" },
   ];
-  const simple = Math.random() < 0.48;
-  const palette = choisirAleatoire(simple ? palettesSimples : palettesPop);
+  const paletteSobre = Math.random() < 0.48;
+  const palette = choisirAleatoire(paletteSobre ? palettesSimples : palettesPop);
   const profilsMiseEnPage = [
     {
       nom: "filet",
@@ -2779,7 +2972,7 @@ function creerSurpriseManu(base) {
       largeurRuban: [64, 69],
       hauteurRuban: [28, 31],
       hauteurBande: [12, 16],
-      diametre: simple ? [24, 29] : [26, 31],
+      diametre: paletteSobre ? [24, 29] : [26, 31],
       position: [8, 9],
       hauteurMarques: [50, 50],
       angle: [-25, -15, -10, 10, 15, 25],
@@ -2790,7 +2983,7 @@ function creerSurpriseManu(base) {
       largeurRuban: [58, 66],
       hauteurRuban: [24, 30],
       hauteurBande: [20, 30],
-      diametre: simple ? [24, 31] : [26, 34],
+      diametre: paletteSobre ? [24, 31] : [26, 34],
       position: [8, 10],
       hauteurMarques: [49, 51],
       angle: [-12, -6, 0, 6, 12],
@@ -2801,7 +2994,7 @@ function creerSurpriseManu(base) {
       largeurRuban: [50, 62],
       hauteurRuban: [23, 29],
       hauteurBande: [34, 46],
-      diametre: simple ? [25, 32] : [28, 36],
+      diametre: paletteSobre ? [25, 32] : [28, 36],
       position: [7, 10],
       hauteurMarques: [48, 52],
       angle: [-8, -4, 0, 4, 8],
@@ -2821,9 +3014,9 @@ function creerSurpriseManu(base) {
   const profil = choisirAleatoire(profilsMiseEnPage);
   const preset = choisirAleatoire(["45-o-juke", "stereo-sound", "juke-box", "vinyl-hit", "hit-tune", "music-box", "retro-hit", "golden-hit"]);
   const [marqueGauche, marqueDroite] = presetsMarques[preset] || ["45’O", "JUKE"];
-  const fondHaut = simple ? palette.fond : palette.haut;
-  const fondBas = simple ? palette.fond : palette.bas;
-  const motifType = simple
+  const fondHaut = paletteSobre ? palette.fond : palette.haut;
+  const fondBas = paletteSobre ? palette.fond : palette.bas;
+  const motifType = paletteSobre
     ? choisirAleatoire(["aucun", "aucun", "diagonales", "rayures"])
     : choisirAleatoire(["diagonales", "rayures", "points", "grille"]);
   const formePastille = choisirAleatoire(["rond", "rond", "carre", "losange"]);
@@ -2836,7 +3029,7 @@ function creerSurpriseManu(base) {
   return {
     ...base,
     theme: "classique",
-    modele: "manu",
+    modele: "MANU",
     couleur1: palette.cadre,
     couleur2: fondHaut,
     couleur3: fondBas,
@@ -2847,7 +3040,7 @@ function creerSurpriseManu(base) {
     couleurMotif: palette.motif,
     decorPanel: motifType === "aucun" ? "motif" : "motif",
     motifType,
-    motif: motifType === "aucun" ? 0 : nombreAleatoire(simple ? 10 : 22, simple ? 26 : 46, 2),
+    motif: motifType === "aucun" ? 0 : nombreAleatoire(paletteSobre ? 10 : 22, paletteSobre ? 26 : 46, 2),
     angleMotif: choisirAleatoire([-18, -12, 0, 12, 18]),
     modeVignette: "aucun",
     vignette: 0,
@@ -2903,155 +3096,26 @@ function creerSurpriseManu(base) {
   };
 }
 
-function melanger() {
-  enregistrerHistoriqueAvantAction();
-  const base = lireReglagesFormulaire();
-  let surprise = null;
-  let signature = "";
-
-  for (let tentative = 0; tentative < 40; tentative += 1) {
-    if (base.modele === "manu") {
-      surprise = creerSurpriseManu(base);
-      signature = JSON.stringify([
-        surprise.couleur1,
-        surprise.couleur2,
-        surprise.couleur3,
-        surprise.couleurRuban,
-        surprise.couleurMarques,
-        surprise.formePastille,
-        surprise.diametrePastille,
-        surprise.largeurRuban,
-        surprise.hauteurRuban,
-        surprise.hauteurBande,
-        surprise.presetMarques,
-        surprise.motifType,
-        surprise.motif,
-      ]);
-      if (!signaturesSurpriseRecentes.includes(signature)) {
-        break;
-      }
-      continue;
-    }
-    if (base.modele === "leon") {
-      surprise = creerSurpriseLeon(base);
-      signature = JSON.stringify([
-        surprise.couleur1,
-        surprise.couleur2,
-        surprise.couleur3,
-        surprise.couleurRuban,
-        surprise.motifType,
-        surprise.modeVignette,
-        surprise.papierVieilli,
-        surprise.couleurPapierVieilli,
-        surprise.jaunissementPapier,
-        surprise.froissagePapier,
-        surprise.imperfectionsPapier,
-        surprise.usureBordsPapier,
-        surprise.epaisseurTraitsLeon,
-        surprise.positionTraitsLeon,
-        surprise.ecartTraitsLeon,
-      ]);
-      if (!signaturesSurpriseRecentes.includes(signature)) {
-        break;
-      }
-      continue;
-    }
-    const combo = choisirAleatoire(combosSurprise);
-    const variation = choisirAleatoire(["original", "inverse", "ruban-fond-haut", "ruban-fond-bas"]);
-    const [couleur1, couleur2, couleur3, couleurRuban, couleurTitres, couleurArtiste, couleurMarques] = combo.couleurs;
-    const marques = creerMarquesSurprise(combo, base);
-    const motifActif = Math.random() > 0.1 ? combo.motif : choisirAleatoire(["grille", "rayures", "points", "diagonales", "chevrons", "croisillons", "vagues", "soleil"]);
-    const modeVignette = Math.random() > 0.14 ? combo.vignette : choisirAleatoire(["fond", "global", "aucun"]);
-    const fondHaut = variation === "inverse" ? couleur3 : couleur2;
-    const fondBas = variation === "inverse" ? couleur2 : couleur3;
-    const ruban = variation === "ruban-fond-haut" ? couleur2 : variation === "ruban-fond-bas" ? couleur3 : couleurRuban;
-    const modeleModerne = base.modele === "celeste";
-    const fondModerne = modeleModerne ? choisirAleatoire([fondHaut, fondBas, "#f8fafc", "#fffdf8", "#111827"]) : base.couleurFondModerne;
-    surprise = {
-      ...base,
-      couleur1,
-      couleur2: fondHaut,
-      couleur3: fondBas,
-      couleurRuban: ruban,
-      couleurVignette: variation === "inverse" ? couleur1 : couleurRuban,
-      couleurFondModerne: fondModerne,
-      couleurBandeGauche: modeleModerne ? couleurRuban : base.couleurBandeGauche,
-      couleurBandeDroite: modeleModerne ? couleur1 : base.couleurBandeDroite,
-      couleurTitres: modeleModerne ? couleurTexteContraste(fondModerne) : couleurLisible(fondHaut, couleurTitres),
-      couleurArtiste: modeleModerne ? couleurTexteContraste(ruban) : couleurLisible(ruban, couleurArtiste),
-      couleurMarques: couleurLisible(couleur1, couleurMarques),
-      decorPanel: Math.random() > 0.2 ? combo.decor : choisirAleatoire(["motif", "vignette"]),
-      angle: nombreAleatoire(0, 180, 10),
-      intensite: modeVignette === "aucun" ? base.intensite : nombreAleatoire(64, 94, 2),
-      motifType: motifActif,
-      couleurMotif: couleur1,
-      motif: nombreAleatoire(34, 82, 2),
-      angleMotif: nombreAleatoire(-36, 36, 2),
-      afficherTraitsModernes: modeleModerne ? Math.random() > 0.18 : base.afficherTraitsModernes,
-      motifTraitsModernes: modeleModerne
-        ? choisirAleatoire(OPTIONS_MOTIFS_SECONDAIRES.map(([valeur]) => valeur).filter((valeur) => valeur !== motifActif))
-        : base.motifTraitsModernes,
-      couleurTraitsModernes: modeleModerne ? couleur1 : base.couleurTraitsModernes,
-      opaciteTraitsModernes: modeleModerne ? nombreAleatoire(10, 34, 2) : base.opaciteTraitsModernes,
-      angleTraitsModernes: modeleModerne ? nombreAleatoire(-34, 34, 2) : base.angleTraitsModernes,
-      modeVignette,
-      vignette: modeVignette === "aucun" ? base.vignette : nombreAleatoire(18, 46, 2),
-      bordure: nombreAleatoire(38, 92, 2),
-      largeurRuban: nombreAleatoire(72, 96, 2),
-      hauteurRuban: nombreAleatoire(22, 36, 1),
-      hauteurBande: base.modele === "alice" ? nombreAleatoire(8, 24, 1) : base.hauteurBande,
-      tailleBandeGauche: base.modele === "celeste" ? nombreAleatoire(10, 24, 1) : base.tailleBandeGauche,
-      angleBandeGauche: base.modele === "celeste" ? nombreAleatoire(-24, 24, 2) : base.angleBandeGauche,
-      tailleBandeDroite: base.modele === "celeste" ? nombreAleatoire(18, 34, 1) : base.tailleBandeDroite,
-      angleBandeDroite: base.modele === "celeste" ? nombreAleatoire(-28, 28, 2) : base.angleBandeDroite,
-      tailleTitres: nombreAleatoire(92, 130, 2),
-      tailleArtiste: nombreAleatoire(92, 138, 2),
-      tailleMarques: nombreAleatoire(95, 160, 5),
-      limiterMarquesBandeSurprise: true,
-      styleTitres: Math.random() > 0.18 ? "gras" : "normal",
-      styleArtiste: Math.random() > 0.55 ? "gras" : "normal",
-      policeTitres: choisirAleatoire(["dactylo-ronde", "mono-moderne", "affiche-condensee", "sans-serree"]),
-      policeArtiste: choisirAleatoire(["compacte", "elegante", "mono-moderne", "sans-serree"]),
-      ...marques,
-    };
-    signature = JSON.stringify([
-      surprise.couleur1,
-      surprise.couleur2,
-      surprise.couleur3,
-      surprise.couleurRuban,
-      surprise.couleurFondModerne,
-      surprise.couleurBandeGauche,
-      surprise.couleurBandeDroite,
-      surprise.modeVignette,
-      surprise.motifType,
-      surprise.angleMotif,
-      surprise.afficherTraitsModernes,
-      surprise.motifTraitsModernes,
-      surprise.opaciteTraitsModernes,
-      surprise.angleTraitsModernes,
-      surprise.presetMarques,
-      surprise.afficherMarques,
-      surprise.largeurRuban,
-      surprise.hauteurRuban,
-      surprise.tailleBandeGauche,
-      surprise.angleBandeGauche,
-      surprise.tailleBandeDroite,
-      surprise.angleBandeDroite,
-      surprise.jaunissementPapier,
-      surprise.froissagePapier,
-      surprise.imperfectionsPapier,
-      surprise.usureBordsPapier,
-    ]);
-    if (!signaturesSurpriseRecentes.includes(signature)) {
-      break;
-    }
-  }
-
-  signaturesSurpriseRecentes.push(signature);
-  signaturesSurpriseRecentes.splice(0, Math.max(0, signaturesSurpriseRecentes.length - 12));
-  appliquerReglagesAuFormulaire(surprise);
-  enregistrerReglagesActifs();
-  mettreAJour();
+function signatureStyleEnregistre(reglages) {
+  return JSON.stringify([
+    reglages.modele,
+    reglages.couleur1,
+    reglages.couleur2,
+    reglages.couleur3,
+    reglages.couleurRuban,
+    reglages.couleurVignette,
+    reglages.couleurTitres,
+    reglages.couleurArtiste,
+    reglages.decorPanel,
+    reglages.motifType,
+    reglages.modeVignette,
+    reglages.bordure,
+    reglages.largeurRuban,
+    reglages.hauteurRuban,
+    reglages.hauteurBande,
+    reglages.policeTitres,
+    reglages.policeArtiste,
+  ]);
 }
 
 function ajusterMotifVisible() {
@@ -3266,14 +3330,9 @@ function copierReglages(evenement) {
 
 function preparerReglagesPourExport(reglages) {
   const copie = { ...reglages };
-  if (copie.modele === "simple") {
-    copie.modele = "juju";
-    copie.nomModele = "Juju";
-  } else {
-    const nom = modelesParTheme.tout.find(([valeur]) => valeur === copie.modele)?.[1];
-    if (nom) {
-      copie.nomModele = nom.charAt(0) + nom.slice(1).toLowerCase();
-    }
+  const nom = modelesParTheme.tout.find(([valeur]) => valeur === copie.modele)?.[1];
+  if (nom) {
+    copie.nomModele = nom;
   }
   return copie;
 }
@@ -3374,9 +3433,6 @@ function normaliserReglagesImportes(donnees) {
   }
 
   const donneesCompatibles = { ...donnees };
-  if (String(donneesCompatibles.modele || "").toLowerCase() === "juju") {
-    donneesCompatibles.modele = "simple";
-  }
   const reglages = lireReglagesFormulaire();
   Object.entries(donneesCompatibles).forEach(([cle, valeur]) => {
     const champ = elements[cle];
@@ -3417,14 +3473,26 @@ function normaliserReglagesImportes(donnees) {
     reglages[cle] = String(valeur).slice(0, champ.maxLength > 0 ? champ.maxLength : 500);
   });
 
-  if (reglages.modele === "martin" && !Object.prototype.hasOwnProperty.call(donneesCompatibles, "hauteurBande")) {
+  if (reglages.modele === "MARTIN" && !Object.prototype.hasOwnProperty.call(donneesCompatibles, "hauteurBande")) {
     reglages.hauteurBande = 0;
   }
   if (!Object.prototype.hasOwnProperty.call(donneesCompatibles, "angleMotif")) {
     reglages.angleMotif = presets[reglages.modele]?.angleMotif ?? 0;
   }
-  if (reglages.modele === "celeste") {
-    const preset = presets[reglages.modele] || presets.celeste;
+  if (!Object.prototype.hasOwnProperty.call(donneesCompatibles, "motifRuban")) {
+    reglages.motifRuban = false;
+  }
+  if (!Object.prototype.hasOwnProperty.call(donneesCompatibles, "motifRubanType")) {
+    reglages.motifRubanType = "aucun";
+  }
+  if (!Object.prototype.hasOwnProperty.call(donneesCompatibles, "opaciteMotifRuban")) {
+    reglages.opaciteMotifRuban = 45;
+  }
+  if (!Object.prototype.hasOwnProperty.call(donneesCompatibles, "angleMotifRuban")) {
+    reglages.angleMotifRuban = 0;
+  }
+  if (reglages.modele === "CELESTE") {
+    const preset = presets[reglages.modele] || presets.CELESTE;
     [
       "couleurBandeGauche",
       "couleurBandeDroite",
@@ -3449,16 +3517,39 @@ function normaliserReglagesImportes(donnees) {
 }
 
 function inverserStyle() {
-  enregistrerHistoriqueAvantAction();
   const reglages = lireReglagesFormulaire();
-  const variante = reglages.modele === "manu"
-    ? creerVarianteManu(reglages)
-    : reglages.modele === "celeste"
-    ? creerVarianteModerne(reglages)
-    : creerVarianteClassique(reglages);
+  const signatureVariante = signatureBaseVariante(reglages);
+  if (!cycleVarianteBouton || signatureDerniereVarianteCouleur !== signatureVariante) {
+    cycleVarianteBouton = creerCycleVariante(reglages);
+  }
+
+  const variante = cycleVarianteBouton.prochaine();
+  enregistrerHistoriqueAvantAction();
   appliquerReglagesAuFormulaire(variante);
+  signatureDerniereVarianteCouleur = signatureBaseVariante(lireReglagesFormulaire());
   enregistrerReglagesActifs();
   mettreAJour();
+}
+
+function estStyleParDefautVariante(style, modele) {
+  if (String(style.id || "").trim() === modele) {
+    return true;
+  }
+  const styleDefaut = obtenirStyleEtiquette(modele);
+  if (!styleDefaut) {
+    return false;
+  }
+  return signatureStyleEnregistre(normaliserReglagesImportes(style.reglages))
+    === signatureStyleEnregistre(normaliserReglagesImportes(styleDefaut.reglages));
+}
+
+function signatureBaseVariante(reglages) {
+  return JSON.stringify(
+    Object.keys(reglages)
+      .filter((cle) => !cle.startsWith("couleur"))
+      .sort()
+      .map((cle) => [cle, reglages[cle]])
+  );
 }
 
 function creerVarianteClassique(reglages) {

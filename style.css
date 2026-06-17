@@ -2112,6 +2112,13 @@ body:not(.is-intro-active) .hero-site__contenu {
   overflow-wrap: normal;
 }
 
+.barre-actions--apercu #reinitialiserReglage:disabled {
+  color: #9a9184;
+  border-color: rgba(95, 84, 72, 0.18);
+  background: rgba(232, 226, 214, 0.72);
+  opacity: 1;
+}
+
 .barre-actions--apercu .bouton-favori-icone {
   width: 34px;
   min-width: 34px;
@@ -3595,6 +3602,17 @@ body.is-favoris-ouverts .scene {
 
   .galerie-modeles--accueil {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .accueil-selection .carte-modele {
+    min-height: auto;
+    gap: 4px;
+    padding: 5px;
+  }
+
+  .accueil-selection .carte-modele__nom {
+    font-size: 0.56rem;
+    line-height: 1;
   }
 
   .scene {
