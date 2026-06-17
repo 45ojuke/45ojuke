@@ -476,7 +476,7 @@ function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages
     ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
     mesure = ctx.measureText(contenu).width;
   }
-  ctx.fillStyle = couleurLisibleSurCanvas(ctx, x, y, Math.min(largeurMax, mesure), taille * 1.35, couleurFond, reglages.couleurArtiste, 3);
+  ctx.fillStyle = reglages.couleurArtiste;
   dessinerTexteAvecTransformation(ctx, contenu, x, y, transformerArtisteRetro(decalageRetro, taille));
 }
 
@@ -1266,7 +1266,7 @@ function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond) {
     largeurMax,
     Math.max(taille * 5, ctx.measureText(texteNettoye.toLocaleUpperCase("fr-FR")).width * 0.86),
   );
-  ctx.fillStyle = couleurLisibleSurCanvas(ctx, x, y, largeurEchantillon, interligne * 2.2, couleurFond, reglages.couleurTitres, 3);
+  ctx.fillStyle = reglages.couleurTitres;
   const margeGuillemets = reglages.guillemetsTitres ? taille * 1.35 : 0;
   const lignes = dessinerTexteMultiligne(
     ctx,
@@ -1411,7 +1411,7 @@ function dessinerArtiste(ctx, texte, x, y, largeurMax, reglages, couleurFond = r
     ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
     mesure = ctx.measureText(contenu).width;
   }
-  ctx.fillStyle = couleurLisibleSurCanvas(ctx, x, y, Math.min(largeurMax, mesure), taille * 1.35, couleurFond, reglages.couleurArtiste, 3);
+  ctx.fillStyle = reglages.couleurArtiste;
   dessinerTexteAvecTransformation(ctx, contenu, x, y, transformerArtisteRetro(decalageRetro, taille));
 }
 

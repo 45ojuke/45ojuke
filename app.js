@@ -1381,6 +1381,21 @@ function basculerEditionTexteMobile() {
   definirEditionTexteMobile(!document.body.classList.contains("is-edition-texte-mobile"));
 }
 
+function ouvrirEditionTexteDepuisApercu() {
+  if (!MEDIA_MOBILE.matches) {
+    activerEtapeReglage("texte");
+    return;
+  }
+  activerEtapeReglage("texte", { conserverEditionTexteMobile: true });
+  definirEditionTexteMobile(true);
+  requestAnimationFrame(() => {
+    const champsTexte = [elements.texteFaceA, elements.texteArtiste, elements.texteFaceB];
+    if (champsTexte.includes(document.activeElement)) {
+      document.activeElement.blur();
+    }
+  });
+}
+
 function etapesAssistantDisponibles() {
   return ETAPES_ASSISTANT.filter((nomEtape) => {
     const panneau = Array.from(elements.panneauxReglages).find((item) => item.dataset.tabPanel === nomEtape);
@@ -2500,7 +2515,7 @@ function selectionnerEtiquetteDepuisApercu(numero) {
   });
   appliquerReglagesAuFormulaire(lireReglages(numero));
   mettreAJour();
-  activerEtapeReglage("texte");
+  ouvrirEditionTexteDepuisApercu();
 }
 
 function changerModeleSecondaire() {
