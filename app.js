@@ -2501,9 +2501,6 @@ function selectionnerEtiquetteDepuisApercu(numero) {
   appliquerReglagesAuFormulaire(lireReglages(numero));
   mettreAJour();
   activerEtapeReglage("reglages");
-  if (MEDIA_MOBILE.matches) {
-    definirEditionTexteMobile(true);
-  }
 }
 
 function changerModeleSecondaire() {
