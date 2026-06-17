@@ -405,7 +405,7 @@
                   <button class="choix-decor__option" id="boutonPapierVieilli" type="button" aria-pressed="false">Papier vieilli</button>
                 </div>
               </fieldset>
-              <label class="champ" data-decor-panel="motif">Motif
+              <label class="champ" data-decor-panel="motif">Motif de fond
                 <select id="motifType">
                   <option value="aucun">Aucun</option>
                   <option value="grille">Grille fine</option>
@@ -418,9 +418,32 @@
                   <option value="soleil">Soleil</option>
                 </select>
               </label>
+              <div class="champ champ-large options-bordure" data-decor-panel="motif">
+                <span class="champ__libelle">Motif appliqué</span>
+                <div class="options-bordure__choix">
+                  <label class="option-case">Fond <input id="motifFond" type="checkbox" checked /></label>
+                  <label class="option-case">Ruban <input id="motifRuban" type="checkbox" /></label>
+                </div>
+              </div>
               <label class="champ" data-decor-panel="motif" data-motif-reglage>Couleur <input id="couleurMotif" type="color" /></label>
               <label class="champ" data-decor-panel="motif" data-motif-reglage><span class="champ__libelle">Opacité <span class="valeur-range" data-range-value="motif" data-range-unit="%"></span></span><input id="motif" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-decor-panel="motif" data-motif-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMotif"></span></span><input id="angleMotif" type="range" min="-80" max="80" step="1" /></label>
+              <label class="champ" data-decor-panel="motif" data-motif-ruban-reglage>Motif ruban
+                <select id="motifRubanType">
+                  <option value="aucun">Aucun</option>
+                  <option value="grille">Grille fine</option>
+                  <option value="rayures">Rayures</option>
+                  <option value="points">Points</option>
+                  <option value="diagonales">Diagonales</option>
+                  <option value="chevrons">Chevrons</option>
+                  <option value="croisillons">Croisillons</option>
+                  <option value="vagues">Vagues</option>
+                  <option value="soleil">Soleil</option>
+                </select>
+              </label>
+              <label class="champ" data-decor-panel="motif" data-motif-ruban-details>Couleur ruban <input id="couleurMotifRuban" type="color" /></label>
+              <label class="champ" data-decor-panel="motif" data-motif-ruban-details><span class="champ__libelle">Opacité ruban <span class="valeur-range" data-range-value="opaciteMotifRuban" data-range-unit="%"></span></span><input id="opaciteMotifRuban" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-decor-panel="motif" data-motif-ruban-details><span class="champ__libelle">Angle ruban <span class="valeur-range" data-range-value="angleMotifRuban"></span></span><input id="angleMotifRuban" type="range" min="-80" max="80" step="1" /></label>
               <label class="champ champ-large" data-decor-panel="motif">Motif secondaire <input id="afficherTraitsModernes" type="checkbox" /></label>
               <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage>Type secondaire
                 <select id="motifTraitsModernes">
@@ -462,6 +485,13 @@
                 <span class="champ__libelle">Épaisseur de bordure <span class="valeur-range" data-range-value="bordure" data-range-unit="%"></span></span>
                 <input id="bordure" type="range" min="1" max="100" step="1" />
               </label>
+              <div class="champ champ-large options-bordure">
+                <span class="champ__libelle">Bordure visible</span>
+                <div class="options-bordure__choix">
+                  <label class="option-case">Haut / bas <input id="bordureHorizontale" type="checkbox" checked /></label>
+                  <label class="option-case">Gauche / droite <input id="bordureVerticale" type="checkbox" checked /></label>
+                </div>
+              </div>
               <label class="champ champ-large">Arrondi intérieur <input id="arrondiInterieurBordure" type="checkbox" /></label>
               <label class="champ" data-capacite-modele="ruban"><span class="champ__libelle">Largeur du ruban <span class="valeur-range" data-range-value="largeurRuban" data-range-unit="%"></span></span><input id="largeurRuban" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-capacite-modele="ruban"><span class="champ__libelle">Hauteur du ruban <span class="valeur-range" data-range-value="hauteurRuban" data-range-unit="%"></span></span><input id="hauteurRuban" type="range" min="0" max="100" step="1" /></label>

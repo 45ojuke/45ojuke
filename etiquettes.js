@@ -62,6 +62,7 @@ export function dessinerEtiquette(ligne, reglages) {
       traitRuban = Math.max(2, rubanH * 0.075);
       ctx.fillStyle = reglages.couleurRuban;
       ctx.fillRect(rubanX, rubanY, rubanW, rubanH);
+      dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH);
       ctx.strokeStyle = reglages.couleur1;
       ctx.lineWidth = traitRuban;
       ctx.strokeRect(
@@ -92,6 +93,7 @@ export function dessinerEtiquette(ligne, reglages) {
       Math.max(1, bordure),
       reglages.couleur1,
       reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      reglages,
     );
   }
 
@@ -253,6 +255,7 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
     tracerRectangleArrondi(ctx, rubanX, rubanY, rubanW, rubanH, rayon);
     ctx.fill();
     ctx.restore();
+    dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
 
     ctx.strokeStyle = convertirHexEnRgba(reglages.couleur1, 0.78);
     traitRuban = Math.max(2, hauteur * 0.012);
@@ -276,6 +279,7 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
       traitBordure,
       convertirHexEnRgba(reglages.couleur1, 0.88),
       reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      reglages,
     );
   }
 
@@ -342,6 +346,7 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
     ctx.fillStyle = reglages.couleurRuban;
     tracerRectangleArrondi(ctx, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
     ctx.fill();
+    dessinerMotifRuban(ctx, reglages, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
     ctx.strokeStyle = reglages.couleur1;
     ctx.lineWidth = traitRuban;
     tracerRectangleArrondi(
@@ -369,6 +374,7 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
       traitBordure,
       reglages.couleur1,
       reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.1, largeur * 0.025) : 0,
+      reglages,
     );
   }
 
@@ -422,6 +428,7 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
 
   dessinerMotif(ctx, reglages, largeur, hauteur);
   dessinerTraitsModernes(ctx, reglages, largeur, hauteur);
+  dessinerMotifRuban(ctx, reglages, 0, yHaut, largeur, yBas - yHaut);
   if (reglages.modeVignette === "fond" || reglages.modeVignette === "global") {
     dessinerVignette(ctx, reglages, largeur, hauteur);
   }
@@ -436,6 +443,7 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
       traitBordure,
       convertirHexEnRgba(reglages.couleur1, 0.9),
       reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      reglages,
     );
   }
 
@@ -883,9 +891,28 @@ function ajouterRectangleArrondi(ctx, x, y, largeur, hauteur, rayon) {
   ctx.closePath();
 }
 
-function dessinerBordureInterieureArrondie(ctx, x, y, largeur, hauteur, epaisseur, couleur, rayonInterieur = 0) {
+function dessinerBordureInterieureArrondie(ctx, x, y, largeur, hauteur, epaisseur, couleur, rayonInterieur = 0, reglages = {}) {
   const trait = Math.max(0, Math.min(epaisseur, largeur / 2, hauteur / 2));
   if (trait <= 0) {
+    return;
+  }
+  const afficherHorizontale = reglages.bordureHorizontale !== false;
+  const afficherVerticale = reglages.bordureVerticale !== false;
+  if (!afficherHorizontale && !afficherVerticale) {
+    return;
+  }
+  if (!afficherHorizontale || !afficherVerticale) {
+    ctx.save();
+    ctx.fillStyle = couleur;
+    if (afficherHorizontale) {
+      ctx.fillRect(x, y, largeur, trait);
+      ctx.fillRect(x, y + hauteur - trait, largeur, trait);
+    }
+    if (afficherVerticale) {
+      ctx.fillRect(x, y, trait, hauteur);
+      ctx.fillRect(x + largeur - trait, y, trait, hauteur);
+    }
+    ctx.restore();
     return;
   }
   const interieurX = x + trait;
@@ -930,6 +957,18 @@ function dessinerRubanSimple(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
   ctx.strokeStyle = reglages.couleur1;
   ctx.lineWidth = trait;
   ctx.beginPath();
+  tracerRubanSimple(ctx, rubanX, rubanY, rubanW, rubanH, pointe);
+  ctx.fill();
+  dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, 0, (contexte) => {
+    tracerRubanSimple(contexte, rubanX, rubanY, rubanW, rubanH, pointe);
+  });
+  ctx.beginPath();
+  tracerRubanSimple(ctx, rubanX, rubanY, rubanW, rubanH, pointe);
+  ctx.stroke();
+  return trait;
+}
+
+function tracerRubanSimple(ctx, rubanX, rubanY, rubanW, rubanH, pointe) {
   ctx.moveTo(rubanX, rubanY + rubanH / 2);
   ctx.lineTo(rubanX + pointe, rubanY);
   ctx.lineTo(rubanX + rubanW - pointe, rubanY);
@@ -937,9 +976,6 @@ function dessinerRubanSimple(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
   ctx.lineTo(rubanX + rubanW - pointe, rubanY + rubanH);
   ctx.lineTo(rubanX + pointe, rubanY + rubanH);
   ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  return trait;
 }
 
 function dessinerRubanMartin(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
@@ -965,6 +1001,7 @@ function dessinerRubanMartin(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
   ctx.restore();
   ctx.fillStyle = reglages.couleurRuban;
   ctx.fillRect(centreX, rubanY + insetY, centreW, rubanH - insetY * 2);
+  dessinerMotifRuban(ctx, reglages, centreX, rubanY + insetY, centreW, rubanH - insetY * 2);
   ctx.strokeStyle = reglages.couleur1;
   ctx.lineWidth = Math.max(2, rubanH * 0.045);
   ctx.strokeRect(centreX, rubanY + insetY, centreW, rubanH - insetY * 2);
@@ -1089,6 +1126,9 @@ function dessinerTexteTourneRespectantCasse(ctx, texte, x, y, angle) {
 }
 
 function dessinerMotif(ctx, reglages, largeur, hauteur) {
+  if (reglages.motifFond === false) {
+    return;
+  }
   const type = reglages.motifType || "aucun";
   const opacite = Math.max(0, Math.min(1, reglages.motif / 100)) * 0.42;
   const angle = limiterNombre(Number(reglages.angleMotif) || 0, -80, 80);
@@ -1096,6 +1136,29 @@ function dessinerMotif(ctx, reglages, largeur, hauteur) {
     return;
   }
   dessinerMotifLibre(ctx, type, reglages.couleurMotif || reglages.couleur1, opacite, largeur, hauteur, angle);
+}
+
+function dessinerMotifRuban(ctx, reglages, x, y, largeur, hauteur, rayon = 0, tracerClip = null) {
+  if (!reglages.motifRuban || largeur <= 0 || hauteur <= 0) {
+    return;
+  }
+  const type = reglages.motifRubanType || "aucun";
+  const opacite = Math.max(0, Math.min(1, Number(reglages.opaciteMotifRuban) / 100)) * 0.42;
+  const angle = limiterNombre(Number(reglages.angleMotifRuban) || 0, -80, 80);
+  if (type === "aucun" || opacite <= 0) {
+    return;
+  }
+  ctx.save();
+  ctx.beginPath();
+  if (typeof tracerClip === "function") {
+    tracerClip(ctx);
+  } else {
+    ajouterRectangleArrondi(ctx, x, y, largeur, hauteur, rayon);
+  }
+  ctx.clip();
+  ctx.translate(x, y);
+  dessinerMotifLibre(ctx, type, reglages.couleurMotifRuban || reglages.couleurMotif || reglages.couleur1, opacite, largeur, hauteur, angle);
+  ctx.restore();
 }
 
 function dessinerMotifLibre(ctx, type, couleurMotif, opacite, largeur, hauteur, angle = 0) {

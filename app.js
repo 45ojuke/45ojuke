@@ -127,9 +127,15 @@ const elements = {
   angle: document.querySelector("#angle"),
   intensite: document.querySelector("#intensite"),
   motifType: document.querySelector("#motifType"),
+  motifFond: document.querySelector("#motifFond"),
+  motifRuban: document.querySelector("#motifRuban"),
+  motifRubanType: document.querySelector("#motifRubanType"),
   couleurMotif: document.querySelector("#couleurMotif"),
   motif: document.querySelector("#motif"),
   angleMotif: document.querySelector("#angleMotif"),
+  couleurMotifRuban: document.querySelector("#couleurMotifRuban"),
+  opaciteMotifRuban: document.querySelector("#opaciteMotifRuban"),
+  angleMotifRuban: document.querySelector("#angleMotifRuban"),
   afficherTraitsModernes: document.querySelector("#afficherTraitsModernes"),
   motifTraitsModernes: document.querySelector("#motifTraitsModernes"),
   couleurTraitsModernes: document.querySelector("#couleurTraitsModernes"),
@@ -144,6 +150,8 @@ const elements = {
   imperfectionsPapier: document.querySelector("#imperfectionsPapier"),
   usureBordsPapier: document.querySelector("#usureBordsPapier"),
   bordure: document.querySelector("#bordure"),
+  bordureHorizontale: document.querySelector("#bordureHorizontale"),
+  bordureVerticale: document.querySelector("#bordureVerticale"),
   arrondiInterieurBordure: document.querySelector("#arrondiInterieurBordure"),
   largeurRuban: document.querySelector("#largeurRuban"),
   hauteurRuban: document.querySelector("#hauteurRuban"),
@@ -174,6 +182,8 @@ const elements = {
   reglagesTraitsModernes: document.querySelectorAll("[data-traits-modernes-reglage]"),
   reglagesVignette: document.querySelectorAll("[data-vignette-reglage]"),
   reglagesPapier: document.querySelectorAll("[data-papier-reglage]"),
+  reglagesMotifRuban: document.querySelectorAll("[data-motif-ruban-reglage]"),
+  reglagesMotifRubanDetails: document.querySelectorAll("[data-motif-ruban-details]"),
   champsModele: document.querySelectorAll("[data-modele-visible]"),
   champsMasquesModele: document.querySelectorAll("[data-modele-masque]"),
   champsCapaciteModele: document.querySelectorAll("[data-capacite-modele]"),
@@ -390,6 +400,9 @@ function brancherEvenements() {
     mettreAJourInterfaceConditionnelle(lireReglagesFormulaire());
   });
   elements.motifType.addEventListener("change", ajusterMotifVisible);
+  elements.motifFond.addEventListener("change", ajusterMotifVisible);
+  elements.motifRuban.addEventListener("change", ajusterMotifVisible);
+  elements.motifRubanType.addEventListener("change", ajusterMotifVisible);
   elements.modeVignette.addEventListener("change", ajusterVignetteVisible);
   elements.presetMarques.addEventListener("change", appliquerPresetMarques);
   elements.synchroniserMarques.addEventListener("change", () => {
@@ -1894,6 +1907,14 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.bordure = Math.max(EPAISSEUR_BORDURE_MIN, Number(reglagesNormalises.bordure) || EPAISSEUR_BORDURE_MIN);
   reglagesNormalises.decalageRetro = reglagesNormalises.decalageRetro || "aucun";
   reglagesNormalises.angleMotif = reglagesNormalises.angleMotif ?? 0;
+  reglagesNormalises.motifFond = reglagesNormalises.motifFond ?? true;
+  reglagesNormalises.motifRuban = reglagesNormalises.motifRuban ?? false;
+  reglagesNormalises.motifRubanType = reglagesNormalises.motifRubanType || reglagesNormalises.motifType || "aucun";
+  reglagesNormalises.couleurMotifRuban = reglagesNormalises.couleurMotifRuban || reglagesNormalises.couleurMotif || reglagesNormalises.couleur1;
+  reglagesNormalises.opaciteMotifRuban = reglagesNormalises.opaciteMotifRuban ?? reglagesNormalises.motif ?? 45;
+  reglagesNormalises.angleMotifRuban = reglagesNormalises.angleMotifRuban ?? reglagesNormalises.angleMotif ?? 0;
+  reglagesNormalises.bordureHorizontale = reglagesNormalises.bordureHorizontale ?? true;
+  reglagesNormalises.bordureVerticale = reglagesNormalises.bordureVerticale ?? true;
   reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.arrondiInterieurBordure ?? false;
   reglagesNormalises.papierVieilli = reglagesNormalises.papierVieilli ?? false;
   reglagesNormalises.epaisseurTraitsLeon = reglagesNormalises.epaisseurTraitsLeon ?? 3;
@@ -1945,7 +1966,7 @@ function appliquerReglagesAuFormulaire(reglages) {
     }
   });
   synchroniserOptionsMotifSecondaire(reglagesNormalises.motifTraitsModernes);
-  elements.activerMotif.checked = reglagesNormalises.motifType !== "aucun";
+  elements.activerMotif.checked = motifDecorActifDepuisFormulaire();
   elements.activerVignettage.checked = reglagesNormalises.modeVignette !== "aucun";
   const decorActif = decorActifDepuisPanel();
   rendreDecorExclusif(decorActif);
@@ -2406,6 +2427,12 @@ function lireReglagesFormulaire() {
     couleurMotif: elements.couleurMotif.value,
     motif: Number(elements.motif.value),
     angleMotif: Number(elements.angleMotif.value),
+    motifFond: elements.motifFond.checked,
+    motifRuban: elements.motifRuban.checked,
+    motifRubanType: elements.motifRuban.checked ? elements.motifRubanType.value : "aucun",
+    couleurMotifRuban: elements.couleurMotifRuban.value,
+    opaciteMotifRuban: Number(elements.opaciteMotifRuban.value),
+    angleMotifRuban: Number(elements.angleMotifRuban.value),
     afficherTraitsModernes: elements.afficherTraitsModernes.checked,
     motifTraitsModernes: elements.motifTraitsModernes.value,
     couleurTraitsModernes: elements.couleurTraitsModernes.value,
@@ -2420,6 +2447,8 @@ function lireReglagesFormulaire() {
     imperfectionsPapier: Number(elements.imperfectionsPapier.value),
     usureBordsPapier: Number(elements.usureBordsPapier.value),
     bordure: Math.max(EPAISSEUR_BORDURE_MIN, Number(elements.bordure.value) || EPAISSEUR_BORDURE_MIN),
+    bordureHorizontale: elements.bordureHorizontale.checked,
+    bordureVerticale: elements.bordureVerticale.checked,
     arrondiInterieurBordure: elements.arrondiInterieurBordure.checked,
     largeurRuban: Number(elements.largeurRuban.value),
     hauteurRuban: Number(elements.hauteurRuban.value),
@@ -3027,20 +3056,33 @@ function melanger() {
 
 function ajusterMotifVisible() {
   elements.decorPanel.value = "motif";
-  elements.activerMotif.checked = elements.motifType.value !== "aucun";
+  elements.activerMotif.checked = motifDecorActifDepuisFormulaire();
   rendreDecorExclusif(elements.activerMotif.checked ? "motif" : null);
   synchroniserOptionsMotifSecondaire();
   if (!elements.activerMotif.checked) {
     elements.afficherTraitsModernes.checked = false;
   }
   mettreAJourBoutonsDecor();
-  if (elements.motifType.value !== "aucun" && Number(elements.motif.value) < 25) {
+  if (elements.motifFond.checked && elements.motifType.value !== "aucun" && Number(elements.motif.value) < 25) {
     elements.motif.value = "45";
+  }
+  if (elements.motifRuban.checked && elements.motifRubanType.value === "aucun") {
+    elements.motifRubanType.value = elements.motifType.value !== "aucun" ? elements.motifType.value : "grille";
+  }
+  if (elements.motifRuban.checked && Number(elements.opaciteMotifRuban.value) < 25) {
+    elements.opaciteMotifRuban.value = "45";
   }
   if (!chargementReglages) {
     enregistrerReglagesActifs();
     mettreAJour();
   }
+}
+
+function motifDecorActifDepuisFormulaire() {
+  return (
+    (elements.motifFond.checked && elements.motifType.value !== "aucun")
+    || (elements.motifRuban.checked && elements.motifRubanType.value !== "aucun")
+  );
 }
 
 function ajusterVignetteVisible() {
@@ -3066,11 +3108,15 @@ function basculerDecor(type) {
       if (elements.motifType.value === "aucun") {
         elements.motifType.value = "grille";
       }
+      elements.motifFond.checked = true;
       if (Number(elements.motif.value) < 25) {
         elements.motif.value = "45";
       }
     } else {
       elements.motifType.value = "aucun";
+      elements.motifFond.checked = true;
+      elements.motifRuban.checked = false;
+      elements.motifRubanType.value = "aucun";
       elements.afficherTraitsModernes.checked = false;
     }
     rendreDecorExclusif(elements.activerMotif.checked ? "motif" : null);
@@ -4248,7 +4294,19 @@ function mettreAJourInterfaceConditionnelle(reglages) {
     );
   });
   elements.reglagesMotif.forEach((champ) => {
-    champ.classList.toggle("champ-masque", !motifActif || reglages.motifType === "aucun");
+    champ.classList.toggle(
+      "champ-masque",
+      !motifActif || !reglages.motifFond || reglages.motifType === "aucun",
+    );
+  });
+  elements.reglagesMotifRuban.forEach((champ) => {
+    champ.classList.toggle("champ-masque", !motifActif || !reglages.motifRuban);
+  });
+  elements.reglagesMotifRubanDetails.forEach((champ) => {
+    champ.classList.toggle(
+      "champ-masque",
+      !motifActif || !reglages.motifRuban || reglages.motifRubanType === "aucun",
+    );
   });
   elements.reglagesTraitsModernes.forEach((champ) => {
     champ.classList.toggle(

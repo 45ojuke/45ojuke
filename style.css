@@ -1004,6 +1004,32 @@ body:not(.is-intro-active) .hero-site__contenu {
   grid-column: 1 / -1;
 }
 
+.options-bordure {
+  gap: 6px;
+}
+
+.options-bordure__choix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.option-case {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid rgba(44, 35, 28, 0.12);
+  border-radius: 7px;
+  background: rgba(255, 250, 238, 0.58);
+}
+
+.option-case input[type="checkbox"] {
+  justify-self: end;
+}
+
 [data-tab-panel="texte"] .champ:has(select) {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -1462,6 +1488,11 @@ body:not(.is-intro-active) .hero-site__contenu {
   justify-content: start;
   min-height: 33px;
   column-gap: 10px;
+}
+
+.options-bordure:has(input[type="checkbox"]) {
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
 }
 
 .champ:has(input[type="color"]) {
