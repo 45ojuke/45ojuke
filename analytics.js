@@ -9,14 +9,7 @@ export function envoyerJsonStyle(evenement, payload) {
     return;
   }
 
-  const donnees = JSON.stringify({
-    eventId: creerEventId(),
-    event: evenement,
-    sentAt: new Date().toISOString(),
-    source: "45ojuke",
-    device: obtenirInfosAppareil(),
-    ...payload,
-  });
+  const donnees = JSON.stringify(payload);
 
   try {
     const formulaire = new URLSearchParams();
@@ -32,31 +25,4 @@ export function envoyerJsonStyle(evenement, payload) {
   } catch {
     // L'envoi du JSON ne doit jamais bloquer l'utilisation de l'application.
   }
-}
-
-function creerEventId() {
-  const sourceAleatoire = globalThis.crypto?.randomUUID?.();
-  if (sourceAleatoire) {
-    return sourceAleatoire;
-  }
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
-function obtenirInfosAppareil() {
-  return {
-    userAgent: navigator.userAgent || "",
-    platform: navigator.platform || "",
-    language: navigator.language || "",
-    languages: Array.isArray(navigator.languages) ? navigator.languages.join(", ") : "",
-    screen: {
-      width: window.screen?.width || null,
-      height: window.screen?.height || null,
-      pixelRatio: window.devicePixelRatio || 1,
-    },
-    viewport: {
-      width: window.innerWidth || null,
-      height: window.innerHeight || null,
-    },
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
-  };
 }

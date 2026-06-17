@@ -3170,15 +3170,11 @@ function preparerReglagesPourExport(reglages) {
   return copie;
 }
 
-function creerPayloadJsonStyle(details = {}) {
+function creerPayloadJsonStyle() {
   const deuxiemeActive = deuxiemeEtiquetteActive();
   const reglagesPrincipaux = lireReglages("1");
   const reglagesSecondaires = deuxiemeActive ? lireReglages("2") : null;
   return {
-    page: location.pathname,
-    language: langueActive,
-    activeLabel: etiquetteActive,
-    secondLabelEnabled: deuxiemeActive,
     styles: {
       primary: preparerReglagesPourExport(reglagesPrincipaux),
       secondary: reglagesSecondaires ? preparerReglagesPourExport(reglagesSecondaires) : null,
@@ -3187,16 +3183,11 @@ function creerPayloadJsonStyle(details = {}) {
       primary: creerApercuStylePourEmail(reglagesPrincipaux, "principal"),
       secondary: reglagesSecondaires ? creerApercuStylePourEmail(reglagesSecondaires, "secondaire") : null,
     },
-    ...details,
   };
 }
 
 function creerPayloadFavori(reglages) {
   return {
-    page: location.pathname,
-    language: langueActive,
-    activeLabel: etiquetteActive,
-    secondLabelEnabled: deuxiemeEtiquetteActive(),
     favoriteStyle: preparerReglagesPourExport(reglages),
     favoritePreviewImage: creerApercuStylePourEmail(reglages, "favori"),
   };
@@ -3204,18 +3195,7 @@ function creerPayloadFavori(reglages) {
 
 function creerApercuStylePourEmail(reglages, nom) {
   try {
-    const ligne = obtenirLignes()[indexApercu] || obtenirLignes()[0] || {
-      titre_face_a: "",
-      titre_face_b: "",
-      selection_face_a: "",
-      selection_face_b: "",
-      titreA: "",
-      artiste: "",
-      titreB: "",
-      artisteAffiche: "",
-      position: "",
-    };
-    const canvas = dessinerEtiquette(ligne, reglages);
+    const canvas = dessinerEtiquette(creerLigneAnonymePourApercuEmail(), reglages);
     const apercu = redimensionnerCanvasPourEmail(canvas);
     return {
       name: `45ojuke-apercu-${nom}.jpg`,
@@ -3224,6 +3204,20 @@ function creerApercuStylePourEmail(reglages, nom) {
   } catch {
     return null;
   }
+}
+
+function creerLigneAnonymePourApercuEmail() {
+  return {
+    titre_face_a: "FACE A",
+    titre_face_b: "FACE B",
+    selection_face_a: "A",
+    selection_face_b: "B",
+    titreA: "FACE A",
+    artiste: "45'O'JUKE",
+    titreB: "FACE B",
+    artisteAffiche: "45'O'JUKE",
+    position: "",
+  };
 }
 
 function redimensionnerCanvasPourEmail(source) {
@@ -4460,10 +4454,7 @@ function ouvrirDialogueImpression(lignes) {
     await attendreRenduInterface();
     try {
       await telechargerPdf(lignesSortie);
-      envoyerJsonStyle("pdf_downloaded", creerPayloadJsonStyle({
-        selectedRows: selectionLignes.length,
-        blankLabels: viergesInput.checked,
-      }));
+      envoyerJsonStyle("pdf_downloaded", creerPayloadJsonStyle());
       dialogue.close();
     } catch {
       message.hidden = false;
