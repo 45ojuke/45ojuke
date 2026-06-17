@@ -43,6 +43,7 @@ const LIEN_FACEBOOK_CONTACT = "https://www.facebook.com/45.O.Juke/";
 const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
 const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
 const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine)");
+const DELAI_MASQUAGE_BANDEAU_RESTAURATION = 10000;
 
 const elements = {
   intro: document.querySelector("#intro"),
@@ -272,6 +273,7 @@ let bulleAideActive = null;
 let favorisOuverts = false;
 let invitationInstallation = null;
 let dernierToucherZoom = 0;
+let temporisateurBandeauRestauration = null;
 const LIMITE_HISTORIQUE_REGLAGES = 40;
 const historiqueReglages = {
   annulations: [],
@@ -504,6 +506,11 @@ function proposerRestaurationReglagesAutomatiques() {
     : `${traduirePhrase("Dernière sauvegarde")} : ${date.toLocaleString(localeCourante(), { dateStyle: "short", timeStyle: "short" })}.`;
   elements.bandeauRestauration.hidden = false;
   document.body.classList.add("is-restauration-visible");
+  clearTimeout(temporisateurBandeauRestauration);
+  temporisateurBandeauRestauration = setTimeout(
+    masquerBandeauRestauration,
+    DELAI_MASQUAGE_BANDEAU_RESTAURATION,
+  );
 }
 
 function restaurerReglagesAutomatiques() {
@@ -546,6 +553,8 @@ function restaurerReglagesAutomatiques() {
 }
 
 function masquerBandeauRestauration() {
+  clearTimeout(temporisateurBandeauRestauration);
+  temporisateurBandeauRestauration = null;
   elements.bandeauRestauration.hidden = true;
   document.body.classList.remove("is-restauration-visible");
 }
