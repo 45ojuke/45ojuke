@@ -182,8 +182,28 @@ function dessinerTitresCentres(ctx, ligne, reglages, largeur, hauteur, geometrie
       geometrie.rubanH,
       geometrie.traitRuban,
     );
-  dessinerTitre(ctx, ligne.titreA, largeur / 2, zonesTitres.haut, geometrie.largeurTitre, reglages, reglages.couleur2);
-  dessinerTitre(ctx, ligne.titreB, largeur / 2, zonesTitres.bas, geometrie.largeurTitre, reglages, reglages.couleur3);
+  dessinerTitre(
+    ctx,
+    ligne.titreA,
+    largeur / 2,
+    zonesTitres.haut,
+    geometrie.largeurTitre,
+    reglages,
+    reglages.couleur2,
+    reglages.couleurTitreFaceA,
+    reglages.couleurTitreFaceAManuelle,
+  );
+  dessinerTitre(
+    ctx,
+    ligne.titreB,
+    largeur / 2,
+    zonesTitres.bas,
+    geometrie.largeurTitre,
+    reglages,
+    reglages.couleur3,
+    reglages.couleurTitreFaceB,
+    reglages.couleurTitreFaceBManuelle,
+  );
 }
 
 function largeurTexteModerne(reglages, largeur, hauteur, y, largeurMax) {
@@ -470,8 +490,28 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
 
   const margeX = Math.max(largeur * 0.09, traitBordure + largeur * 0.035);
   const largeurTexte = largeur - margeX * 2;
-  dessinerTitre(ctx, ligne.titreA, largeur / 2, centreEntreTraits(traitBordure, yHaut), largeurTexte, reglages, fondHaut);
-  dessinerTitre(ctx, ligne.titreB, largeur / 2, centreEntreTraits(yBas, hauteur - traitBordure), largeurTexte, reglages, fondBas);
+  dessinerTitre(
+    ctx,
+    ligne.titreA,
+    largeur / 2,
+    centreEntreTraits(traitBordure, yHaut),
+    largeurTexte,
+    reglages,
+    fondHaut,
+    reglages.couleurTitreFaceA,
+    reglages.couleurTitreFaceAManuelle,
+  );
+  dessinerTitre(
+    ctx,
+    ligne.titreB,
+    largeur / 2,
+    centreEntreTraits(yBas, hauteur - traitBordure),
+    largeurTexte,
+    reglages,
+    fondBas,
+    reglages.couleurTitreFaceB,
+    reglages.couleurTitreFaceBManuelle,
+  );
   dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, yBas - yHaut, reglages, fondArtiste);
 
   if (reglages.papierVieilli) {
@@ -494,7 +534,11 @@ function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages
     ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
     mesure = ctx.measureText(contenu).width;
   }
-  ctx.fillStyle = reglages.couleurArtiste;
+  ctx.fillStyle = couleurTextePourFond(
+    couleurFond,
+    reglages.couleurArtiste,
+    reglages.couleurArtisteManuelle,
+  );
   dessinerTexteAvecTransformation(ctx, contenu, x, y, transformerArtisteRetro(decalageRetro, taille));
 }
 
@@ -1340,7 +1384,7 @@ function dessinerVignette(ctx, reglages, largeur, hauteur) {
   ctx.restore();
 }
 
-function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond) {
+function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, couleurTitre, couleurManuelle) {
   const taille = 22 * reglages.tailleTitres / 100;
   const poids = styleTexteEnGras(reglages.styleTitres) ? 800 : 500;
   const italique = reglages.styleTitres === "italique" || reglages.styleTitres === "gras-italique" ? "italic " : "";
@@ -1352,7 +1396,11 @@ function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond) {
     largeurMax,
     Math.max(taille * 5, ctx.measureText(texteNettoye.toLocaleUpperCase("fr-FR")).width * 0.86),
   );
-  ctx.fillStyle = reglages.couleurTitres;
+  ctx.fillStyle = couleurTextePourFond(
+    couleurFond,
+    couleurTitre,
+    couleurManuelle,
+  );
   const margeGuillemets = reglages.guillemetsTitres ? taille * 1.35 : 0;
   const lignes = dessinerTexteMultiligne(
     ctx,
@@ -1497,7 +1545,11 @@ function dessinerArtiste(ctx, texte, x, y, largeurMax, reglages, couleurFond = r
     ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
     mesure = ctx.measureText(contenu).width;
   }
-  ctx.fillStyle = reglages.couleurArtiste;
+  ctx.fillStyle = couleurTextePourFond(
+    couleurFond,
+    reglages.couleurArtiste,
+    reglages.couleurArtisteManuelle,
+  );
   dessinerTexteAvecTransformation(ctx, contenu, x, y, transformerArtisteRetro(decalageRetro, taille));
 }
 
@@ -1715,6 +1767,12 @@ export function couleurLisible(couleurFond, couleurPreferee, contrasteMinimum = 
     return couleurPreferee;
   }
   return ratioContraste(couleurFond, "#fffdf8") > ratioContraste(couleurFond, "#16120d") ? "#fffdf8" : "#16120d";
+}
+
+function couleurTextePourFond(couleurFond, couleurPreferee, couleurManuelle) {
+  return couleurManuelle
+    ? couleurPreferee
+    : couleurLisible(couleurFond, couleurPreferee);
 }
 
 export function couleurTexteContraste(couleurFond) {

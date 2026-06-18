@@ -1004,6 +1004,21 @@ body:not(.is-intro-active) .hero-site__contenu {
   grid-column: 1 / -1;
 }
 
+.couleurs-textes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.couleurs-textes .champ {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.couleurs-textes .champ input[type="color"] {
+  justify-self: end;
+}
+
 .options-bordure {
   gap: 6px;
 }

@@ -121,7 +121,8 @@ const elements = {
   couleurFondModerne: document.querySelector("#couleurFondModerne"),
   couleurBandeGauche: document.querySelector("#couleurBandeGauche"),
   couleurBandeDroite: document.querySelector("#couleurBandeDroite"),
-  couleurTitres: document.querySelector("#couleurTitres"),
+  couleurTitreFaceA: document.querySelector("#couleurTitreFaceA"),
+  couleurTitreFaceB: document.querySelector("#couleurTitreFaceB"),
   couleurArtiste: document.querySelector("#couleurArtiste"),
   decorPanel: document.querySelector("#decorPanel"),
   activerMotif: document.querySelector("#activerMotif"),
@@ -264,13 +265,29 @@ const elements = {
 
 const PALETTES_TEINTES = [
   { nom: "rouge", cadre: "#9f1d24", fondHaut: "#fff7df", fondBas: "#f3d59b", ruban: "#b8242e", vignette: "#7c151b", motif: "#8b1a20", secondaire: "#d0a24d", titre: "#5c1015", artiste: "#fff7df", marques: "#fff0c0" },
+  { nom: "rouge-vif", cadre: "#d71920", fondHaut: "#fff5e8", fondBas: "#ffc9bd", ruban: "#ef233c", vignette: "#a50f1b", motif: "#d71920", secondaire: "#ff8a3d", titre: "#8f1018", artiste: "#fffdf8", marques: "#ffe0a8" },
+  { nom: "rouge-electrique", cadre: "#ff1744", fondHaut: "#fff3f5", fondBas: "#ffb3c1", ruban: "#ff2d55", vignette: "#c90035", motif: "#ff1744", secondaire: "#ff9f1c", titre: "#a8002d", artiste: "#ffffff", marques: "#ffe66d" },
   { nom: "vert", cadre: "#176a46", fondHaut: "#fff6dc", fondBas: "#d9c47a", ruban: "#1f7a53", vignette: "#125439", motif: "#176a46", secondaire: "#b49543", titre: "#103f2c", artiste: "#fff7df", marques: "#f1dd91" },
+  { nom: "vert-vif", cadre: "#008f5a", fondHaut: "#f2fff8", fondBas: "#a7f3c8", ruban: "#00a86b", vignette: "#006b43", motif: "#008f5a", secondaire: "#f2b705", titre: "#005638", artiste: "#ffffff", marques: "#fff176" },
+  { nom: "vert-electrique", cadre: "#00b84a", fondHaut: "#effff3", fondBas: "#8df5ae", ruban: "#00d05a", vignette: "#008c38", motif: "#00b84a", secondaire: "#ffd600", titre: "#006d2a", artiste: "#071b0d", marques: "#f5ff70" },
   { nom: "bleu", cadre: "#1e4f85", fondHaut: "#fff5dd", fondBas: "#d6bd78", ruban: "#285f96", vignette: "#173f69", motif: "#1e4f85", secondaire: "#b78f3e", titre: "#14365c", artiste: "#fff7df", marques: "#efd487" },
+  { nom: "bleu-vif", cadre: "#0067d9", fondHaut: "#f2f8ff", fondBas: "#a9d4ff", ruban: "#087ff5", vignette: "#004da8", motif: "#0067d9", secondaire: "#ffb000", titre: "#00418d", artiste: "#ffffff", marques: "#ffe47a" },
+  { nom: "bleu-electrique", cadre: "#0057ff", fondHaut: "#f0f5ff", fondBas: "#93bcff", ruban: "#0077ff", vignette: "#003dcc", motif: "#0057ff", secondaire: "#ff9d00", titre: "#0036a3", artiste: "#ffffff", marques: "#ffea61" },
   { nom: "violet", cadre: "#64356f", fondHaut: "#fff4dc", fondBas: "#d5b978", ruban: "#76407d", vignette: "#4f2857", motif: "#64356f", secondaire: "#b68a3d", titre: "#3d2145", artiste: "#fff7df", marques: "#efd182" },
+  { nom: "violet-vif", cadre: "#8125d6", fondHaut: "#fbf3ff", fondBas: "#d7b2ff", ruban: "#9635e8", vignette: "#5e149f", motif: "#8125d6", secondaire: "#ff9f1c", titre: "#501080", artiste: "#ffffff", marques: "#ffe27a" },
+  { nom: "violet-electrique", cadre: "#9d00ff", fondHaut: "#fcf2ff", fondBas: "#e2a6ff", ruban: "#b000ff", vignette: "#7200bd", motif: "#9d00ff", secondaire: "#ffb000", titre: "#63009e", artiste: "#ffffff", marques: "#fff06a" },
   { nom: "orange", cadre: "#a44d1f", fondHaut: "#fff4dc", fondBas: "#d9bd76", ruban: "#b85c24", vignette: "#7b3517", motif: "#a44d1f", secondaire: "#9c6f32", titre: "#663016", artiste: "#fff7df", marques: "#efd48a" },
+  { nom: "orange-vif", cadre: "#e85d04", fondHaut: "#fff7ed", fondBas: "#ffd09e", ruban: "#f97316", vignette: "#b83f00", motif: "#e85d04", secondaire: "#d9a000", titre: "#963800", artiste: "#ffffff", marques: "#fff176" },
+  { nom: "orange-electrique", cadre: "#ff5a00", fondHaut: "#fff5eb", fondBas: "#ffbd73", ruban: "#ff7100", vignette: "#cc3d00", motif: "#ff5a00", secondaire: "#ffc400", titre: "#a83200", artiste: "#ffffff", marques: "#fff35c" },
   { nom: "jaune", cadre: "#8a6a1f", fondHaut: "#fff2d1", fondBas: "#d0ad4f", ruban: "#9a7622", vignette: "#6d5319", motif: "#8a6a1f", secondaire: "#725426", titre: "#513f16", artiste: "#fff7df", marques: "#e7c15d" },
+  { nom: "jaune-vif", cadre: "#d59a00", fondHaut: "#fffced", fondBas: "#ffe875", ruban: "#f2b800", vignette: "#a87500", motif: "#d59a00", secondaire: "#ff6b00", titre: "#765300", artiste: "#2b2100", marques: "#fff7a8" },
+  { nom: "jaune-electrique", cadre: "#f2c500", fondHaut: "#ffffed", fondBas: "#fff45c", ruban: "#ffdf00", vignette: "#bd9500", motif: "#f2c500", secondaire: "#ff5c00", titre: "#6f5900", artiste: "#211d00", marques: "#fffbc2" },
   { nom: "rose", cadre: "#a21d5d", fondHaut: "#fff4e5", fondBas: "#e6b77c", ruban: "#bd2f74", vignette: "#7c1747", motif: "#a21d5d", secondaire: "#b47b35", titre: "#65143d", artiste: "#fff7df", marques: "#efd08b" },
+  { nom: "rose-vif", cadre: "#d41473", fondHaut: "#fff2f8", fondBas: "#ffadd4", ruban: "#ec238a", vignette: "#a40b55", motif: "#d41473", secondaire: "#ff9f1c", titre: "#8d094c", artiste: "#ffffff", marques: "#ffe16f" },
+  { nom: "rose-electrique", cadre: "#ff007f", fondHaut: "#fff0f7", fondBas: "#ff9acb", ruban: "#ff1493", vignette: "#c70068", motif: "#ff007f", secondaire: "#ffb000", titre: "#a50057", artiste: "#ffffff", marques: "#fff06a" },
   { nom: "turquoise", cadre: "#0f6f78", fondHaut: "#fff6df", fondBas: "#d4bd75", ruban: "#16828c", vignette: "#0b5961", motif: "#0f6f78", secondaire: "#aa8c3f", titre: "#0b454b", artiste: "#fff7df", marques: "#ecd389" },
+  { nom: "turquoise-vif", cadre: "#008c95", fondHaut: "#efffff", fondBas: "#96edf0", ruban: "#00a9b4", vignette: "#006b72", motif: "#008c95", secondaire: "#f4ad00", titre: "#005a61", artiste: "#ffffff", marques: "#fff27a" },
+  { nom: "turquoise-electrique", cadre: "#00aeb8", fondHaut: "#edffff", fondBas: "#79f2ef", ruban: "#00ced1", vignette: "#007f87", motif: "#00aeb8", secondaire: "#ffb300", titre: "#006c72", artiste: "#042425", marques: "#f7ff70" },
   { nom: "indigo", cadre: "#34427d", fondHaut: "#fff5dd", fondBas: "#d7bd78", ruban: "#43519a", vignette: "#283363", motif: "#34427d", secondaire: "#b48f42", titre: "#222b55", artiste: "#fff7df", marques: "#efd489" },
   { nom: "bordeaux", cadre: "#7f2432", fondHaut: "#fff4dd", fondBas: "#d8b474", ruban: "#973044", vignette: "#641a27", motif: "#7f2432", secondaire: "#a87b38", titre: "#521622", artiste: "#fff7df", marques: "#ebcb80" },
   { nom: "menthe", cadre: "#2f7a55", fondHaut: "#fff7e1", fondBas: "#d8c07c", ruban: "#3d9368", vignette: "#235d40", motif: "#2f7a55", secondaire: "#b08c3e", titre: "#214c37", artiste: "#fff7df", marques: "#edd28a" },
@@ -376,6 +393,7 @@ function brancherEvenements() {
       return;
     }
     enregistrerHistoriqueDepuisControle(evenement.target);
+    marquerCouleurTexteManuelle(evenement.target);
     desactiverLimiteMarquesSurpriseSiModificationManuelle(evenement.target);
     if (evenement.target.closest("[data-marque-commun]")) {
       synchroniserValeursMarquesDepuisCommun();
@@ -388,6 +406,7 @@ function brancherEvenements() {
       return;
     }
     enregistrerHistoriqueDepuisControle(evenement.target);
+    marquerCouleurTexteManuelle(evenement.target);
     desactiverLimiteMarquesSurpriseSiModificationManuelle(evenement.target);
     if (evenement.target.closest("[data-marque-commun]")) {
       synchroniserValeursMarquesDepuisCommun();
@@ -2011,7 +2030,7 @@ function creerSurpriseDistinctePourApercu(reglages, signaturesRecentes) {
 function creerVarianteClassiqueAleatoire(reglages) {
   const combo = choisirAleatoire(combosSurprise);
   const variation = choisirAleatoire(["original", "inverse", "ruban-fond-haut", "ruban-fond-bas"]);
-  const [couleur1, couleur2, couleur3, couleurRuban, couleurTitres, couleurArtiste, couleurMarques] = combo.couleurs;
+  const [couleur1, couleur2, couleur3, couleurRuban, couleurTitreSource, couleurArtiste, couleurMarques] = combo.couleurs;
   const fondHaut = variation === "inverse" ? couleur3 : couleur2;
   const fondBas = variation === "inverse" ? couleur2 : couleur3;
   const ruban = variation === "ruban-fond-haut" ? couleur2 : variation === "ruban-fond-bas" ? couleur3 : couleurRuban;
@@ -2024,7 +2043,10 @@ function creerVarianteClassiqueAleatoire(reglages) {
     couleur3: fondBas,
     couleurRuban: ruban,
     couleurVignette: variation === "inverse" ? couleur1 : couleurRuban,
-    couleurTitres: couleurLisible(fondHaut, couleurTitres),
+    couleurTitreFaceA: couleurLisible(fondHaut, couleurTitreSource),
+    couleurTitreFaceB: couleurLisible(fondBas, couleurTitreSource),
+    couleurTitreFaceAManuelle: false,
+    couleurTitreFaceBManuelle: false,
     couleurArtiste: couleurLisible(ruban, couleurArtiste),
     couleurMarques: couleurLisible(couleur1, couleurMarques),
     couleurMotif: couleur1,
@@ -2124,6 +2146,8 @@ function synchroniserBoutonDeuxiemeEtiquette(active) {
 function appliquerReglagesAuFormulaire(reglages) {
   chargementReglages = true;
   const reglagesNormalises = { ...reglages };
+  reglagesNormalises.couleurTitreFaceAManuelle = reglagesNormalises.couleurTitreFaceAManuelle ?? false;
+  reglagesNormalises.couleurTitreFaceBManuelle = reglagesNormalises.couleurTitreFaceBManuelle ?? false;
   reglagesNormalises.bordure = Math.max(EPAISSEUR_BORDURE_MIN, Number(reglagesNormalises.bordure) || EPAISSEUR_BORDURE_MIN);
   reglagesNormalises.decalageRetro = reglagesNormalises.decalageRetro || "aucun";
   reglagesNormalises.angleMotif = reglagesNormalises.angleMotif ?? 0;
@@ -2185,6 +2209,9 @@ function appliquerReglagesAuFormulaire(reglages) {
       element.value = String(valeur);
     }
   });
+  elements.couleurTitreFaceA.dataset.modifieeManuellement = reglagesNormalises.couleurTitreFaceAManuelle ? "true" : "false";
+  elements.couleurTitreFaceB.dataset.modifieeManuellement = reglagesNormalises.couleurTitreFaceBManuelle ? "true" : "false";
+  elements.couleurArtiste.dataset.modifieeManuellement = reglagesNormalises.couleurArtisteManuelle ? "true" : "false";
   synchroniserOptionsMotifSecondaire(reglagesNormalises.motifTraitsModernes);
   elements.activerMotif.checked = motifDecorActifDepuisFormulaire();
   elements.activerVignettage.checked = reglagesNormalises.modeVignette !== "aucun";
@@ -2635,8 +2662,12 @@ function lireReglagesFormulaire() {
     couleurFondModerne: elements.couleurFondModerne.value,
     couleurBandeGauche: elements.couleurBandeGauche.value,
     couleurBandeDroite: elements.couleurBandeDroite.value,
-    couleurTitres: elements.couleurTitres.value,
+    couleurTitreFaceA: elements.couleurTitreFaceA.value,
+    couleurTitreFaceB: elements.couleurTitreFaceB.value,
     couleurArtiste: elements.couleurArtiste.value,
+    couleurTitreFaceAManuelle: elements.couleurTitreFaceA.dataset.modifieeManuellement === "true",
+    couleurTitreFaceBManuelle: elements.couleurTitreFaceB.dataset.modifieeManuellement === "true",
+    couleurArtisteManuelle: elements.couleurArtiste.dataset.modifieeManuellement === "true",
     decorPanel: (
       (panelDecor === "papier" && papierActif)
         || (panelDecor === "vignette" && vignettageActif)
@@ -2726,6 +2757,16 @@ function lireReglagesFormulaire() {
     largeurEtiquette: lireDimensionEtiquette(elements.largeurEtiquette, "largeurEtiquette"),
     hauteurEtiquette: lireDimensionEtiquette(elements.hauteurEtiquette, "hauteurEtiquette"),
   };
+}
+
+function marquerCouleurTexteManuelle(champ) {
+  if (
+    champ === elements.couleurTitreFaceA
+    || champ === elements.couleurTitreFaceB
+    || champ === elements.couleurArtiste
+  ) {
+    champ.dataset.modifieeManuellement = "true";
+  }
 }
 
 function lireDimensionEtiquette(element, cle) {
@@ -2942,7 +2983,10 @@ function creerSurpriseLeon(base) {
     couleurVignette: palette.vignette,
     couleurMotif: palette.motif,
     couleurTraitsModernes: palette.motif,
-    couleurTitres: palette.titre,
+    couleurTitreFaceA: couleurLisible(palette.haut, palette.titre),
+    couleurTitreFaceB: couleurLisible(palette.bas, palette.titre),
+    couleurTitreFaceAManuelle: false,
+    couleurTitreFaceBManuelle: false,
     couleurArtiste: palette.artisteTexte,
     decorPanel: "papier",
     motifType,
@@ -3068,7 +3112,10 @@ function creerSurpriseManu(base) {
     couleur3: fondBas,
     couleurRuban: palette.ruban,
     couleurVignette: palette.pastille,
-    couleurTitres: couleurLisible(fondHaut, palette.titre),
+    couleurTitreFaceA: couleurLisible(fondHaut, palette.titre),
+    couleurTitreFaceB: couleurLisible(fondBas, palette.titre),
+    couleurTitreFaceAManuelle: false,
+    couleurTitreFaceBManuelle: false,
     couleurArtiste: couleurLisible(palette.ruban, palette.artiste),
     couleurMotif: palette.motif,
     decorPanel: motifType === "aucun" ? "motif" : "motif",
@@ -3137,7 +3184,8 @@ function signatureStyleEnregistre(reglages) {
     reglages.couleur3,
     reglages.couleurRuban,
     reglages.couleurVignette,
-    reglages.couleurTitres,
+    reglages.couleurTitreFaceA,
+    reglages.couleurTitreFaceB,
     reglages.couleurArtiste,
     reglages.decorPanel,
     reglages.motifType,
@@ -3507,6 +3555,9 @@ function normaliserReglagesImportes(donnees) {
 
     reglages[cle] = String(valeur).slice(0, champ.maxLength > 0 ? champ.maxLength : 500);
   });
+  reglages.couleurTitreFaceAManuelle = donneesCompatibles.couleurTitreFaceAManuelle === true;
+  reglages.couleurTitreFaceBManuelle = donneesCompatibles.couleurTitreFaceBManuelle === true;
+  reglages.couleurArtisteManuelle = donneesCompatibles.couleurArtisteManuelle === true;
 
   if (reglages.modele === "MARTIN" && !Object.prototype.hasOwnProperty.call(donneesCompatibles, "hauteurBande")) {
     reglages.hauteurBande = 0;
@@ -3582,8 +3633,9 @@ function appliquerPaletteTeinte(reglages, palette) {
   const fondBas = couleurFondTeintee(reglages.couleur3, palette.fondBas);
   const ruban = couleurFondTeintee(reglages.couleurRuban, palette.ruban);
   const fondModerne = couleurFondTeintee(reglages.couleurFondModerne, palette.fondHaut);
-  const couleurTitres = couleurTexteTeintee(reglages.couleurTitres, palette.titre, fondHaut);
-  const couleurArtisteSource = estFondPreserveParTeinte(reglages.couleurRuban) ? palette.cadre : palette.artiste;
+  const couleurTitreFaceA = couleurTexteTeintee(reglages.couleurTitreFaceA, palette.titre, fondHaut);
+  const couleurTitreFaceB = couleurTexteTeintee(reglages.couleurTitreFaceB, palette.titre, fondBas);
+  const couleurArtisteSource = estCouleurClaire(ruban) ? palette.cadre : palette.artiste;
   const couleurArtiste = couleurTexteTeintee(reglages.couleurArtiste, couleurArtisteSource, ruban);
   const couleurMarques = couleurFondTeintee(reglages.couleurMarques, palette.marques);
   const couleurMarqueGauche = couleurFondTeintee(reglages.couleurMarqueGauche, couleurMarques);
@@ -3594,16 +3646,15 @@ function appliquerPaletteTeinte(reglages, palette) {
     couleur2: fondHaut,
     couleur3: fondBas,
     couleurRuban: ruban,
-    couleurVignette: palette.vignette,
     couleurFondModerne: fondModerne,
     couleurBandeGauche: palette.cadre,
     couleurBandeDroite: couleurFondTeintee(reglages.couleurBandeDroite, palette.fondBas),
-    couleurTitres,
+    couleurTitreFaceA,
+    couleurTitreFaceB,
     couleurArtiste,
     couleurMotif: palette.motif,
     couleurMotifRuban: palette.secondaire,
     couleurTraitsModernes: palette.secondaire,
-    couleurPapierVieilli: palette.vignette,
     couleurMarques,
     couleurMarqueGauche,
     couleurMarqueDroite,
@@ -3621,10 +3672,62 @@ function couleurFondTeintee(couleurActuelle, couleurTeinte) {
 }
 
 function couleurTexteTeintee(couleurActuelle, couleurTeinte, couleurFond) {
-  const couleurSource = estCouleurNeutre(couleurActuelle)
-    ? normaliserCouleurHex(couleurActuelle)
-    : couleurTeinte;
-  return couleurLisible(couleurFond, couleurSource);
+  if (estCouleurNeutreFoncee(couleurActuelle)) {
+    return normaliserCouleurHex(couleurActuelle);
+  }
+  if (estCouleurNeutre(couleurActuelle)) {
+    return couleurLisible(couleurFond, normaliserCouleurHex(couleurActuelle));
+  }
+  return couleurTeinteeLisible(couleurTeinte, couleurFond);
+}
+
+function couleurTeinteeLisible(couleurTeinte, couleurFond, contrasteMinimum = 4.5) {
+  const couleurNormalisee = normaliserCouleurHex(couleurTeinte);
+  if (ratioContrasteTeinte(couleurFond, couleurNormalisee) >= contrasteMinimum) {
+    return couleurNormalisee;
+  }
+
+  const hsl = rgbVersHsl(lireCouleurHex(couleurNormalisee));
+  const fondEstClair = rgbVersHsl(lireCouleurHex(couleurFond)).l >= 0.5;
+  const borne = fondEstClair ? 0 : 1;
+  let meilleureCouleur = couleurNormalisee;
+  let meilleurEcart = Infinity;
+
+  for (let etape = 0; etape <= 100; etape += 1) {
+    const clarte = hsl.l + (borne - hsl.l) * (etape / 100);
+    const candidate = hslVersHex(hsl.h, hsl.s, clarte);
+    if (ratioContrasteTeinte(couleurFond, candidate) >= contrasteMinimum) {
+      const ecart = Math.abs(clarte - hsl.l);
+      if (ecart < meilleurEcart) {
+        meilleureCouleur = candidate;
+        meilleurEcart = ecart;
+      }
+    }
+  }
+
+  return meilleurEcart < Infinity ? meilleureCouleur : couleurLisible(couleurFond, couleurNormalisee);
+}
+
+function ratioContrasteTeinte(couleurA, couleurB) {
+  const luminanceA = luminanceTeinte(couleurA);
+  const luminanceB = luminanceTeinte(couleurB);
+  return (Math.max(luminanceA, luminanceB) + 0.05) / (Math.min(luminanceA, luminanceB) + 0.05);
+}
+
+function luminanceTeinte(couleur) {
+  const rgb = lireCouleurHex(couleur);
+  if (!rgb) {
+    return 0;
+  }
+  const convertir = (canal) => {
+    const valeur = canal / 255;
+    return valeur <= 0.03928 ? valeur / 12.92 : ((valeur + 0.055) / 1.055) ** 2.4;
+  };
+  return (
+    0.2126 * convertir(rgb.rouge)
+    + 0.7152 * convertir(rgb.vert)
+    + 0.0722 * convertir(rgb.bleu)
+  );
 }
 
 function estFondPreserveParTeinte(couleur) {
@@ -3645,6 +3748,11 @@ function estCouleurNeutre(couleur) {
   const max = Math.max(rgb.rouge, rgb.vert, rgb.bleu);
   const min = Math.min(rgb.rouge, rgb.vert, rgb.bleu);
   return (max - min) <= 10;
+}
+
+function estCouleurNeutreFoncee(couleur) {
+  const rgb = lireCouleurHex(couleur);
+  return Boolean(rgb) && estCouleurNeutre(couleur) && rgbVersHsl(rgb).l <= 0.3;
 }
 
 function estCouleurClaire(couleur) {
@@ -3772,7 +3880,10 @@ function creerVarianteClassique(reglages) {
     couleur2: fond,
     couleur3: fond,
     couleurRuban: ruban,
-    couleurTitres: couleurLisible(fond, reglages.couleurTitres),
+    couleurTitreFaceA: couleurLisible(fond, reglages.couleurTitreFaceA),
+    couleurTitreFaceB: couleurLisible(fond, reglages.couleurTitreFaceB),
+    couleurTitreFaceAManuelle: false,
+    couleurTitreFaceBManuelle: false,
     couleurArtiste: couleurLisible(ruban, reglages.couleurArtiste),
   };
 }
@@ -3803,7 +3914,10 @@ function creerVarianteManu(reglages) {
     couleurRuban: palette.ruban,
     couleurVignette: palette.pastille,
     couleurMotif: palette.motif,
-    couleurTitres: couleurLisible(palette.fond, palette.titre),
+    couleurTitreFaceA: couleurLisible(palette.fond, palette.titre),
+    couleurTitreFaceB: couleurLisible(palette.fond, palette.titre),
+    couleurTitreFaceAManuelle: false,
+    couleurTitreFaceBManuelle: false,
     couleurArtiste: couleurLisible(palette.ruban, palette.artiste),
     couleurMarques: palette.pastille,
     couleurMarqueGauche: palette.pastille,
@@ -3839,7 +3953,10 @@ function creerVarianteModerne(reglages) {
     couleurVignette: palette.vignette,
     couleurMotif: palette.motif,
     couleurTraitsModernes: palette.secondaire,
-    couleurTitres: couleurTexteContraste(palette.fond),
+    couleurTitreFaceA: couleurTexteContraste(palette.fond),
+    couleurTitreFaceB: couleurTexteContraste(palette.fond),
+    couleurTitreFaceAManuelle: false,
+    couleurTitreFaceBManuelle: false,
     couleurArtiste: couleurTexteContraste(palette.ruban),
     couleurMarques: couleurTexteContraste(palette.gauche),
   };
