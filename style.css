@@ -3703,6 +3703,14 @@ body.is-favoris-ouverts .scene {
     grid-template-columns: 1fr;
   }
 
+  .marques-grille--contenu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marques-grille--contenu .champ:has(#presetMarques) {
+    grid-column: 1 / -1;
+  }
+
   .marques-activation {
     grid-template-columns: minmax(0, 1fr) auto;
     padding: 10px;
@@ -3909,6 +3917,13 @@ body.is-favoris-ouverts .scene {
   .champ input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
   textarea {
     font-size: 16px;
+  }
+
+  #marqueGauche,
+  #marqueDroite {
+    font-family: inherit;
+    font-size: 0.74rem;
+    font-weight: 720;
   }
 
   .champ input[type="range"] {

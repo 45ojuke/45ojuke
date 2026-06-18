@@ -284,7 +284,7 @@ export const capacitesModeles = {
     bandeCentrale: false,
   },
   LEON: {
-    marques: false,
+    marques: true,
     ruban: false,
     bandeCentrale: false,
   },

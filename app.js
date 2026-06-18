@@ -318,7 +318,7 @@ const reglagesParEtiquette = {
   2: null,
 };
 const modelesAccueilMelanges = new Map();
-const MAX_MODELES_ACCUEIL_AVEC_TEASER = Math.max(1, MAX_MODELES_ACCUEIL - 1);
+const MAX_MODELES_ACCUEIL_AVEC_TEASERS = Math.max(1, MAX_MODELES_ACCUEIL - 2);
 let pageModelesSecondaires = 0;
 let pageAccueilModeles = 0;
 let rendreTableauCsvActif = null;
@@ -1735,11 +1735,11 @@ function mettreAJourGalerieModeles() {
     titreB: "",
     position: "",
   };
-  const totalPagesAccueil = Math.max(1, Math.ceil(modelesAccueil.length / MAX_MODELES_ACCUEIL_AVEC_TEASER));
+  const totalPagesAccueil = Math.max(1, Math.ceil(modelesAccueil.length / MAX_MODELES_ACCUEIL_AVEC_TEASERS));
   pageAccueilModeles = ((pageAccueilModeles % totalPagesAccueil) + totalPagesAccueil) % totalPagesAccueil;
   const modelesAccueilPage = modelesAccueil.slice(
-    pageAccueilModeles * MAX_MODELES_ACCUEIL_AVEC_TEASER,
-    pageAccueilModeles * MAX_MODELES_ACCUEIL_AVEC_TEASER + MAX_MODELES_ACCUEIL_AVEC_TEASER,
+    pageAccueilModeles * MAX_MODELES_ACCUEIL_AVEC_TEASERS,
+    pageAccueilModeles * MAX_MODELES_ACCUEIL_AVEC_TEASERS + MAX_MODELES_ACCUEIL_AVEC_TEASERS,
   );
   elements.galerieModelesAccueil.replaceChildren(...modelesAccueilPage.map((style) => creerCarteModele({
     valeur: style.reglages.modele,
@@ -1751,8 +1751,8 @@ function mettreAJourGalerieModeles() {
     reglagesBase: lireReglages("1"),
     reglagesStyle: style.reglages,
     vierge: true,
-  })), creerCarteModeleIndisponible());
-  const navigationAccueilVisible = modelesAccueil.length > MAX_MODELES_ACCUEIL_AVEC_TEASER;
+  })), creerCarteModeleIndisponible(), creerCarteModelePropose());
+  const navigationAccueilVisible = modelesAccueil.length > MAX_MODELES_ACCUEIL_AVEC_TEASERS;
   elements.modelesAccueilPrecedent.hidden = !navigationAccueilVisible;
   elements.modelesAccueilSuivant.hidden = !navigationAccueilVisible;
   elements.modelesAccueilPrecedent.disabled = !navigationAccueilVisible;
@@ -1832,7 +1832,7 @@ function changerPageModeles(cible, delta) {
 
 function changerPageModelesAccueil(delta) {
   const total = obtenirModelesAccueil("tout").length;
-  const totalPages = Math.max(1, Math.ceil(total / MAX_MODELES_ACCUEIL_AVEC_TEASER));
+  const totalPages = Math.max(1, Math.ceil(total / MAX_MODELES_ACCUEIL_AVEC_TEASERS));
   pageAccueilModeles = (pageAccueilModeles + delta + totalPages) % totalPages;
   mettreAJourGalerieModeles();
 }
@@ -2081,6 +2081,23 @@ function creerCarteModeleIndisponible() {
   const nom = document.createElement("span");
   nom.className = "carte-modele__nom";
   nom.textContent = traduirePhrase("Bientôt disponible");
+
+  carte.append(etiquette, nom);
+  return carte;
+}
+
+function creerCarteModelePropose() {
+  const carte = document.createElement("div");
+  carte.className = "carte-modele carte-modele--indisponible";
+  carte.setAttribute("aria-disabled", "true");
+
+  const etiquette = document.createElement("div");
+  etiquette.className = "carte-modele__teaser";
+  etiquette.textContent = traduirePhrase("Votre étiquette ici ?");
+
+  const nom = document.createElement("span");
+  nom.className = "carte-modele__nom";
+  nom.textContent = traduirePhrase("Envoyez-moi votre modèle");
 
   carte.append(etiquette, nom);
   return carte;

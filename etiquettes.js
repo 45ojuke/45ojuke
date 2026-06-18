@@ -488,6 +488,10 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
   ctx.stroke();
   ctx.restore();
 
+  if (reglages.afficherMarques) {
+    dessinerMarques(ctx, reglages, largeur, hauteur, yHaut, yBas - yHaut, yBas - yHaut);
+  }
+
   const margeX = Math.max(largeur * 0.09, traitBordure + largeur * 0.035);
   const largeurTexte = largeur - margeX * 2;
   dessinerTitre(
@@ -815,8 +819,10 @@ function dessinerMarquesModernes(ctx, reglages, largeur, hauteur) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   appliquerStyleMarque(ctx, reglages, "gauche", tailleGauche);
+  appliquerContrasteMarqueSurFondBlanc(ctx, reglages, xGauche, yGauche);
   dessinerTexteTourne(ctx, textes[0], xGauche, yGauche, angleMarque(reglages, "gauche"));
   appliquerStyleMarque(ctx, reglages, "droite", tailleDroite);
+  appliquerContrasteMarqueSurFondBlanc(ctx, reglages, largeur - xDroite, yDroite);
   dessinerTexteTourne(ctx, textes[1], largeur - xDroite, yDroite, angleMarque(reglages, "droite"));
   ctx.restore();
 }
@@ -863,7 +869,9 @@ function dessinerPastilleManu(ctx, reglages, cote, texte, x, y, diametre, taille
 
   const tailleAjustee = tailleTextePastilleManu(ctx, reglages, cote, texte, taille, diametre, forme);
   appliquerStyleMarque(ctx, reglages, cote, tailleAjustee);
-  ctx.fillStyle = couleurTexteContraste(couleurPastille);
+  ctx.fillStyle = couleurEstBlanche(couleurPastille)
+    ? couleurLateraleSurFondBlanc(reglages)
+    : couleurTexteContraste(couleurPastille);
   dessinerTexteTourneRespectantCasse(ctx, texte, x, y, angle);
   ctx.restore();
 }
@@ -1091,8 +1099,10 @@ function dessinerMarques(ctx, reglages, largeur, hauteur, rubanY, rubanH, bandeH
   const yGauche = hauteur * hauteurMarque(reglages, "gauche") / 100;
   const yDroite = hauteur * hauteurMarque(reglages, "droite") / 100;
   appliquerStyleMarque(ctx, reglages, "gauche", tailleGauche);
+  appliquerContrasteMarqueSurFondBlanc(ctx, reglages, xGauche, yGauche);
   dessinerTexteTourne(ctx, texteGauche, xGauche, yGauche, angleMarque(reglages, "gauche"));
   appliquerStyleMarque(ctx, reglages, "droite", tailleDroite);
+  appliquerContrasteMarqueSurFondBlanc(ctx, reglages, largeur - xDroite, yDroite);
   dessinerTexteTourne(ctx, texteDroite, largeur - xDroite, yDroite, angleMarque(reglages, "droite"));
 }
 
@@ -1140,6 +1150,33 @@ function appliquerStyleMarque(ctx, reglages, cote, taille) {
   const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(police)}`;
   ctx.fillStyle = couleur;
+}
+
+function appliquerContrasteMarqueSurFondBlanc(ctx, reglages, x, y) {
+  if (pixelEstBlanc(ctx, x, y)) {
+    ctx.fillStyle = couleurLateraleSurFondBlanc(reglages);
+  }
+}
+
+function pixelEstBlanc(ctx, x, y) {
+  const px = Math.max(0, Math.min(ctx.canvas.width - 1, Math.round(x)));
+  const py = Math.max(0, Math.min(ctx.canvas.height - 1, Math.round(y)));
+  try {
+    const [rouge, vert, bleu, alpha] = ctx.getImageData(px, py, 1, 1).data;
+    return alpha > 0 && rouge >= 245 && vert >= 245 && bleu >= 245;
+  } catch {
+    return false;
+  }
+}
+
+function couleurEstBlanche(couleur) {
+  const { rouge, vert, bleu } = lireCouleurRgb(couleur);
+  return rouge >= 245 && vert >= 245 && bleu >= 245;
+}
+
+function couleurLateraleSurFondBlanc(reglages) {
+  const couleurBordure = reglages.couleur1 || "#000000";
+  return ratioContraste("#ffffff", couleurBordure) >= 3 ? couleurBordure : "#000000";
 }
 
 function angleMarque(reglages, cote) {
