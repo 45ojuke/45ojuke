@@ -2419,6 +2419,10 @@ body.is-favoris-ouverts .scene {
   text-align: center;
 }
 
+.bouton-changer-etiquette-mobile {
+  display: none;
+}
+
 .apercus--duo {
   grid-template-columns: 1fr;
   align-items: start;
@@ -3124,6 +3128,28 @@ body.is-favoris-ouverts .scene {
     order: 2;
     gap: 10px;
     touch-action: pan-x;
+  }
+
+  .apercus--duo .aide-selection-etiquette {
+    display: none;
+  }
+
+  .apercus--duo .apercu-image:not(.is-selectionnee) {
+    display: none;
+  }
+
+  .apercus--duo .bouton-changer-etiquette-mobile:not([hidden]) {
+    display: inline-flex;
+    justify-self: center;
+    border: 0;
+    padding: 2px 4px;
+    background: transparent;
+    color: var(--accent-2);
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .apercu-image {

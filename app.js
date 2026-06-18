@@ -109,6 +109,7 @@ const elements = {
   aideSwipeMobile: document.querySelector("#aideSwipeMobile"),
   basculerEditionTexteMobile: document.querySelector("#basculerEditionTexteMobile"),
   aideSelectionEtiquette: document.querySelector("#aideSelectionEtiquette"),
+  changerEtiquetteMobile: document.querySelector("#changerEtiquetteMobile"),
   selecteurEtiquette: document.querySelector("#selecteurEtiquette"),
   editionEtiquette: document.querySelectorAll('input[name="editionEtiquette"]'),
   modele: document.querySelector("#modele"),
@@ -498,6 +499,9 @@ function brancherEvenements() {
   elements.installerAppMenu.addEventListener("click", installerApplication);
   elements.apercu.addEventListener("click", () => selectionnerEtiquetteDepuisApercu("1"));
   elements.apercuSecondaire.addEventListener("click", () => selectionnerEtiquetteDepuisApercu("2"));
+  elements.changerEtiquetteMobile.addEventListener("click", () => {
+    selectionnerEtiquetteDepuisApercu(etiquetteActive === "1" ? "2" : "1", { ouvrirEditeur: false });
+  });
   elements.apercus.addEventListener("pointerdown", demarrerGesteApercu);
   elements.apercus.addEventListener("pointerup", terminerGesteApercu);
   elements.apercus.addEventListener("pointercancel", annulerGesteApercu);
@@ -2803,7 +2807,7 @@ function changerEtiquetteActive() {
   mettreAJour();
 }
 
-function selectionnerEtiquetteDepuisApercu(numero) {
+function selectionnerEtiquetteDepuisApercu(numero, { ouvrirEditeur = true } = {}) {
   if (ignorerProchainClicApercu) {
     ignorerProchainClicApercu = false;
     return;
@@ -2818,7 +2822,9 @@ function selectionnerEtiquetteDepuisApercu(numero) {
   });
   appliquerReglagesAuFormulaire(lireReglages(numero));
   mettreAJour();
-  ouvrirEditionTexteDepuisApercu();
+  if (ouvrirEditeur) {
+    ouvrirEditionTexteDepuisApercu();
+  }
 }
 
 function changerModeleSecondaire() {
@@ -4624,6 +4630,8 @@ function mettreAJour() {
   mettreAJourMessageDimensions();
   elements.selecteurEtiquette.hidden = true;
   elements.aideSelectionEtiquette.hidden = !deuxiemeActive;
+  elements.changerEtiquetteMobile.hidden = !deuxiemeActive;
+  elements.changerEtiquetteMobile.textContent = `${traduirePhrase("Modifier l'étiquette")} ${etiquetteActive === "1" ? "2" : "1"}`;
   elements.apercus.classList.toggle("apercus--duo", deuxiemeActive);
   elements.apercus.classList.toggle("apercus--selection", deuxiemeActive);
   elements.apercu.classList.toggle("is-selectionnee", deuxiemeActive && etiquetteActive === "1");
