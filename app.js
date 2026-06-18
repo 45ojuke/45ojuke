@@ -4046,7 +4046,7 @@ function ouvrirTableauCsv() {
 
   const question = document.createElement("label");
   question.className = "tableau-csv__quantite";
-  question.textContent = traduirePhrase("Lignes à ajouter");
+  question.textContent = traduirePhrase("Étiquette à ajouter");
 
   const quantite = document.createElement("input");
   quantite.type = "number";
@@ -4083,7 +4083,9 @@ function ouvrirTableauCsv() {
 
   const menuResume = document.createElement("summary");
   menuResume.className = "tableau-csv__menu-resume";
-  menuResume.textContent = `☰ ${traduirePhrase("Filtres")}`;
+  const menuResumeTexte = document.createElement("span");
+  menuResumeTexte.textContent = `☰ ${traduirePhrase("Filtres")}`;
+  menuResume.append(menuResumeTexte);
 
   const menuContenu = document.createElement("div");
   menuContenu.className = "tableau-csv__menu-contenu";
@@ -4095,11 +4097,23 @@ function ouvrirTableauCsv() {
   info.className = "tableau-csv__info";
   info.textContent = traduirePhrase("Vos données restent sur cet ordinateur. Exportez un CSV pour les sauvegarder.");
 
-  const trierArtiste = creerBoutonTableau(traduirePhrase("Trier par artiste"), () => trierVinyles("artiste"), "bouton tableau-csv__bouton");
-  const trierFaceA = creerBoutonTableau(traduirePhrase("Trier Face A"), () => trierVinyles("titre_face_a"), "bouton tableau-csv__bouton");
-  const trierFaceB = creerBoutonTableau(traduirePhrase("Trier Face B"), () => trierVinyles("titre_face_b"), "bouton tableau-csv__bouton");
+  let triActif = null;
+  const creerBoutonTri = (libelle, cle) => creerBoutonTableau("", () => {
+    const direction = triActif?.cle === cle && triActif.direction === 1 ? -1 : 1;
+    triActif = { cle, direction };
+    trierVinyles(cle, direction);
+  }, "bouton tableau-csv__bouton");
+  const trierArtiste = creerBoutonTri(traduirePhrase("Artiste"), "artiste");
+  const trierFaceA = creerBoutonTri(traduirePhrase("Face A"), "titre_face_a");
+  const trierFaceB = creerBoutonTri(traduirePhrase("Face B"), "titre_face_b");
+  const boutonsTri = [
+    { bouton: trierArtiste, libelle: traduirePhrase("Artiste"), cle: "artiste" },
+    { bouton: trierFaceA, libelle: traduirePhrase("Face A"), cle: "titre_face_a" },
+    { bouton: trierFaceB, libelle: traduirePhrase("Face B"), cle: "titre_face_b" },
+  ];
   const ordreOrigine = creerBoutonTableau(traduirePhrase("Ordre initial"), () => {
     vinyles.sort((a, b) => (a.__ordreOriginal ?? 0) - (b.__ordreOriginal ?? 0));
+    triActif = null;
     finaliserChangementTableau();
   }, "bouton tableau-csv__bouton");
   groupeTri.append(trierArtiste, trierFaceA, trierFaceB, ordreOrigine);
@@ -4108,26 +4122,30 @@ function ouvrirTableauCsv() {
   importer.classList.add("tableau-csv__bouton--desktop");
   const exporter = creerBoutonTableau(traduirePhrase("Exporter"), exporterCsv, "bouton tableau-csv__bouton");
   exporter.classList.add("tableau-csv__bouton--desktop");
-  const toutEffacer = creerBoutonTableau(traduirePhrase("Vider"), () => {
+  const effacerTableau = () => {
     if (!window.confirm(traduirePhrase("Vider le tableau ?"))) {
       return;
     }
     vinyles = [];
     indexApercu = 0;
+    triActif = null;
     finaliserChangementTableau();
-  }, "bouton bouton-secondaire tableau-csv__bouton");
-  groupeFichiers.append(importer, exporter, toutEffacer);
+  };
+  const toutEffacerMobile = creerBoutonTableau(traduirePhrase("Tout effacer"), effacerTableau, "bouton bouton-secondaire tableau-csv__bouton tableau-csv__bouton--mobile");
+  toutEffacerMobile.addEventListener("click", (evenement) => {
+    evenement.preventDefault();
+    evenement.stopPropagation();
+  });
+  const toutEffacerDesktop = creerBoutonTableau(traduirePhrase("Tout effacer"), effacerTableau, "bouton bouton-secondaire tableau-csv__bouton tableau-csv__bouton--desktop");
+  groupeFichiers.append(importer, exporter, toutEffacerDesktop);
+  menuResume.append(toutEffacerMobile);
 
   let cartesPliees = false;
-  const plierEtiquettes = creerBoutonTableau(traduirePhrase("Plier les étiquettes"), () => {
-    cartesPliees = true;
+  const basculerEtiquettes = creerBoutonTableau("", () => {
+    cartesPliees = !cartesPliees;
     rendreTableauCsvActif?.();
   }, "bouton tableau-csv__bouton");
-  const deplierEtiquettes = creerBoutonTableau(traduirePhrase("Déplier les étiquettes"), () => {
-    cartesPliees = false;
-    rendreTableauCsvActif?.();
-  }, "bouton tableau-csv__bouton");
-  groupePliage.append(plierEtiquettes, deplierEtiquettes);
+  groupePliage.append(basculerEtiquettes);
   menuContenu.append(groupeTri, groupePliage, groupeFichiers);
   menu.append(menuResume, menuContenu);
 
@@ -4147,16 +4165,38 @@ function ouvrirTableauCsv() {
   document.body.append(dialogue);
 
   const rendre = () => {
+    boutonsTri.forEach(({ bouton, libelle, cle }) => {
+      const estActif = triActif?.cle === cle;
+      bouton.textContent = libelle;
+      bouton.setAttribute("aria-pressed", String(estActif));
+    });
+    ordreOrigine.disabled = vinyles.every((vinyle, index) => (
+      index === 0
+      || (vinyles[index - 1].__ordreOriginal ?? index - 1) <= (vinyle.__ordreOriginal ?? index)
+    ));
+    basculerEtiquettes.textContent = traduirePhrase(cartesPliees ? "Déplier les étiquettes" : "Plier les étiquettes");
+    basculerEtiquettes.setAttribute("aria-expanded", String(!cartesPliees));
     zone.replaceChildren(creerTableCsv(recherche.value, { cartesPliees }));
   };
   rendreTableauCsvActif = rendre;
 
   ajouter.addEventListener("click", () => {
     const total = Math.max(1, Math.min(500, Number(quantite.value) || 1));
+    const premierOrdre = vinyles.reduce(
+      (maximum, entree) => Math.max(maximum, entree.__ordreOriginal ?? -1),
+      -1,
+    ) + 1;
     for (let i = 0; i < total; i += 1) {
-      const vinyle = normaliserVinyleCsv(["", "", ""], [0, 1, 2], vinyles.length);
-      vinyle.__ordreOriginal = vinyles.length;
-      vinyles.push(vinyle);
+      vinyles.push({
+        emplacement: "jukebox",
+        position_jukebox: "",
+        selection_face_a: "",
+        selection_face_b: "",
+        artiste: "",
+        titre_face_a: "",
+        titre_face_b: "",
+        __ordreOriginal: premierOrdre + i,
+      });
     }
     finaliserChangementTableau();
   });
@@ -4285,8 +4325,10 @@ function finaliserChangementTableau() {
   mettreAJour();
 }
 
-function trierVinyles(cle) {
-  vinyles.sort((a, b) => String(a[cle] || "").localeCompare(String(b[cle] || ""), "fr", { sensitivity: "base" }));
+function trierVinyles(cle, direction = 1) {
+  vinyles.sort((a, b) => (
+    String(a[cle] || "").localeCompare(String(b[cle] || ""), "fr", { sensitivity: "base" }) * direction
+  ));
   finaliserChangementTableau();
 }
 
