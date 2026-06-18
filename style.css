@@ -3097,11 +3097,14 @@ body.is-favoris-ouverts .scene {
   }
 
   .barre-actions--apercu {
-    order: 3;
+    order: 1;
+    position: relative;
+    z-index: 3;
     width: 100%;
     justify-content: flex-start;
     gap: 5px;
     padding-inline: 1px;
+    background: rgba(255, 250, 241, 0.96);
     overscroll-behavior: contain;
     touch-action: pan-x;
   }

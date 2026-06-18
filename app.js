@@ -2855,11 +2855,20 @@ function changerActivationDeuxiemeEtiquette() {
     return;
   }
 
-  const modeles = obtenirModelesCategorie("tout");
-  if (!modeles.some(([valeur]) => valeur === elements.modeleSecondaire.value)) {
-    elements.modeleSecondaire.value = modeles[0][0];
-  }
-  changerModeleSecondaire();
+  afficherApercuApresChoixModele();
+  const reglagesPrincipaux = lireReglages("1");
+  elements.modeleSecondaire.value = reglagesPrincipaux.modele;
+  reglagesParEtiquette[2] = appliquerBordureVisibleAleatoire(
+    creerVarianteCouleur(reglagesPrincipaux),
+  );
+  etiquetteActive = "2";
+  elements.editionEtiquette.forEach((radio) => {
+    radio.checked = radio.value === "2";
+  });
+  appliquerReglagesAuFormulaire(lireReglages("2"));
+  mettreAJourGalerieModeles();
+  mettreAJour();
+  sauvegarderReglagesAutomatiques();
 }
 
 function afficherApercuApresChoixModele() {
