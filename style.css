@@ -1172,6 +1172,10 @@ body:not(.is-intro-active) .hero-site__contenu {
   padding-top: 0;
 }
 
+.marques-grille--contenu {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .marque-couleur input[type="color"] {
   min-height: 28px;
 }

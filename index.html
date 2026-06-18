@@ -524,9 +524,12 @@
 
               <div class="marques-section marques-section--contenu" data-marque-reglage>
                 <h3 class="marques-section__titre">Contenu</h3>
-                <div class="grille marques-grille">
-                  <label class="champ champ-large" data-marque-reglage>Synchroniser les textes latéraux <input id="synchroniserMarques" type="checkbox" checked /></label>
-                  <label class="champ champ-large" data-marque-reglage>Proposition
+                <div class="grille marques-grille marques-grille--contenu">
+                  <label class="champ champ-large" data-marque-reglage>
+                    <span class="option-libelle">Synchroniser les textes latéraux <button class="aide-option" type="button" data-help-key="Synchroniser les textes latéraux">?</button></span>
+                    <input id="synchroniserMarques" type="checkbox" checked />
+                  </label>
+                  <label class="champ" data-marque-reglage>Proposition
                     <select id="presetMarques">
                       <option value="custom">Texte libre</option>
                       <option value="juke-box">JUKE … BOX</option>
