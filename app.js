@@ -39,6 +39,7 @@ import {
   telechargerPdf as telechargerPdfModule,
 } from "./impression.js";
 import { envoyerJsonStyle } from "./analytics.js";
+import { normaliserStylePolice, remplirSelectPolice, stylesPolice } from "./polices.js";
 
 const EMAIL_CONTACT = "contact@45ojuke.fr";
 const EPAISSEUR_BORDURE_MIN = 1;
@@ -130,7 +131,6 @@ const elements = {
   activerVignettage: document.querySelector("#activerVignettage"),
   boutonMotif: document.querySelector("#boutonMotif"),
   boutonVignettage: document.querySelector("#boutonVignettage"),
-  boutonPapierVieilli: document.querySelector("#boutonPapierVieilli"),
   angle: document.querySelector("#angle"),
   intensite: document.querySelector("#intensite"),
   motifType: document.querySelector("#motifType"),
@@ -145,17 +145,13 @@ const elements = {
   angleMotifRuban: document.querySelector("#angleMotifRuban"),
   afficherTraitsModernes: document.querySelector("#afficherTraitsModernes"),
   motifTraitsModernes: document.querySelector("#motifTraitsModernes"),
+  motifSecondaireFond: document.querySelector("#motifSecondaireFond"),
+  motifSecondaireRuban: document.querySelector("#motifSecondaireRuban"),
   couleurTraitsModernes: document.querySelector("#couleurTraitsModernes"),
   opaciteTraitsModernes: document.querySelector("#opaciteTraitsModernes"),
   angleTraitsModernes: document.querySelector("#angleTraitsModernes"),
   modeVignette: document.querySelector("#modeVignette"),
   vignette: document.querySelector("#vignette"),
-  papierVieilli: document.querySelector("#papierVieilli"),
-  couleurPapierVieilli: document.querySelector("#couleurPapierVieilli"),
-  jaunissementPapier: document.querySelector("#jaunissementPapier"),
-  froissagePapier: document.querySelector("#froissagePapier"),
-  imperfectionsPapier: document.querySelector("#imperfectionsPapier"),
-  usureBordsPapier: document.querySelector("#usureBordsPapier"),
   bordure: document.querySelector("#bordure"),
   bordureHorizontale: document.querySelector("#bordureHorizontale"),
   bordureVerticale: document.querySelector("#bordureVerticale"),
@@ -166,6 +162,7 @@ const elements = {
   epaisseurTraitsLEON: document.querySelector("#epaisseurTraitsLEON"),
   positionTraitsLEON: document.querySelector("#positionTraitsLEON"),
   ecartTraitsLEON: document.querySelector("#ecartTraitsLEON"),
+  tailleTrianglesJEAN: document.querySelector("#tailleTrianglesJEAN"),
   modifierTextesMiseEnPage: document.querySelector("#modifierTextesMiseEnPage"),
   reglagesTextePrincipaux: document.querySelector("#reglagesTextePrincipaux"),
   reglagesTexteMiseEnPage: document.querySelector("#reglagesTexteMiseEnPage"),
@@ -188,7 +185,6 @@ const elements = {
   reglagesMotif: document.querySelectorAll("[data-motif-reglage]"),
   reglagesTraitsModernes: document.querySelectorAll("[data-traits-modernes-reglage]"),
   reglagesVignette: document.querySelectorAll("[data-vignette-reglage]"),
-  reglagesPapier: document.querySelectorAll("[data-papier-reglage]"),
   reglagesMotifRuban: document.querySelectorAll("[data-motif-ruban-reglage]"),
   reglagesMotifRubanDetails: document.querySelectorAll("[data-motif-ruban-details]"),
   champsModele: document.querySelectorAll("[data-modele-visible]"),
@@ -202,6 +198,7 @@ const elements = {
   marqueGauche: document.querySelector("#marqueGauche"),
   marqueDroite: document.querySelector("#marqueDroite"),
   policeMarques: document.querySelector("#policeMarques"),
+  marquesVerticalesJEAN: document.querySelector("#marquesVerticalesJEAN"),
   synchroniserMarques: document.querySelector("#synchroniserMarques"),
   reglagesMarquesCommuns: document.querySelectorAll("[data-marque-commun]"),
   reglagesMarquesSepares: document.querySelectorAll("[data-marque-separe]"),
@@ -345,7 +342,7 @@ async function initialiser() {
   document.body.classList.add("is-accueil-selection");
   appliquerDimensionsEtiquetteDefaut();
   await chargerStylesEtiquettes();
-  remplirPolicesTextesLateraux();
+  remplirMenusPolices();
   remplirModelesTheme();
   synchroniserOptionsMotifSecondaire();
   const styleInitial = obtenirStylesEtiquettes("tout")[0]?.reglages || presets.ALICE;
@@ -409,6 +406,19 @@ function brancherEvenements() {
     enregistrerHistoriqueDepuisControle(evenement.target);
     marquerCouleurTexteManuelle(evenement.target);
     desactiverLimiteMarquesSurpriseSiModificationManuelle(evenement.target);
+    if ([
+      elements.policeTitres,
+      elements.policeArtiste,
+      elements.policeMarques,
+      elements.policeMarqueGauche,
+      elements.policeMarqueDroite,
+    ].includes(evenement.target)) {
+      if (evenement.target === elements.policeMarques && elements.synchroniserMarques.checked) {
+        elements.policeMarqueGauche.value = elements.policeMarques.value;
+        elements.policeMarqueDroite.value = elements.policeMarques.value;
+      }
+      synchroniserTousStylesPolices();
+    }
     if (evenement.target.closest("[data-marque-commun]")) {
       synchroniserValeursMarquesDepuisCommun();
     }
@@ -438,8 +448,15 @@ function brancherEvenements() {
   });
   elements.boutonMotif.addEventListener("click", () => basculerDecor("motif"));
   elements.boutonVignettage.addEventListener("click", () => basculerDecor("vignette"));
-  elements.boutonPapierVieilli.addEventListener("click", () => basculerDecor("papier"));
   elements.afficherTraitsModernes.addEventListener("change", () => {
+    if (
+      elements.afficherTraitsModernes.checked
+      && !elements.motifSecondaireFond.checked
+      && !elements.motifSecondaireRuban.checked
+    ) {
+      elements.motifSecondaireFond.checked = true;
+    }
+    synchroniserOptionsMotifSecondaire();
     enregistrerReglagesActifs();
     mettreAJourInterfaceConditionnelle(lireReglagesFormulaire());
     mettreAJour();
@@ -1224,13 +1241,42 @@ function fermerConfidentialite() {
   }
 }
 
-function remplirPolicesTextesLateraux() {
-  const options = elements.policeTitres.cloneNode(true).querySelectorAll("option");
-  [elements.policeMarques, elements.policeMarqueGauche, elements.policeMarqueDroite].forEach((select) => {
-    const valeur = select.value;
-    select.replaceChildren(...Array.from(options).map((option) => option.cloneNode(true)));
-    select.value = Array.from(select.options).some((option) => option.value === valeur) ? valeur : "compacte";
+function remplirMenusPolices() {
+  remplirSelectPolice(elements.policeTitres, "dactylo-ronde");
+  remplirSelectPolice(elements.policeArtiste, "dactylo-ronde");
+  remplirSelectPolice(elements.policeMarques, "compacte");
+  remplirSelectPolice(elements.policeMarqueGauche, "compacte");
+  remplirSelectPolice(elements.policeMarqueDroite, "compacte");
+  synchroniserTousStylesPolices();
+}
+
+function synchroniserTousStylesPolices() {
+  synchroniserSelectStylePolice(elements.policeTitres, elements.styleTitres);
+  synchroniserSelectStylePolice(elements.policeArtiste, elements.styleArtiste);
+  synchroniserSelectStylePolice(elements.policeMarqueGauche, elements.styleMarqueGauche);
+  synchroniserSelectStylePolice(elements.policeMarqueDroite, elements.styleMarqueDroite);
+}
+
+function synchroniserSelectStylePolice(selectPolice, selectStyle) {
+  if (!selectPolice || !selectStyle) {
+    return;
+  }
+  const stylesDisponibles = stylesPolice(selectPolice.value);
+  const styleCompatible = normaliserStylePolice(selectPolice.value, selectStyle.value);
+  Array.from(selectStyle.options).forEach((option) => {
+    const disponible = stylesDisponibles.includes(option.value);
+    option.disabled = !disponible;
+    option.hidden = !disponible;
   });
+  selectStyle.value = styleCompatible;
+  selectStyle.disabled = stylesDisponibles.length <= 1;
+  const conteneur = selectStyle.closest(".champ");
+  if (conteneur) {
+    conteneur.classList.toggle("champ--option-unique", stylesDisponibles.length <= 1);
+    conteneur.title = stylesDisponibles.length <= 1
+      ? "Cette police est disponible uniquement en style normal."
+      : "";
+  }
 }
 
 function ouvrirSoutien(options = {}) {
@@ -1965,7 +2011,7 @@ function appliquerBordureVisibleAleatoire(reglages) {
   return {
     ...reglages,
     bordureHorizontale: mode !== "verticale",
-    bordureVerticale: mode !== "horizontale",
+    bordureVerticale: reglages.modele === "JEAN" ? false : mode !== "horizontale",
   };
 }
 
@@ -2174,23 +2220,24 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.angleMotif = reglagesNormalises.angleMotif ?? 0;
   reglagesNormalises.motifFond = reglagesNormalises.motifFond ?? true;
   reglagesNormalises.motifRuban = reglagesNormalises.motifRuban ?? false;
+  reglagesNormalises.motifSecondaireFond = reglagesNormalises.motifSecondaireFond ?? true;
+  reglagesNormalises.motifSecondaireRuban = reglagesNormalises.motifSecondaireRuban ?? false;
   reglagesNormalises.motifRubanType = reglagesNormalises.motifRubanType || reglagesNormalises.motifType || "aucun";
   reglagesNormalises.couleurMotifRuban = reglagesNormalises.couleurMotifRuban || reglagesNormalises.couleurMotif || reglagesNormalises.couleur1;
   reglagesNormalises.opaciteMotifRuban = reglagesNormalises.opaciteMotifRuban ?? reglagesNormalises.motif ?? 45;
   reglagesNormalises.angleMotifRuban = reglagesNormalises.angleMotifRuban ?? reglagesNormalises.angleMotif ?? 0;
   reglagesNormalises.bordureHorizontale = reglagesNormalises.bordureHorizontale ?? true;
-  reglagesNormalises.bordureVerticale = reglagesNormalises.bordureVerticale ?? true;
+  reglagesNormalises.bordureVerticale = reglagesNormalises.modele === "JEAN"
+    ? false
+    : reglagesNormalises.bordureVerticale ?? true;
   reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.arrondiInterieurBordure ?? false;
-  reglagesNormalises.papierVieilli = reglagesNormalises.papierVieilli ?? false;
   reglagesNormalises.epaisseurTraitsLEON = reglagesNormalises.epaisseurTraitsLEON ?? 3;
   reglagesNormalises.positionTraitsLEON = reglagesNormalises.positionTraitsLEON ?? 50;
   reglagesNormalises.ecartTraitsLEON = reglagesNormalises.ecartTraitsLEON ?? 24;
-  reglagesNormalises.couleurPapierVieilli = reglagesNormalises.couleurPapierVieilli || reglagesNormalises.couleurVignette || "#8a6b3f";
-  reglagesNormalises.jaunissementPapier = reglagesNormalises.jaunissementPapier ?? 50;
-  reglagesNormalises.froissagePapier = reglagesNormalises.froissagePapier ?? 30;
-  reglagesNormalises.imperfectionsPapier = reglagesNormalises.imperfectionsPapier ?? 35;
-  reglagesNormalises.usureBordsPapier = reglagesNormalises.usureBordsPapier ?? 40;
+  reglagesNormalises.tailleTrianglesJEAN = reglagesNormalises.tailleTrianglesJEAN ?? 11;
+  reglagesNormalises.tailleTrianglesJEAN = convertirTailleTrianglesEnCurseur(reglagesNormalises.tailleTrianglesJEAN);
   reglagesNormalises.synchroniserMarques = ![false, 0, "false", "0"].includes(reglagesNormalises.synchroniserMarques);
+  reglagesNormalises.marquesVerticalesJEAN = [true, 1, "true", "1"].includes(reglagesNormalises.marquesVerticalesJEAN);
   reglagesNormalises.marqueGaucheTexte = reglagesNormalises.marqueGaucheTexte ?? reglagesNormalises.marqueGauche ?? "";
   reglagesNormalises.marqueDroiteTexte = reglagesNormalises.marqueDroiteTexte ?? reglagesNormalises.marqueDroite ?? "";
   reglagesNormalises.couleurMarqueGauche = reglagesNormalises.couleurMarqueGauche || reglagesNormalises.couleurMarques;
@@ -2205,6 +2252,10 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.policeMarqueDroite = reglagesNormalises.policeMarqueDroite || reglagesNormalises.policeMarques;
   reglagesNormalises.styleMarqueGauche = reglagesNormalises.styleMarqueGauche || "gras";
   reglagesNormalises.styleMarqueDroite = reglagesNormalises.styleMarqueDroite || "gras";
+  reglagesNormalises.styleTitres = normaliserStylePolice(reglagesNormalises.policeTitres, reglagesNormalises.styleTitres || "normal");
+  reglagesNormalises.styleArtiste = normaliserStylePolice(reglagesNormalises.policeArtiste, reglagesNormalises.styleArtiste || "normal");
+  reglagesNormalises.styleMarqueGauche = normaliserStylePolice(reglagesNormalises.policeMarqueGauche, reglagesNormalises.styleMarqueGauche);
+  reglagesNormalises.styleMarqueDroite = normaliserStylePolice(reglagesNormalises.policeMarqueDroite, reglagesNormalises.styleMarqueDroite);
   reglagesNormalises.tailleMarqueGauche = reglagesNormalises.tailleMarqueGauche ?? reglagesNormalises.tailleMarques;
   reglagesNormalises.tailleMarqueDroite = reglagesNormalises.tailleMarqueDroite ?? reglagesNormalises.tailleMarques;
   reglagesNormalises.angleMarqueGauche = reglagesNormalises.angleMarqueGauche ?? reglagesNormalises.angleMarques;
@@ -2213,7 +2264,7 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.positionMarqueDroite = reglagesNormalises.positionMarqueDroite ?? reglagesNormalises.positionMarques;
   reglagesNormalises.hauteurMarqueGauche = reglagesNormalises.hauteurMarqueGauche ?? reglagesNormalises.hauteurMarques;
   reglagesNormalises.hauteurMarqueDroite = reglagesNormalises.hauteurMarqueDroite ?? reglagesNormalises.hauteurMarques;
-  if (reglagesNormalises.decorPanel === "bordure") {
+  if (reglagesNormalises.decorPanel && !["motif", "vignette"].includes(reglagesNormalises.decorPanel)) {
     reglagesNormalises.decorPanel = "motif";
   }
   reglagesNormalises.decorPanel = reglagesNormalises.decorPanel || (
@@ -2242,6 +2293,7 @@ function appliquerReglagesAuFormulaire(reglages) {
     elements.decorPanel.value = decorActif;
   }
   mettreAJourBoutonsDecor();
+  synchroniserTousStylesPolices();
   chargementReglages = false;
   synchroniserValeursMarquesDepuisCommun(false);
   mettreAJourReglagesTexteMiseEnPage();
@@ -2666,11 +2718,10 @@ function gererActionFavori(evenement) {
 }
 
 function lireReglagesFormulaire() {
-  const styleTitres = elements.styleTitres.value;
-  const styleArtiste = elements.styleArtiste.value;
+  const styleTitres = normaliserStylePolice(elements.policeTitres.value, elements.styleTitres.value);
+  const styleArtiste = normaliserStylePolice(elements.policeArtiste.value, elements.styleArtiste.value);
   const motifActif = elements.activerMotif.checked;
   const vignettageActif = elements.activerVignettage.checked;
-  const papierActif = elements.papierVieilli.checked;
   const panelDecor = elements.decorPanel.value || "motif";
   return {
     theme: presets[elements.modele.value]?.theme || "tout",
@@ -2690,10 +2741,9 @@ function lireReglagesFormulaire() {
     couleurTitreFaceBManuelle: elements.couleurTitreFaceB.dataset.modifieeManuellement === "true",
     couleurArtisteManuelle: elements.couleurArtiste.dataset.modifieeManuellement === "true",
     decorPanel: (
-      (panelDecor === "papier" && papierActif)
-        || (panelDecor === "vignette" && vignettageActif)
+      (panelDecor === "vignette" && vignettageActif)
         || (panelDecor === "motif" && motifActif)
-    ) ? panelDecor : (papierActif ? "papier" : (motifActif ? "motif" : (vignettageActif ? "vignette" : panelDecor))),
+    ) ? panelDecor : (motifActif ? "motif" : (vignettageActif ? "vignette" : panelDecor)),
     angle: Number(elements.angle.value),
     intensite: Number(elements.intensite.value),
     motifType: motifActif ? elements.motifType.value : "aucun",
@@ -2708,20 +2758,16 @@ function lireReglagesFormulaire() {
     angleMotifRuban: Number(elements.angleMotifRuban.value),
     afficherTraitsModernes: elements.afficherTraitsModernes.checked,
     motifTraitsModernes: elements.motifTraitsModernes.value,
+    motifSecondaireFond: elements.motifSecondaireFond.checked,
+    motifSecondaireRuban: elements.motifSecondaireRuban.checked,
     couleurTraitsModernes: elements.couleurTraitsModernes.value,
     opaciteTraitsModernes: Number(elements.opaciteTraitsModernes.value),
     angleTraitsModernes: Number(elements.angleTraitsModernes.value),
     modeVignette: vignettageActif ? elements.modeVignette.value : "aucun",
     vignette: Number(elements.vignette.value),
-    papierVieilli: elements.papierVieilli.checked,
-    couleurPapierVieilli: elements.couleurPapierVieilli.value,
-    jaunissementPapier: Number(elements.jaunissementPapier.value),
-    froissagePapier: Number(elements.froissagePapier.value),
-    imperfectionsPapier: Number(elements.imperfectionsPapier.value),
-    usureBordsPapier: Number(elements.usureBordsPapier.value),
     bordure: Math.max(EPAISSEUR_BORDURE_MIN, Number(elements.bordure.value) || EPAISSEUR_BORDURE_MIN),
     bordureHorizontale: elements.bordureHorizontale.checked,
-    bordureVerticale: elements.bordureVerticale.checked,
+    bordureVerticale: elements.modele.value === "JEAN" ? false : elements.bordureVerticale.checked,
     arrondiInterieurBordure: elements.arrondiInterieurBordure.checked,
     largeurRuban: Number(elements.largeurRuban.value),
     hauteurRuban: Number(elements.hauteurRuban.value),
@@ -2729,6 +2775,7 @@ function lireReglagesFormulaire() {
     epaisseurTraitsLEON: Number(elements.epaisseurTraitsLEON.value),
     positionTraitsLEON: Number(elements.positionTraitsLEON.value),
     ecartTraitsLEON: Number(elements.ecartTraitsLEON.value),
+    tailleTrianglesJEAN: convertirCurseurEnTailleTriangles(elements.tailleTrianglesJEAN.value),
     tailleBandeGauche: Number(elements.tailleBandeGauche.value),
     angleBandeGauche: Number(elements.angleBandeGauche.value),
     tailleBandeDroite: Number(elements.tailleBandeDroite.value),
@@ -2750,6 +2797,7 @@ function lireReglagesFormulaire() {
     marqueGauche: elements.marqueGauche.value.trim(),
     marqueDroite: elements.marqueDroite.value.trim(),
     policeMarques: elements.policeMarques.value,
+    marquesVerticalesJEAN: elements.marquesVerticalesJEAN.checked,
     marqueGaucheTexte: elements.marqueGaucheTexte.value.trim(),
     marqueDroiteTexte: elements.marqueDroiteTexte.value.trim(),
     couleurMarqueGauche: elements.couleurMarqueGauche.value,
@@ -2758,8 +2806,8 @@ function lireReglagesFormulaire() {
     formePastilleDroite: elements.formePastilleDroite.value,
     policeMarqueGauche: elements.policeMarqueGauche.value,
     policeMarqueDroite: elements.policeMarqueDroite.value,
-    styleMarqueGauche: elements.styleMarqueGauche.value,
-    styleMarqueDroite: elements.styleMarqueDroite.value,
+    styleMarqueGauche: normaliserStylePolice(elements.policeMarqueGauche.value, elements.styleMarqueGauche.value),
+    styleMarqueDroite: normaliserStylePolice(elements.policeMarqueDroite.value, elements.styleMarqueDroite.value),
     tailleMarqueGauche: Number(elements.tailleMarqueGauche.value),
     tailleMarqueDroite: Number(elements.tailleMarqueDroite.value),
     diametrePastilleGauche: Number(elements.diametrePastilleGauche.value),
@@ -3020,7 +3068,7 @@ function creerSurpriseLeon(base) {
     couleurTitreFaceAManuelle: false,
     couleurTitreFaceBManuelle: false,
     couleurArtiste: palette.artisteTexte,
-    decorPanel: "papier",
+    decorPanel: "vignette",
     motifType,
     motif: motifType === "aucun" ? 0 : nombreAleatoire(6, 22, 1),
     angleMotif: nombreAleatoire(-10, 10, 1),
@@ -3032,12 +3080,6 @@ function creerSurpriseLeon(base) {
     vignette: nombreAleatoire(22, 46, 1),
     intensite: nombreAleatoire(28, 58, 1),
     angle: choisirAleatoire([0, 45, 90, 135, 180]),
-    papierVieilli: true,
-    couleurPapierVieilli: palette.vignette,
-    jaunissementPapier: nombreAleatoire(42, 86, 1),
-    froissagePapier: nombreAleatoire(18, 68, 1),
-    imperfectionsPapier: nombreAleatoire(24, 72, 1),
-    usureBordsPapier: nombreAleatoire(28, 78, 1),
     bordure: nombreAleatoire(42, 88, 2),
     arrondiInterieurBordure: Math.random() > 0.58,
     epaisseurTraitsLEON: nombreAleatoire(1.5, 5.5, 0.5),
@@ -3157,7 +3199,6 @@ function creerSurpriseManu(base) {
     modeVignette: "aucun",
     vignette: 0,
     intensite: 0,
-    papierVieilli: false,
     bordure: nombreAleatoire(profil.bordure[0], profil.bordure[1], 1),
     arrondiInterieurBordure: Math.random() < 0.55,
     largeurRuban: nombreAleatoire(profil.largeurRuban[0], profil.largeurRuban[1], 1),
@@ -3225,6 +3266,7 @@ function signatureStyleEnregistre(reglages) {
     reglages.bordure,
     reglages.bordureHorizontale,
     reglages.bordureVerticale,
+    normaliserTailleTrianglesPourSignature(reglages),
     reglages.largeurRuban,
     reglages.hauteurRuban,
     reglages.hauteurBande,
@@ -3261,6 +3303,10 @@ function motifDecorActifDepuisFormulaire() {
   return (
     (elements.motifFond.checked && elements.motifType.value !== "aucun")
     || (elements.motifRuban.checked && elements.motifRubanType.value !== "aucun")
+    || (
+      elements.afficherTraitsModernes.checked
+      && (elements.motifSecondaireFond.checked || elements.motifSecondaireRuban.checked)
+    )
   );
 }
 
@@ -3287,6 +3333,7 @@ function basculerDecor(type) {
       if (elements.motifType.value === "aucun") {
         elements.motifType.value = "grille";
       }
+      synchroniserOptionsMotifSecondaire();
       elements.motifFond.checked = true;
       if (Number(elements.motif.value) < 25) {
         elements.motif.value = "45";
@@ -3297,6 +3344,8 @@ function basculerDecor(type) {
       elements.motifRuban.checked = false;
       elements.motifRubanType.value = "aucun";
       elements.afficherTraitsModernes.checked = false;
+      elements.motifSecondaireFond.checked = true;
+      elements.motifSecondaireRuban.checked = false;
     }
     rendreDecorExclusif(elements.activerMotif.checked ? "motif" : null);
   }
@@ -3315,11 +3364,6 @@ function basculerDecor(type) {
     }
     rendreDecorExclusif(elements.activerVignettage.checked ? "vignette" : null);
   }
-  if (type === "papier") {
-    elements.papierVieilli.checked = !elements.papierVieilli.checked;
-    elements.decorPanel.value = "papier";
-    rendreDecorExclusif(elements.papierVieilli.checked ? "papier" : null);
-  }
   mettreAJourBoutonsDecor();
   mettreAJourInterfaceConditionnelle(lireReglagesFormulaire());
   enregistrerReglagesActifs();
@@ -3333,12 +3377,6 @@ function decorActifDepuisPanel() {
   }
   if (panel === "vignette" && elements.activerVignettage.checked) {
     return "vignette";
-  }
-  if (panel === "papier" && elements.papierVieilli.checked) {
-    return "papier";
-  }
-  if (elements.papierVieilli.checked) {
-    return "papier";
   }
   if (elements.activerMotif.checked) {
     return "motif";
@@ -3359,15 +3397,11 @@ function rendreDecorExclusif(typeActif) {
     elements.activerVignettage.checked = false;
     elements.modeVignette.value = "aucun";
   }
-  if (typeActif !== "papier") {
-    elements.papierVieilli.checked = false;
-  }
 }
 
 function mettreAJourBoutonsDecor() {
   elements.boutonMotif.setAttribute("aria-pressed", String(elements.activerMotif.checked));
   elements.boutonVignettage.setAttribute("aria-pressed", String(elements.activerVignettage.checked));
-  elements.boutonPapierVieilli.setAttribute("aria-pressed", String(elements.papierVieilli.checked));
 }
 
 function mettreAJourReglagesTexteMiseEnPage() {
@@ -3410,8 +3444,10 @@ function synchroniserValeursMarquesDepuisCommun(ecraserTextes = true) {
   elements.formePastilleDroite.value = elements.formePastille.value;
   elements.policeMarqueGauche.value = elements.policeMarques.value;
   elements.policeMarqueDroite.value = elements.policeMarques.value;
-  elements.styleMarqueGauche.value = "gras";
-  elements.styleMarqueDroite.value = "gras";
+  elements.styleMarqueGauche.value = normaliserStylePolice(elements.policeMarqueGauche.value, "gras");
+  elements.styleMarqueDroite.value = normaliserStylePolice(elements.policeMarqueDroite.value, "gras");
+  synchroniserSelectStylePolice(elements.policeMarqueGauche, elements.styleMarqueGauche);
+  synchroniserSelectStylePolice(elements.policeMarqueDroite, elements.styleMarqueDroite);
   elements.tailleMarqueGauche.value = elements.tailleMarques.value;
   elements.tailleMarqueDroite.value = elements.tailleMarques.value;
   elements.diametrePastilleGauche.value = elements.diametrePastille.value;
@@ -3444,12 +3480,7 @@ function copierReglages(evenement) {
 }
 
 function preparerReglagesPourExport(reglages) {
-  const copie = { ...reglages };
-  const nom = modelesParTheme.tout.find(([valeur]) => valeur === copie.modele)?.[1];
-  if (nom) {
-    copie.nomModele = nom;
-  }
-  return copie;
+  return { ...reglages };
 }
 
 function creerPayloadJsonStyle() {
@@ -3587,9 +3618,14 @@ function normaliserReglagesImportes(donnees) {
 
     reglages[cle] = String(valeur).slice(0, champ.maxLength > 0 ? champ.maxLength : 500);
   });
-  reglages.couleurTitreFaceAManuelle = donneesCompatibles.couleurTitreFaceAManuelle === true;
-  reglages.couleurTitreFaceBManuelle = donneesCompatibles.couleurTitreFaceBManuelle === true;
-  reglages.couleurArtisteManuelle = donneesCompatibles.couleurArtisteManuelle === true;
+  const couleurTexteEstManuelle = (cleCouleur, cleIndicateur) => (
+    Object.prototype.hasOwnProperty.call(donneesCompatibles, cleIndicateur)
+      ? donneesCompatibles[cleIndicateur] === true
+      : Object.prototype.hasOwnProperty.call(donneesCompatibles, cleCouleur)
+  );
+  reglages.couleurTitreFaceAManuelle = couleurTexteEstManuelle("couleurTitreFaceA", "couleurTitreFaceAManuelle");
+  reglages.couleurTitreFaceBManuelle = couleurTexteEstManuelle("couleurTitreFaceB", "couleurTitreFaceBManuelle");
+  reglages.couleurArtisteManuelle = couleurTexteEstManuelle("couleurArtiste", "couleurArtisteManuelle");
 
   if (reglages.modele === "MARTIN" && !Object.prototype.hasOwnProperty.call(donneesCompatibles, "hauteurBande")) {
     reglages.hauteurBande = 0;
@@ -3608,6 +3644,12 @@ function normaliserReglagesImportes(donnees) {
   }
   if (!Object.prototype.hasOwnProperty.call(donneesCompatibles, "angleMotifRuban")) {
     reglages.angleMotifRuban = 0;
+  }
+  if (!Object.prototype.hasOwnProperty.call(donneesCompatibles, "motifSecondaireFond")) {
+    reglages.motifSecondaireFond = true;
+  }
+  if (!Object.prototype.hasOwnProperty.call(donneesCompatibles, "motifSecondaireRuban")) {
+    reglages.motifSecondaireRuban = false;
   }
   if (reglages.modele === "CELESTE") {
     const preset = presets[reglages.modele] || presets.CELESTE;
@@ -4779,14 +4821,12 @@ function mettreAJourInterfaceConditionnelle(reglages) {
   appliquerVisibiliteModele();
   const motifActif = elements.activerMotif.checked;
   const vignettageActif = elements.activerVignettage.checked;
-  const papierActif = elements.papierVieilli.checked;
   elements.reglagesDecor.forEach((champ) => {
     const panel = champ.dataset.decorPanel;
     champ.classList.toggle(
       "champ-masque",
       (panel === "motif" && !motifActif)
-        || (panel === "vignette" && !vignettageActif)
-        || (panel === "papier" && !papierActif),
+        || (panel === "vignette" && !vignettageActif),
     );
   });
   elements.reglagesMotif.forEach((champ) => {
@@ -4812,9 +4852,6 @@ function mettreAJourInterfaceConditionnelle(reglages) {
   });
   elements.reglagesVignette.forEach((champ) => {
     champ.classList.toggle("champ-masque", !vignettageActif || reglages.modeVignette === "aucun");
-  });
-  elements.reglagesPapier.forEach((champ) => {
-    champ.classList.toggle("champ-masque", !papierActif);
   });
   mettreAJourReglagesTexteMiseEnPage();
   mettreAJourPanneauxSelonContenu();
@@ -4857,10 +4894,27 @@ function mettreAJourValeursRange() {
 
 function formaterValeurRange(cle, valeur, unite) {
   const nombre = Number(valeur);
-  if (cle.toLowerCase().includes("angle")) {
+  if (cle.toLowerCase().startsWith("angle")) {
     return `${nombre}°`;
   }
   return `${nombre}${unite || "%"}`;
+}
+
+function convertirTailleTrianglesEnCurseur(valeur) {
+  const taille = Math.max(6, Math.min(24, Number(valeur) || 11));
+  return Math.round(((taille - 6) / 18) * 100);
+}
+
+function convertirCurseurEnTailleTriangles(valeur) {
+  const curseur = Math.max(0, Math.min(100, Number(valeur) || 0));
+  return 6 + (curseur / 100) * 18;
+}
+
+function normaliserTailleTrianglesPourSignature(reglages) {
+  if (reglages.modele !== "JEAN") {
+    return reglages.tailleTrianglesJEAN;
+  }
+  return convertirCurseurEnTailleTriangles(convertirTailleTrianglesEnCurseur(reglages.tailleTrianglesJEAN));
 }
 
 

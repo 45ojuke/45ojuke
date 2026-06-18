@@ -1,3 +1,5 @@
+import { effetPoliceDepuisFont, famillePolice, normaliserStylePolice, poidsPolice } from "./polices.js";
+
 window.PX_PAR_MM = window.PX_PAR_MM || 12;
 
 const VALEURS_CELESTE_DEFAUT = {
@@ -40,6 +42,11 @@ export function dessinerEtiquette(ligne, reglages) {
     return canvas;
   }
 
+  if (reglages.modele === "JEAN") {
+    dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure);
+    return canvas;
+  }
+
   if (reglages.modele === "MANU") {
     dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH, bandeH, bandeY);
     return canvas;
@@ -49,9 +56,6 @@ export function dessinerEtiquette(ligne, reglages) {
   ctx.fillRect(0, 0, largeur, hauteur / 2);
   ctx.fillStyle = reglages.couleur3;
   ctx.fillRect(0, hauteur / 2, largeur, hauteur / 2);
-  if (reglages.papierVieilli) {
-    dessinerPapierVieilli(ctx, reglages, largeur, hauteur);
-  }
   dessinerMotif(ctx, reglages, largeur, hauteur);
   dessinerTraitsModernes(ctx, reglages, largeur, hauteur);
 
@@ -60,7 +64,7 @@ export function dessinerEtiquette(ligne, reglages) {
   }
 
   if (bandeH > 0) {
-    const margeBande = reglages.bordureVerticale === false ? 0 : bordure / 2;
+    const margeBande = reglages.modele === "JEAN" || reglages.bordureVerticale === false ? 0 : bordure / 2;
     ctx.fillStyle = reglages.couleur1;
     ctx.fillRect(margeBande, bandeY, largeur - margeBande * 2, bandeH);
   }
@@ -72,6 +76,7 @@ export function dessinerEtiquette(ligne, reglages) {
       ctx.fillStyle = reglages.couleurRuban;
       ctx.fillRect(rubanX, rubanY, rubanW, rubanH);
       dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH);
+      dessinerMotifSecondaireRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH);
       ctx.strokeStyle = reglages.couleur1;
       ctx.lineWidth = traitRuban;
       ctx.strokeRect(
@@ -126,10 +131,6 @@ export function dessinerEtiquette(ligne, reglages) {
     reglages,
     rubanVisible ? reglages.couleurRuban : (bandeH > 0 ? reglages.couleur1 : reglages.couleur2),
   );
-
-  if (reglages.papierVieilli) {
-    dessinerUsurePapier(ctx, reglages, largeur, hauteur);
-  }
 
   return canvas;
 }
@@ -238,10 +239,6 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
   ctx.fillStyle = reglages.couleurFondModerne || VALEURS_CELESTE_DEFAUT.couleurFondModerne;
   ctx.fillRect(0, 0, largeur, hauteur);
 
-  if (reglages.papierVieilli) {
-    dessinerPapierVieilli(ctx, reglages, largeur, hauteur);
-  }
-
   dessinerMotif(ctx, reglages, largeur, hauteur);
 
   ctx.save();
@@ -285,6 +282,7 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
     ctx.fill();
     ctx.restore();
     dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
+    dessinerMotifSecondaireRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
 
     ctx.strokeStyle = convertirHexEnRgba(reglages.couleur1, 0.78);
     traitRuban = Math.max(2, hauteur * 0.012);
@@ -338,9 +336,6 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
     rubanW > 0.5 && rubanH > 0.5 ? reglages.couleurRuban : (reglages.couleurFondModerne || VALEURS_CELESTE_DEFAUT.couleurFondModerne),
   );
 
-  if (reglages.papierVieilli) {
-    dessinerUsurePapier(ctx, reglages, largeur, hauteur);
-  }
 }
 
 function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH, bandeH, bandeY) {
@@ -358,10 +353,6 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
   ctx.fillStyle = reglages.couleur3;
   ctx.fillRect(0, hauteur / 2, largeur, hauteur / 2);
 
-  if (reglages.papierVieilli) {
-    dessinerPapierVieilli(ctx, reglages, largeur, hauteur);
-  }
-
   dessinerMotif(ctx, reglages, largeur, hauteur);
   dessinerTraitsModernes(ctx, reglages, largeur, hauteur);
 
@@ -376,6 +367,7 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
     tracerRectangleArrondi(ctx, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
     ctx.fill();
     dessinerMotifRuban(ctx, reglages, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
+    dessinerMotifSecondaireRuban(ctx, reglages, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
     ctx.strokeStyle = reglages.couleur1;
     ctx.lineWidth = traitRuban;
     tracerRectangleArrondi(
@@ -428,9 +420,6 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
     rubanWManu > 0.5 && rubanH > 0.5 ? reglages.couleurRuban : (bandeVisibleH > 0 ? reglages.couleur1 : reglages.couleur2),
   );
 
-  if (reglages.papierVieilli) {
-    dessinerUsurePapier(ctx, reglages, largeur, hauteur);
-  }
 }
 
 function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) {
@@ -451,14 +440,12 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
   ctx.fillStyle = fondBas;
   ctx.fillRect(0, yBas, largeur, hauteur - yBas);
 
-  if (reglages.papierVieilli) {
-    dessinerPapierVieilli(ctx, reglages, largeur, hauteur);
-  }
-
   dessinerMotifZone(ctx, reglages, 0, 0, largeur, yHaut);
   dessinerMotifZone(ctx, reglages, 0, yBas, largeur, hauteur - yBas);
-  dessinerTraitsModernes(ctx, reglages, largeur, hauteur);
+  dessinerMotifSecondaireZone(ctx, reglages, 0, 0, largeur, yHaut);
+  dessinerMotifSecondaireZone(ctx, reglages, 0, yBas, largeur, hauteur - yBas);
   dessinerMotifRuban(ctx, reglages, 0, yHaut, largeur, yBas - yHaut);
+  dessinerMotifSecondaireRuban(ctx, reglages, 0, yHaut, largeur, yBas - yHaut);
   if (reglages.modeVignette === "fond" || reglages.modeVignette === "global") {
     dessinerVignette(ctx, reglages, largeur, hauteur);
   }
@@ -518,17 +505,120 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
   );
   dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, yBas - yHaut, reglages, fondArtiste);
 
-  if (reglages.papierVieilli) {
-    dessinerUsurePapier(ctx, reglages, largeur, hauteur);
+}
+
+function dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure) {
+  const traitBordure = bordure > 0 ? Math.max(1, bordure) : 0;
+  const fondHaut = reglages.couleur2 || "#ffffff";
+  const fondBas = reglages.couleur3 || fondHaut;
+  const fondArtiste = reglages.couleurRuban || fondHaut;
+  const centreTraits = hauteur * limiterNombre(Number(reglages.positionTraitsLEON) || 50, 25, 75) / 100;
+  const ecartTraits = hauteur * limiterNombre(Number(reglages.ecartTraitsLEON) || 24, 10, 42) / 100;
+  const epaisseurTraits = Math.max(1, Number(reglages.epaisseurTraitsLEON) || 3);
+  const yHaut = limiterNombre(centreTraits - ecartTraits / 2, traitBordure + epaisseurTraits, hauteur - traitBordure - epaisseurTraits);
+  const yBas = limiterNombre(centreTraits + ecartTraits / 2, traitBordure + epaisseurTraits, hauteur - traitBordure - epaisseurTraits);
+  const triangleW = largeur * limiterNombre(Number(reglages.tailleTrianglesJEAN) || 11, 6, 24) / 100;
+  const bordTriangleAuY = (y) => triangleW * (1 - Math.abs((y - hauteur / 2) / (hauteur / 2)));
+
+  ctx.fillStyle = fondHaut;
+  ctx.fillRect(0, 0, largeur, yHaut);
+  ctx.fillStyle = fondArtiste;
+  ctx.fillRect(0, yHaut, largeur, yBas - yHaut);
+  ctx.fillStyle = fondBas;
+  ctx.fillRect(0, yBas, largeur, hauteur - yBas);
+
+  dessinerMotifZone(ctx, reglages, 0, 0, largeur, yHaut);
+  dessinerMotifZone(ctx, reglages, 0, yBas, largeur, hauteur - yBas);
+  dessinerMotifSecondaireZone(ctx, reglages, 0, 0, largeur, yHaut);
+  dessinerMotifSecondaireZone(ctx, reglages, 0, yBas, largeur, hauteur - yBas);
+  dessinerMotifRuban(ctx, reglages, 0, yHaut, largeur, yBas - yHaut);
+  dessinerMotifSecondaireRuban(ctx, reglages, 0, yHaut, largeur, yBas - yHaut);
+  if (reglages.modeVignette === "fond" || reglages.modeVignette === "global") {
+    dessinerVignette(ctx, reglages, largeur, hauteur);
   }
+
+  if (traitBordure > 0) {
+    dessinerBordureInterieureArrondie(
+      ctx,
+      0,
+      0,
+      largeur,
+      hauteur,
+      traitBordure,
+      reglages.couleur1,
+      reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      reglages,
+    );
+  }
+
+  ctx.save();
+  ctx.fillStyle = reglages.couleur1;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(triangleW, hauteur / 2);
+  ctx.lineTo(0, hauteur);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(largeur, 0);
+  ctx.lineTo(largeur - triangleW, hauteur / 2);
+  ctx.lineTo(largeur, hauteur);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = reglages.couleur1;
+  ctx.lineWidth = epaisseurTraits;
+  ctx.lineCap = "butt";
+  const recouvrementTriangle = Math.max(3, epaisseurTraits * 1.5);
+  const departTraitHaut = Math.max(0, bordTriangleAuY(yHaut) - recouvrementTriangle);
+  const departTraitBas = Math.max(0, bordTriangleAuY(yBas) - recouvrementTriangle);
+  ctx.beginPath();
+  ctx.moveTo(departTraitHaut, yHaut);
+  ctx.lineTo(largeur - departTraitHaut, yHaut);
+  ctx.moveTo(departTraitBas, yBas);
+  ctx.lineTo(largeur - departTraitBas, yBas);
+  ctx.stroke();
+  ctx.restore();
+
+  if (reglages.afficherMarques) {
+    dessinerMarques(ctx, reglages, largeur, hauteur, yHaut, yBas - yHaut, yBas - yHaut);
+  }
+
+  const margeX = Math.max(triangleW + largeur * 0.025, traitBordure + largeur * 0.035);
+  const largeurTexte = Math.max(largeur * 0.35, largeur - margeX * 2);
+  dessinerTitre(
+    ctx,
+    ligne.titreA,
+    largeur / 2,
+    centreEntreTraits(traitBordure, yHaut),
+    largeurTexte,
+    reglages,
+    fondHaut,
+    reglages.couleurTitreFaceA,
+    reglages.couleurTitreFaceAManuelle,
+  );
+  dessinerTitre(
+    ctx,
+    ligne.titreB,
+    largeur / 2,
+    centreEntreTraits(yBas, hauteur - traitBordure),
+    largeurTexte,
+    reglages,
+    fondBas,
+    reglages.couleurTitreFaceB,
+    reglages.couleurTitreFaceBManuelle,
+  );
+  dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, yBas - yHaut, reglages, fondArtiste);
+
 }
 
 function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages, couleurFond) {
   let taille = 32 * reglages.tailleArtiste / 100;
   const tailleMax = Math.max(10, hauteurZone * 0.48);
   taille = Math.min(taille, tailleMax);
-  const poids = styleTexteEnGras(reglages.styleArtiste) ? 800 : 600;
-  const italique = reglages.styleArtiste === "italique" || reglages.styleArtiste === "gras-italique" ? "italic " : "";
+  const style = normaliserStylePolice(reglages.policeArtiste, reglages.styleArtiste);
+  const poids = poidsPolice(reglages.policeArtiste, styleTexteEnGras(style) ? 700 : 400);
+  const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
   const decalageRetro = modeDecalageRetro(reglages);
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
   const contenu = choisirTexteArtiste(ctx, texte, largeurMax).toLocaleUpperCase("fr-FR");
@@ -546,197 +636,44 @@ function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages
   dessinerTexteAvecTransformation(ctx, contenu, x, y, transformerArtisteRetro(decalageRetro, taille));
 }
 
-function dessinerPapierVieilli(ctx, reglages, largeur, hauteur) {
-  const jaunissement = limiterNombre(Number(reglages.jaunissementPapier) || 0, 0, 100) / 100;
-  const froissage = limiterNombre(Number(reglages.froissagePapier) || 0, 0, 100) / 100;
-  const imperfections = limiterNombre(Number(reglages.imperfectionsPapier) || 0, 0, 100) / 100;
-  const usureBords = limiterNombre(Number(reglages.usureBordsPapier) || 0, 0, 100) / 100;
-  const couleurVieillie = reglages.couleurPapierVieilli || reglages.couleurVignette || "#8a6b3f";
-  ctx.save();
-
-  const gradient = ctx.createLinearGradient(0, 0, largeur, hauteur);
-  gradient.addColorStop(0, convertirHexEnRgba("#fff2c6", 0.06 + jaunissement * 0.2));
-  gradient.addColorStop(0.32, convertirHexEnRgba(couleurVieillie, 0.04 + jaunissement * 0.12));
-  gradient.addColorStop(0.72, convertirHexEnRgba("#f8e5b8", 0.04 + jaunissement * 0.16));
-  gradient.addColorStop(1, convertirHexEnRgba(couleurVieillie, 0.05 + jaunissement * 0.2));
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, largeur, hauteur);
-
-  ctx.globalCompositeOperation = "multiply";
-  const grandesTaches = Math.round(5 + imperfections * 9 + jaunissement * 4);
-  for (let i = 0; i < grandesTaches; i += 1) {
-    const x = largeur * (0.05 + bruitLeon(i, 17) * 0.9);
-    const y = hauteur * (0.08 + bruitLeon(i, 29) * 0.84);
-    const rayonX = largeur * (0.06 + bruitLeon(i, 43) * 0.18);
-    const rayonY = hauteur * (0.08 + bruitLeon(i, 61) * 0.26);
-    const gradientTache = ctx.createRadialGradient(x, y, 0, x, y, Math.max(rayonX, rayonY));
-    const opacite = 0.018 + imperfections * 0.08 + jaunissement * 0.035;
-    gradientTache.addColorStop(0, convertirHexEnRgba(couleurVieillie, opacite * (0.55 + bruitLeon(i, 71) * 0.65)));
-    gradientTache.addColorStop(0.42, convertirHexEnRgba(couleurVieillie, opacite * 0.34));
-    gradientTache.addColorStop(1, convertirHexEnRgba(couleurVieillie, 0));
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate((bruitLeon(i, 79) - 0.5) * Math.PI * 0.32);
-    ctx.scale(rayonX / Math.max(rayonX, rayonY), rayonY / Math.max(rayonX, rayonY));
-    ctx.fillStyle = gradientTache;
-    ctx.beginPath();
-    ctx.arc(0, 0, Math.max(rayonX, rayonY), 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+function dessinerTraitsModernes(ctx, reglages, largeur, hauteur) {
+  if (reglages.motifSecondaireFond === false) {
+    return;
   }
-
-  ctx.globalCompositeOperation = "screen";
-  const zonesEclaircies = Math.round(3 + imperfections * 5);
-  for (let i = 0; i < zonesEclaircies; i += 1) {
-    const x = largeur * (0.1 + bruitLeon(i, 151) * 0.8);
-    const y = hauteur * (0.12 + bruitLeon(i, 157) * 0.76);
-    const rayon = Math.max(largeur, hauteur) * (0.035 + bruitLeon(i, 163) * 0.08);
-    const gradientClair = ctx.createRadialGradient(x, y, 0, x, y, rayon);
-    gradientClair.addColorStop(0, convertirHexEnRgba("#fff8dc", 0.02 + imperfections * 0.08));
-    gradientClair.addColorStop(1, convertirHexEnRgba("#fff8dc", 0));
-    ctx.fillStyle = gradientClair;
-    ctx.fillRect(x - rayon, y - rayon, rayon * 2, rayon * 2);
-  }
-
-  ctx.globalCompositeOperation = "source-over";
-  const nombreFibres = Math.round(34 + froissage * 60 + imperfections * 42);
-  ctx.lineWidth = Math.max(0.55, largeur * 0.0008);
-  for (let i = 0; i < nombreFibres; i += 1) {
-    const horizontal = bruitLeon(i, 181) > 0.22;
-    const opacite = 0.012 + bruitLeon(i, 191) * (0.018 + imperfections * 0.035);
-    ctx.strokeStyle = convertirHexEnRgba(bruitLeon(i, 193) > 0.38 ? couleurVieillie : "#fff7d6", opacite);
-    ctx.beginPath();
-    if (horizontal) {
-      const y = hauteur * bruitLeon(i, 197);
-      const x = largeur * bruitLeon(i, 199) * 0.22;
-      const longueur = largeur * (0.15 + bruitLeon(i, 211) * 0.7);
-      ctx.moveTo(x, y);
-      ctx.bezierCurveTo(x + longueur * 0.32, y + (bruitLeon(i, 223) - 0.5) * hauteur * 0.025, x + longueur * 0.72, y + (bruitLeon(i, 227) - 0.5) * hauteur * 0.032, x + longueur, y);
-    } else {
-      const x = largeur * bruitLeon(i, 229);
-      const y = hauteur * bruitLeon(i, 233) * 0.2;
-      const longueur = hauteur * (0.2 + bruitLeon(i, 239) * 0.58);
-      ctx.moveTo(x, y);
-      ctx.bezierCurveTo(x + (bruitLeon(i, 241) - 0.5) * largeur * 0.018, y + longueur * 0.35, x + (bruitLeon(i, 251) - 0.5) * largeur * 0.026, y + longueur * 0.72, x, y + longueur);
-    }
-    ctx.stroke();
-  }
-
-  ctx.strokeStyle = convertirHexEnRgba(reglages.couleur1 || "#2a241c", 0.018 + froissage * 0.11);
-  ctx.lineWidth = Math.max(0.8, hauteur * (0.0015 + froissage * 0.0035));
-  const nombrePlis = Math.round(1 + froissage * 6);
-  for (let i = 0; i < nombrePlis; i += 1) {
-    const y = hauteur * (0.12 + bruitLeon(i, 83) * 0.76);
-    const depart = -largeur * (0.05 + bruitLeon(i, 85) * 0.12);
-    const fin = largeur * (1.02 + bruitLeon(i, 87) * 0.12);
-    const amplitude = hauteur * (0.01 + froissage * 0.045);
-    ctx.beginPath();
-    ctx.moveTo(depart, y);
-    ctx.bezierCurveTo(
-      largeur * 0.25,
-      y + (bruitLeon(i, 91) - 0.5) * amplitude,
-      largeur * 0.68,
-      y + (bruitLeon(i, 97) - 0.5) * amplitude * 1.3,
-      fin,
-      y,
-    );
-    ctx.stroke();
-    ctx.strokeStyle = convertirHexEnRgba("#fff7df", 0.012 + froissage * 0.045);
-    ctx.beginPath();
-    ctx.moveTo(depart, y + Math.max(1, hauteur * 0.008));
-    ctx.bezierCurveTo(
-      largeur * 0.25,
-      y + Math.max(1, hauteur * 0.008) + (bruitLeon(i, 101) - 0.5) * amplitude,
-      largeur * 0.68,
-      y + Math.max(1, hauteur * 0.008) + (bruitLeon(i, 103) - 0.5) * amplitude,
-      fin,
-      y + Math.max(1, hauteur * 0.008),
-    );
-    ctx.stroke();
-    ctx.strokeStyle = convertirHexEnRgba(reglages.couleur1 || "#2a241c", 0.018 + froissage * 0.11);
-  }
-
-  if (usureBords > 0) {
-    const bord = Math.min(0.34, 0.08 + usureBords * 0.22);
-    const opacite = usureBords * 0.2;
-    const gradientH = ctx.createLinearGradient(0, 0, largeur, 0);
-    gradientH.addColorStop(0, convertirHexEnRgba(couleurVieillie, opacite));
-    gradientH.addColorStop(bord, convertirHexEnRgba(couleurVieillie, opacite * 0.18));
-    gradientH.addColorStop(0.5, convertirHexEnRgba(couleurVieillie, 0));
-    gradientH.addColorStop(1 - bord, convertirHexEnRgba(couleurVieillie, opacite * 0.18));
-    gradientH.addColorStop(1, convertirHexEnRgba(couleurVieillie, opacite));
-    ctx.fillStyle = gradientH;
-    ctx.fillRect(0, 0, largeur, hauteur);
-
-    const gradientV = ctx.createLinearGradient(0, 0, 0, hauteur);
-    gradientV.addColorStop(0, convertirHexEnRgba(couleurVieillie, opacite * 0.8));
-    gradientV.addColorStop(bord, convertirHexEnRgba(couleurVieillie, opacite * 0.12));
-    gradientV.addColorStop(0.5, convertirHexEnRgba(couleurVieillie, 0));
-    gradientV.addColorStop(1 - bord, convertirHexEnRgba(couleurVieillie, opacite * 0.12));
-    gradientV.addColorStop(1, convertirHexEnRgba(couleurVieillie, opacite * 0.8));
-    ctx.fillStyle = gradientV;
-    ctx.fillRect(0, 0, largeur, hauteur);
-
-    const coins = [
-      [0, 0],
-      [largeur, 0],
-      [0, hauteur],
-      [largeur, hauteur],
-    ];
-    coins.forEach(([x, y], index) => {
-      const rayon = Math.max(largeur, hauteur) * (0.16 + bruitLeon(index, 271) * 0.08);
-      const gradientCoin = ctx.createRadialGradient(x, y, 0, x, y, rayon);
-      gradientCoin.addColorStop(0, convertirHexEnRgba(couleurVieillie, usureBords * 0.28));
-      gradientCoin.addColorStop(0.45, convertirHexEnRgba(couleurVieillie, usureBords * 0.08));
-      gradientCoin.addColorStop(1, convertirHexEnRgba(couleurVieillie, 0));
-      ctx.fillStyle = gradientCoin;
-      ctx.fillRect(0, 0, largeur, hauteur);
-    });
-  }
-  ctx.restore();
+  dessinerMotifSecondaireContenu(ctx, reglages, largeur, hauteur);
 }
 
-function dessinerUsurePapier(ctx, reglages, largeur, hauteur) {
-  const imperfections = limiterNombre(Number(reglages.imperfectionsPapier) || 0, 0, 100) / 100;
-  const usureBords = limiterNombre(Number(reglages.usureBordsPapier) || 0, 0, 100) / 100;
-  if (imperfections <= 0 && usureBords <= 0) {
+function dessinerMotifSecondaireZone(ctx, reglages, x, y, largeur, hauteur) {
+  if (reglages.motifSecondaireFond === false || largeur <= 0 || hauteur <= 0) {
     return;
   }
   ctx.save();
-  const nombreMarques = Math.round(4 + imperfections * 24 + usureBords * 8);
-  for (let i = 0; i < nombreMarques; i += 1) {
-    const x = bruitLeon(i, 109) * largeur;
-    const y = bruitLeon(i, 127) * hauteur;
-    const w = largeur * (0.004 + bruitLeon(i, 131) * 0.02);
-    const h = hauteur * (0.006 + bruitLeon(i, 137) * 0.045);
-    const opacite = 0.012 + imperfections * 0.065 + usureBords * 0.025;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate((bruitLeon(i, 139) - 0.5) * Math.PI * 0.2);
-    ctx.fillStyle = convertirHexEnRgba(reglages.couleurPapierVieilli || "#4b351f", opacite * (0.45 + bruitLeon(i, 149)));
-    ctx.beginPath();
-    ctx.ellipse(0, 0, w, h, 0, 0, Math.PI * 2);
-    ctx.fill();
-    if (bruitLeon(i, 151) > 0.58) {
-      ctx.strokeStyle = convertirHexEnRgba("#fff8df", opacite * 0.55);
-      ctx.lineWidth = Math.max(0.5, largeur * 0.0007);
-      ctx.beginPath();
-      ctx.moveTo(-w * 1.3, 0);
-      ctx.lineTo(w * 1.5, (bruitLeon(i, 157) - 0.5) * h);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
+  ctx.beginPath();
+  ctx.rect(x, y, largeur, hauteur);
+  ctx.clip();
+  ctx.translate(x, y);
+  dessinerMotifSecondaireContenu(ctx, reglages, largeur, hauteur);
   ctx.restore();
 }
 
-function bruitLeon(index, sel) {
-  // Bruit pseudo-aleatoire deterministe pour garder le papier vieilli stable entre deux rendus.
-  const valeur = Math.sin((index + 1) * (sel + 3) * 12.9898) * 43758.5453;
-  return valeur - Math.floor(valeur);
+function dessinerMotifSecondaireRuban(ctx, reglages, x, y, largeur, hauteur, rayon = 0, tracerClip = null) {
+  if (!reglages.motifSecondaireRuban || largeur <= 0 || hauteur <= 0) {
+    return;
+  }
+  ctx.save();
+  ctx.beginPath();
+  if (typeof tracerClip === "function") {
+    tracerClip(ctx);
+  } else {
+    ajouterRectangleArrondi(ctx, x, y, largeur, hauteur, rayon);
+  }
+  ctx.clip();
+  ctx.translate(x, y);
+  dessinerMotifSecondaireContenu(ctx, reglages, largeur, hauteur);
+  ctx.restore();
 }
 
-function dessinerTraitsModernes(ctx, reglages, largeur, hauteur) {
+function dessinerMotifSecondaireContenu(ctx, reglages, largeur, hauteur) {
   if (!reglages.afficherTraitsModernes || Number(reglages.opaciteTraitsModernes) <= 0) {
     return;
   }
@@ -959,7 +896,7 @@ function dessinerBordureInterieureArrondie(ctx, x, y, largeur, hauteur, epaisseu
     return;
   }
   const afficherHorizontale = reglages.bordureHorizontale !== false;
-  const afficherVerticale = reglages.bordureVerticale !== false;
+  const afficherVerticale = reglages.modele !== "JEAN" && reglages.bordureVerticale !== false;
   if (!afficherHorizontale && !afficherVerticale) {
     return;
   }
@@ -1024,6 +961,9 @@ function dessinerRubanSimple(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
   dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, 0, (contexte) => {
     tracerRubanSimple(contexte, rubanX, rubanY, rubanW, rubanH, pointe);
   });
+  dessinerMotifSecondaireRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, 0, (contexte) => {
+    tracerRubanSimple(contexte, rubanX, rubanY, rubanW, rubanH, pointe);
+  });
   ctx.beginPath();
   tracerRubanSimple(ctx, rubanX, rubanY, rubanW, rubanH, pointe);
   ctx.stroke();
@@ -1064,6 +1004,7 @@ function dessinerRubanMartin(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
   ctx.fillStyle = reglages.couleurRuban;
   ctx.fillRect(centreX, rubanY + insetY, centreW, rubanH - insetY * 2);
   dessinerMotifRuban(ctx, reglages, centreX, rubanY + insetY, centreW, rubanH - insetY * 2);
+  dessinerMotifSecondaireRuban(ctx, reglages, centreX, rubanY + insetY, centreW, rubanH - insetY * 2);
   ctx.strokeStyle = reglages.couleur1;
   ctx.lineWidth = Math.max(2, rubanH * 0.045);
   ctx.strokeRect(centreX, rubanY + insetY, centreW, rubanH - insetY * 2);
@@ -1100,10 +1041,18 @@ function dessinerMarques(ctx, reglages, largeur, hauteur, rubanY, rubanH, bandeH
   const yDroite = hauteur * hauteurMarque(reglages, "droite") / 100;
   appliquerStyleMarque(ctx, reglages, "gauche", tailleGauche);
   appliquerContrasteMarqueSurFondBlanc(ctx, reglages, xGauche, yGauche);
-  dessinerTexteTourne(ctx, texteGauche, xGauche, yGauche, angleMarque(reglages, "gauche"));
+  if (reglages.modele === "JEAN" && reglages.marquesVerticalesJEAN) {
+    dessinerTexteVerticalDroit(ctx, texteGauche, xGauche, yGauche, tailleGauche);
+  } else {
+    dessinerTexteTourne(ctx, texteGauche, xGauche, yGauche, angleMarque(reglages, "gauche"));
+  }
   appliquerStyleMarque(ctx, reglages, "droite", tailleDroite);
   appliquerContrasteMarqueSurFondBlanc(ctx, reglages, largeur - xDroite, yDroite);
-  dessinerTexteTourne(ctx, texteDroite, largeur - xDroite, yDroite, angleMarque(reglages, "droite"));
+  if (reglages.modele === "JEAN" && reglages.marquesVerticalesJEAN) {
+    dessinerTexteVerticalDroit(ctx, texteDroite, largeur - xDroite, yDroite, tailleDroite);
+  } else {
+    dessinerTexteTourne(ctx, texteDroite, largeur - xDroite, yDroite, angleMarque(reglages, "droite"));
+  }
 }
 
 function tailleMarque(reglages, cote, largeur, facteur) {
@@ -1143,10 +1092,11 @@ function textesMarquesBruts(reglages) {
 
 function appliquerStyleMarque(ctx, reglages, cote, taille) {
   const suffixe = cote === "gauche" ? "Gauche" : "Droite";
-  const style = reglages.synchroniserMarques === false ? reglages[`styleMarque${suffixe}`] : "gras";
   const police = reglages.synchroniserMarques === false ? reglages[`policeMarque${suffixe}`] : reglages.policeMarques;
+  const styleDemande = reglages.synchroniserMarques === false ? reglages[`styleMarque${suffixe}`] : "gras";
+  const style = normaliserStylePolice(police, styleDemande);
   const couleur = reglages.synchroniserMarques === false ? reglages[`couleurMarque${suffixe}`] : reglages.couleurMarques;
-  const poids = style === "gras" || style === "gras-italique" ? 800 : 500;
+  const poids = poidsPolice(police, style === "gras" || style === "gras-italique" ? 700 : 400);
   const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(police)}`;
   ctx.fillStyle = couleur;
@@ -1204,15 +1154,27 @@ function dessinerTexteTourne(ctx, texte, x, y, angle) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate((angle * Math.PI) / 180);
-  ctx.fillText(String(texte || "").toLocaleUpperCase("fr-FR"), 0, 0);
+  dessinerEmpreinteTexte(ctx, String(texte || "").toLocaleUpperCase("fr-FR"), 0, 0);
   ctx.restore();
+}
+
+function dessinerTexteVerticalDroit(ctx, texte, x, y, taille) {
+  const lettres = Array.from(String(texte || "").toLocaleUpperCase("fr-FR"));
+  if (!lettres.length) {
+    return;
+  }
+  const interligne = taille * 1.02;
+  const departY = y - ((lettres.length - 1) * interligne) / 2;
+  lettres.forEach((lettre, index) => {
+    dessinerEmpreinteTexte(ctx, lettre, x, departY + index * interligne);
+  });
 }
 
 function dessinerTexteTourneRespectantCasse(ctx, texte, x, y, angle) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate((angle * Math.PI) / 180);
-  ctx.fillText(String(texte || ""), 0, 0);
+  dessinerEmpreinteTexte(ctx, String(texte || ""), 0, 0);
   ctx.restore();
 }
 
@@ -1423,8 +1385,9 @@ function dessinerVignette(ctx, reglages, largeur, hauteur) {
 
 function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, couleurTitre, couleurManuelle) {
   const taille = 22 * reglages.tailleTitres / 100;
-  const poids = styleTexteEnGras(reglages.styleTitres) ? 800 : 500;
-  const italique = reglages.styleTitres === "italique" || reglages.styleTitres === "gras-italique" ? "italic " : "";
+  const style = normaliserStylePolice(reglages.policeTitres, reglages.styleTitres);
+  const poids = poidsPolice(reglages.policeTitres, styleTexteEnGras(style) ? 700 : 400);
+  const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
   const interligne = taille * 1.12;
   const decalageRetro = modeDecalageRetro(reglages);
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeTitres)}`;
@@ -1508,11 +1471,11 @@ function dessinerTexteAvecTransformation(ctx, texte, x, y, transformation) {
     ctx.save();
     ctx.translate(xTexte, yTexte);
     ctx.rotate((angle * Math.PI) / 180);
-    ctx.fillText(texte, 0, 0);
+    dessinerEmpreinteTexte(ctx, texte, 0, 0);
     ctx.restore();
     return;
   }
-  ctx.fillText(texte, xTexte, yTexte);
+  dessinerEmpreinteTexte(ctx, texte, xTexte, yTexte);
 }
 
 function nettoyerGuillemetsTitre(texte) {
@@ -1565,14 +1528,15 @@ function dessinerGuillemetIncline(ctx, texte, x, y, angle, taille) {
   ctx.translate(x, y);
   ctx.rotate((angle * Math.PI) / 180);
   ctx.font = ctx.font.replace(/\d+(?:\.\d+)?px/, `${taille}px`);
-  ctx.fillText(texte, 0, 0);
+  dessinerEmpreinteTexte(ctx, texte, 0, 0);
   ctx.restore();
 }
 
 function dessinerArtiste(ctx, texte, x, y, largeurMax, reglages, couleurFond = reglages.couleurRuban) {
   let taille = 32 * reglages.tailleArtiste / 100;
-  const poids = styleTexteEnGras(reglages.styleArtiste) ? 800 : 500;
-  const italique = reglages.styleArtiste === "italique" || reglages.styleArtiste === "gras-italique" ? "italic " : "";
+  const style = normaliserStylePolice(reglages.policeArtiste, reglages.styleArtiste);
+  const poids = poidsPolice(reglages.policeArtiste, styleTexteEnGras(style) ? 700 : 400);
+  const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
   const decalageRetro = modeDecalageRetro(reglages);
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
   const contenu = choisirTexteArtiste(ctx, texte, largeurMax).toLocaleUpperCase("fr-FR");
@@ -1741,31 +1705,165 @@ function dessinerTexteCentreVisuel(ctx, texte, x, y) {
   const ascendant = Number.isFinite(mesures.actualBoundingBoxAscent) ? mesures.actualBoundingBoxAscent : 0;
   const descendant = Number.isFinite(mesures.actualBoundingBoxDescent) ? mesures.actualBoundingBoxDescent : 0;
   const correction = ascendant || descendant ? (ascendant - descendant) / 2 : 0;
-  ctx.fillText(texte, x, y + correction);
+  dessinerEmpreinteTexte(ctx, texte, x, y + correction);
   ctx.textBaseline = baseline;
 }
 
 function policeCanvas(police) {
-  const polices = {
-    "dactylo-ronde": '"American Typewriter", "Courier New", monospace',
-    "dactylo-seche": '"Courier New", Courier, monospace',
-    "silk-remington": '"Silk Remington", "American Typewriter", "Courier New", monospace',
-    "terminal-carre": 'Monaco, "Lucida Console", monospace',
-    "mono-moderne": 'Menlo, Monaco, Consolas, monospace',
-    "classique-livre": 'Georgia, "Times New Roman", serif',
-    "journal-ancien": '"Times New Roman", Times, serif',
-    "machine-vintage": '"Courier Prime", "Courier New", monospace',
-    "rock-affiche": '"Cooper Black", Impact, "Arial Black", sans-serif',
-    "swing-50": '"Gill Sans", "Trebuchet MS", Arial, sans-serif',
-    "western-retro": 'Rockwell, "American Typewriter", Georgia, serif',
-    elegante: 'Palatino, "Palatino Linotype", Georgia, serif',
-    "luxe-fin": 'Didot, "Bodoni 72", "Hoefler Text", Georgia, serif',
-    gravure: '"Hoefler Text", Baskerville, Georgia, serif',
-    compacte: '"Arial Narrow", "Helvetica Neue Condensed", Arial, sans-serif',
-    "affiche-condensee": 'Impact, "Arial Black", "Arial Narrow", sans-serif',
-    "sans-serree": '"Helvetica Neue", Helvetica, Arial, sans-serif',
+  return famillePolice(police);
+}
+
+function dessinerEmpreinteTexte(ctx, texte, x, y) {
+  const effet = effetPoliceDepuisFont(ctx.font);
+  if (effet === "aucun") {
+    ctx.fillText(texte, x, y);
+    return;
+  }
+
+  const mesures = ctx.measureText(texte);
+  const taille = parseFloat(ctx.font.match(/(\d+(?:\.\d+)?)px/)?.[1] || "16");
+  const ascendant = mesures.actualBoundingBoxAscent || taille * 0.78;
+  const descendant = mesures.actualBoundingBoxDescent || taille * 0.22;
+  const marge = Math.max(3, Math.ceil(taille * 0.16));
+  const largeur = Math.max(1, Math.ceil(mesures.width + marge * 2));
+  const hauteur = Math.max(1, Math.ceil(ascendant + descendant + marge * 2));
+  const empreinte = document.createElement("canvas");
+  empreinte.width = largeur;
+  empreinte.height = hauteur;
+  const tampon = empreinte.getContext("2d");
+  tampon.font = ctx.font;
+  tampon.textAlign = ctx.textAlign;
+  tampon.textBaseline = ctx.textBaseline;
+  tampon.direction = ctx.direction;
+  tampon.fillStyle = typeof ctx.fillStyle === "string" ? ctx.fillStyle : "#000000";
+
+  const ancreX = ["right", "end"].includes(ctx.textAlign)
+    ? largeur - marge
+    : ctx.textAlign === "center" ? largeur / 2 : marge;
+  const ancreY = ancreVerticaleEmpreinte(ctx.textBaseline, hauteur, marge, ascendant);
+  tampon.fillText(texte, ancreX, ancreY);
+  renforcerEmpreinteTexte(tampon, texte, ancreX, ancreY, taille, effet);
+  eroderEmpreinteTexte(tampon, largeur, hauteur, taille, `${texte}|${ctx.font}|${effet}`, effet);
+
+  ctx.drawImage(empreinte, x - ancreX, y - ancreY);
+}
+
+function ancreVerticaleEmpreinte(baseline, hauteur, marge, ascendant) {
+  if (baseline === "top" || baseline === "hanging") {
+    return marge;
+  }
+  if (baseline === "middle") {
+    return hauteur / 2;
+  }
+  if (baseline === "bottom" || baseline === "ideographic") {
+    return hauteur - marge;
+  }
+  return marge + ascendant;
+}
+
+function eroderEmpreinteTexte(ctx, largeur, hauteur, taille, graine, effet) {
+  const aleatoire = creerAleatoireDeterministe(graine);
+  const profils = {
+    usee: { force: 1, rayon: 0.055, griffures: 1, poussiere: 0 },
+    efface: { force: 1.65, rayon: 0.095, griffures: 1.65, poussiere: 0 },
+    "encre-noire": { force: 0.72, rayon: 0.048, griffures: 0.55, poussiere: 0.18 },
+    veteran: { force: 1.1, rayon: 0.062, griffures: 0.8, poussiere: 0.08 },
+    smith: { force: 0.82, rayon: 0.052, griffures: 0.7, poussiere: 0.12 },
+    fantome: { force: 2.15, rayon: 0.13, griffures: 2.25, poussiere: 1 },
+    tampon: { force: 1.38, rayon: 0.085, griffures: 0.9, poussiere: 0.35 },
   };
-  return polices[police] || polices["dactylo-ronde"];
+  const profil = profils[effet] || profils.usee;
+  const force = profil.force;
+  const surface = largeur * hauteur;
+  const nombreTrous = Math.min(900, Math.max(8, Math.round(surface * 0.012 * force)));
+  const rayonMinimum = Math.max(0.32, taille * 0.012);
+  const rayonMaximum = Math.max(0.75, taille * profil.rayon);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "destination-out";
+
+  for (let index = 0; index < nombreTrous; index += 1) {
+    const rayon = rayonMinimum + (aleatoire() ** 2.2) * (rayonMaximum - rayonMinimum);
+    const x = aleatoire() * largeur;
+    const y = aleatoire() * hauteur;
+    ctx.globalAlpha = 0.48 + aleatoire() * 0.52;
+    ctx.beginPath();
+    ctx.ellipse(
+      x,
+      y,
+      rayon * (0.65 + aleatoire() * 1.55),
+      rayon * (0.45 + aleatoire() * 0.9),
+      aleatoire() * Math.PI,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+  }
+
+  const nombreEraflures = Math.max(1, Math.round(largeur / Math.max(55, taille * 3.4) * profil.griffures));
+  ctx.globalAlpha = ["efface", "fantome"].includes(effet) ? 0.92 : 0.68;
+  for (let index = 0; index < nombreEraflures; index += 1) {
+    const x = aleatoire() * largeur;
+    const y = aleatoire() * hauteur;
+    const verticale = aleatoire() > 0.32;
+    const epaisseur = Math.max(0.45, taille * (0.018 + aleatoire() * 0.025));
+    if (verticale) {
+      ctx.fillRect(x, y, epaisseur, taille * (0.3 + aleatoire() * 0.95));
+    } else {
+      ctx.fillRect(x, y, taille * (0.3 + aleatoire() * 0.9), epaisseur);
+    }
+  }
+  ctx.restore();
+
+  if (profil.poussiere > 0) {
+    ajouterPoussiereEncre(ctx, largeur, hauteur, taille, aleatoire, profil.poussiere);
+  }
+}
+
+function renforcerEmpreinteTexte(ctx, texte, x, y, taille, effet) {
+  const epaisseurs = {
+    "encre-noire": 0.075,
+    smith: 0.065,
+    tampon: 0.025,
+  };
+  const epaisseur = epaisseurs[effet];
+  if (!epaisseur) {
+    return;
+  }
+  ctx.save();
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.lineWidth = Math.max(0.55, taille * epaisseur);
+  ctx.lineJoin = "round";
+  ctx.strokeText(texte, x, y);
+  ctx.restore();
+}
+
+function ajouterPoussiereEncre(ctx, largeur, hauteur, taille, aleatoire, force) {
+  const nombrePoints = Math.min(420, Math.round(largeur * hauteur * 0.0015 * force));
+  ctx.save();
+  ctx.globalAlpha = Math.min(0.42, 0.16 + force * 0.16);
+  for (let index = 0; index < nombrePoints; index += 1) {
+    const rayon = Math.max(0.25, taille * (0.006 + aleatoire() * 0.018));
+    ctx.beginPath();
+    ctx.arc(aleatoire() * largeur, aleatoire() * hauteur, rayon, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function creerAleatoireDeterministe(texte) {
+  let etat = 2166136261;
+  for (let index = 0; index < texte.length; index += 1) {
+    etat ^= texte.charCodeAt(index);
+    etat = Math.imul(etat, 16777619);
+  }
+  return () => {
+    etat += 0x6d2b79f5;
+    let valeur = etat;
+    valeur = Math.imul(valeur ^ (valeur >>> 15), valeur | 1);
+    valeur ^= valeur + Math.imul(valeur ^ (valeur >>> 7), valeur | 61);
+    return ((valeur ^ (valeur >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 function convertirHexEnRgba(couleur, opacite) {

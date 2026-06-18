@@ -295,58 +295,10 @@
           <section class="groupe onglet-panneau" data-tab-panel="texte" hidden>
             <div class="grille" id="reglagesTextePrincipaux">
               <label class="champ">Police des titres
-                <select id="policeTitres">
-                  <optgroup label="Retro">
-                    <option value="dactylo-ronde">Dactylo ronde</option>
-                    <option value="dactylo-seche">Dactylo sèche</option>
-                    <option value="silk-remington">Silk Remington</option>
-                    <option value="terminal-carre">Terminal carré</option>
-                    <option value="journal-ancien">Journal ancien</option>
-                    <option value="machine-vintage">Machine vintage</option>
-                    <option value="rock-affiche">Rock affiche</option>
-                    <option value="swing-50">Swing 50</option>
-                    <option value="western-retro">Western retro</option>
-                  </optgroup>
-                  <optgroup label="Classique">
-                    <option value="classique-livre">Classique livre</option>
-                    <option value="elegante">Elegante</option>
-                    <option value="luxe-fin">Luxe fin</option>
-                    <option value="gravure">Gravure</option>
-                  </optgroup>
-                  <optgroup label="Affiche">
-                    <option value="compacte">Compacte nette</option>
-                    <option value="affiche-condensee">Affiche condensée</option>
-                    <option value="sans-serree">Sans serrée</option>
-                    <option value="mono-moderne">Mono moderne</option>
-                  </optgroup>
-                </select>
+                <select id="policeTitres"></select>
               </label>
               <label class="champ">Police de l’artiste
-                <select id="policeArtiste">
-                  <optgroup label="Retro">
-                    <option value="dactylo-ronde">Dactylo ronde</option>
-                    <option value="dactylo-seche">Dactylo sèche</option>
-                    <option value="silk-remington">Silk Remington</option>
-                    <option value="terminal-carre">Terminal carré</option>
-                    <option value="journal-ancien">Journal ancien</option>
-                    <option value="machine-vintage">Machine vintage</option>
-                    <option value="rock-affiche">Rock affiche</option>
-                    <option value="swing-50">Swing 50</option>
-                    <option value="western-retro">Western retro</option>
-                  </optgroup>
-                  <optgroup label="Classique">
-                    <option value="classique-livre">Classique livre</option>
-                    <option value="elegante">Elegante</option>
-                    <option value="luxe-fin">Luxe fin</option>
-                    <option value="gravure">Gravure</option>
-                  </optgroup>
-                  <optgroup label="Affiche">
-                    <option value="compacte">Compacte nette</option>
-                    <option value="affiche-condensee">Affiche condensée</option>
-                    <option value="sans-serree">Sans serrée</option>
-                    <option value="mono-moderne">Mono moderne</option>
-                  </optgroup>
-                </select>
+                <select id="policeArtiste"></select>
               </label>
               <div class="champ-large couleurs-textes">
                 <label class="champ">Titre face A <input id="couleurTitreFaceA" type="color" /></label>
@@ -392,11 +344,9 @@
                 <input id="decorPanel" type="hidden" value="motif" />
                 <input id="activerVignettage" type="checkbox" hidden />
                 <input id="activerMotif" type="checkbox" hidden />
-                <input id="papierVieilli" type="checkbox" hidden />
                 <div class="choix-decor__options">
                   <button class="choix-decor__option" id="boutonVignettage" type="button" aria-pressed="false">Vignettage</button>
                   <button class="choix-decor__option" id="boutonMotif" type="button" aria-pressed="false">Motif</button>
-                  <button class="choix-decor__option" id="boutonPapierVieilli" type="button" aria-pressed="false">Papier vieilli</button>
                 </div>
               </fieldset>
               <label class="champ" data-decor-panel="motif">Motif de fond
@@ -451,6 +401,13 @@
                   <option value="soleil">Soleil</option>
                 </select>
               </label>
+              <div class="champ champ-large options-bordure" data-decor-panel="motif" data-traits-modernes-reglage>
+                <span class="champ__libelle">Motif secondaire appliqué</span>
+                <div class="options-bordure__choix">
+                  <label class="option-case">Fond <input id="motifSecondaireFond" type="checkbox" checked /></label>
+                  <label class="option-case">Ruban <input id="motifSecondaireRuban" type="checkbox" /></label>
+                </div>
+              </div>
               <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage>Couleur secondaire <input id="couleurTraitsModernes" type="color" /></label>
               <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage><span class="champ__libelle">Opacité <span class="valeur-range" data-range-value="opaciteTraitsModernes" data-range-unit="%"></span></span><input id="opaciteTraitsModernes" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleTraitsModernes"></span></span><input id="angleTraitsModernes" type="range" min="-80" max="80" step="1" /></label>
@@ -465,11 +422,6 @@
               <label class="champ" data-decor-panel="vignette" data-vignette-reglage><span class="champ__libelle">Intensité <span class="valeur-range" data-range-value="intensite" data-range-unit="%"></span></span><input id="intensite" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-decor-panel="vignette" data-vignette-reglage><span class="champ__libelle">Opacité <span class="valeur-range" data-range-value="vignette" data-range-unit="%"></span></span><input id="vignette" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-decor-panel="vignette" data-vignette-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angle"></span></span><input id="angle" type="range" min="0" max="180" step="5" /></label>
-              <label class="champ" data-decor-panel="papier" data-papier-reglage>Couleur vieillie <input id="couleurPapierVieilli" type="color" /></label>
-              <label class="champ" data-decor-panel="papier" data-papier-reglage><span class="champ__libelle">Jaunissement <span class="valeur-range" data-range-value="jaunissementPapier" data-range-unit="%"></span></span><input id="jaunissementPapier" type="range" min="0" max="100" step="1" /></label>
-              <label class="champ" data-decor-panel="papier" data-papier-reglage><span class="champ__libelle">Froissage <span class="valeur-range" data-range-value="froissagePapier" data-range-unit="%"></span></span><input id="froissagePapier" type="range" min="0" max="100" step="1" /></label>
-              <label class="champ" data-decor-panel="papier" data-papier-reglage><span class="champ__libelle">Imperfections <span class="valeur-range" data-range-value="imperfectionsPapier" data-range-unit="%"></span></span><input id="imperfectionsPapier" type="range" min="0" max="100" step="1" /></label>
-              <label class="champ" data-decor-panel="papier" data-papier-reglage><span class="champ__libelle">Usure des bords <span class="valeur-range" data-range-value="usureBordsPapier" data-range-unit="%"></span></span><input id="usureBordsPapier" type="range" min="0" max="100" step="1" /></label>
             </div>
           </section>
 
@@ -490,10 +442,10 @@
                 <span class="champ__libelle">Bordure visible</span>
                 <div class="options-bordure__choix">
                   <label class="option-case">Haut / bas <input id="bordureHorizontale" type="checkbox" checked /></label>
-                  <label class="option-case">Gauche / droite <input id="bordureVerticale" type="checkbox" checked /></label>
+                  <label class="option-case" data-modele-masque="JEAN">Gauche / droite <input id="bordureVerticale" type="checkbox" checked /></label>
                 </div>
               </div>
-              <label class="champ champ-large">Arrondi intérieur <input id="arrondiInterieurBordure" type="checkbox" /></label>
+              <label class="champ champ-large" data-modele-masque="JEAN">Arrondi intérieur <input id="arrondiInterieurBordure" type="checkbox" /></label>
               <label class="champ" data-capacite-modele="ruban"><span class="champ__libelle">Largeur du ruban <span class="valeur-range" data-range-value="largeurRuban" data-range-unit="%"></span></span><input id="largeurRuban" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-capacite-modele="ruban"><span class="champ__libelle">Hauteur du ruban <span class="valeur-range" data-range-value="hauteurRuban" data-range-unit="%"></span></span><input id="hauteurRuban" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-capacite-modele="bandeCentrale"><span class="champ__libelle">Bande centrale <span class="valeur-range" data-range-value="hauteurBande" data-range-unit="%"></span></span><input id="hauteurBande" type="range" min="0" max="100" step="1" /></label>
@@ -501,9 +453,10 @@
               <label class="champ" data-modele-visible="CELESTE"><span class="champ__libelle">Orientation gauche <span class="valeur-range" data-range-value="angleBandeGauche"></span></span><input id="angleBandeGauche" type="range" min="-80" max="80" step="1" /></label>
               <label class="champ" data-modele-visible="CELESTE"><span class="champ__libelle">Taille bande droite <span class="valeur-range" data-range-value="tailleBandeDroite" data-range-unit="%"></span></span><input id="tailleBandeDroite" type="range" min="0" max="60" step="1" /></label>
               <label class="champ" data-modele-visible="CELESTE"><span class="champ__libelle">Orientation droite <span class="valeur-range" data-range-value="angleBandeDroite"></span></span><input id="angleBandeDroite" type="range" min="-80" max="80" step="1" /></label>
-              <label class="champ" data-modele-visible="LEON"><span class="champ__libelle">Épaisseur traits <span class="valeur-range" data-range-value="epaisseurTraitsLEON"></span></span><input id="epaisseurTraitsLEON" type="range" min="1" max="12" step="0.5" /></label>
-              <label class="champ" data-modele-visible="LEON"><span class="champ__libelle">Position traits <span class="valeur-range" data-range-value="positionTraitsLEON" data-range-unit="%"></span></span><input id="positionTraitsLEON" type="range" min="25" max="75" step="1" /></label>
-              <label class="champ" data-modele-visible="LEON"><span class="champ__libelle">Espace entre traits <span class="valeur-range" data-range-value="ecartTraitsLEON" data-range-unit="%"></span></span><input id="ecartTraitsLEON" type="range" min="10" max="42" step="1" /></label>
+              <label class="champ" data-modele-visible="LEON JEAN"><span class="champ__libelle">Épaisseur traits <span class="valeur-range" data-range-value="epaisseurTraitsLEON"></span></span><input id="epaisseurTraitsLEON" type="range" min="1" max="12" step="0.5" /></label>
+              <label class="champ" data-modele-visible="LEON JEAN"><span class="champ__libelle">Position traits <span class="valeur-range" data-range-value="positionTraitsLEON" data-range-unit="%"></span></span><input id="positionTraitsLEON" type="range" min="25" max="75" step="1" /></label>
+              <label class="champ" data-modele-visible="LEON JEAN"><span class="champ__libelle">Espace entre traits <span class="valeur-range" data-range-value="ecartTraitsLEON" data-range-unit="%"></span></span><input id="ecartTraitsLEON" type="range" min="10" max="42" step="1" /></label>
+              <label class="champ champ-large" data-modele-visible="JEAN"><span class="champ__libelle">Taille des triangles <span class="valeur-range" data-range-value="tailleTrianglesJEAN" data-range-unit="%"></span></span><input id="tailleTrianglesJEAN" type="range" min="0" max="100" step="1" /></label>
               <label class="champ champ-large">Modifier aussi les textes <input id="modifierTextesMiseEnPage" type="checkbox" /></label>
               <div class="champ-large reglages-texte-ruban" id="reglagesTexteMiseEnPage" hidden></div>
             </div>
@@ -583,19 +536,13 @@
                     </select>
                   </label>
                   <label class="champ" data-marque-reglage>Police
-                    <select id="policeMarques">
-                      <option value="compacte">Compacte nette</option>
-                      <option value="dactylo-ronde">Dactylo ronde</option>
-                      <option value="silk-remington">Silk Remington</option>
-                      <option value="mono-moderne">Mono moderne</option>
-                      <option value="affiche-condensee">Affiche condensée</option>
-                      <option value="sans-serree">Sans serrée</option>
-                    </select>
+                    <select id="policeMarques"></select>
                   </label>
                   <label class="champ champ-large" data-marque-reglage><span class="champ__libelle">Taille <span class="valeur-range" data-range-value="tailleMarques"></span></span><input id="tailleMarques" type="range" min="50" max="520" step="5" /></label>
+                  <label class="champ champ-large" data-marque-reglage data-modele-visible="JEAN">Lettres droites de haut en bas <input id="marquesVerticalesJEAN" type="checkbox" /></label>
                   <label class="champ champ-large" data-marque-reglage data-marque-commun data-modele-visible="MANU"><span class="champ__libelle">Diamètre <span class="valeur-range" data-range-value="diametrePastille" data-range-unit="%"></span></span><input id="diametrePastille" type="range" min="12" max="70" step="1" /></label>
                   <label class="champ champ-large" data-marque-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMarques"></span></span><input id="angleMarques" type="range" min="-180" max="180" step="5" /></label>
-                  <label class="champ champ-large" data-marque-reglage data-modele-visible="MANU"><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarques" data-range-unit="%"></span></span><input id="positionMarques" type="range" min="0" max="100" step="1" /></label>
+                  <label class="champ champ-large" data-marque-reglage><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarques" data-range-unit="%"></span></span><input id="positionMarques" type="range" min="0" max="100" step="1" /></label>
                   <label class="champ champ-large" data-marque-reglage><span class="champ__libelle">Hauteur <span class="valeur-range" data-range-value="hauteurMarques" data-range-unit="%"></span></span><input id="hauteurMarques" type="range" min="0" max="100" step="1" /></label>
                 </div>
               </div>
@@ -611,7 +558,7 @@
                   <label class="champ champ-large"><span class="champ__libelle">Taille <span class="valeur-range" data-range-value="tailleMarqueGauche"></span></span><input id="tailleMarqueGauche" type="range" min="50" max="520" step="5" /></label>
                   <label class="champ champ-large" data-modele-visible="MANU"><span class="champ__libelle">Diamètre <span class="valeur-range" data-range-value="diametrePastilleGauche" data-range-unit="%"></span></span><input id="diametrePastilleGauche" type="range" min="12" max="70" step="1" /></label>
                   <label class="champ champ-large"><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMarqueGauche"></span></span><input id="angleMarqueGauche" type="range" min="-180" max="180" step="5" /></label>
-                  <label class="champ champ-large" data-modele-visible="MANU"><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarqueGauche" data-range-unit="%"></span></span><input id="positionMarqueGauche" type="range" min="0" max="100" step="1" /></label>
+                  <label class="champ champ-large"><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarqueGauche" data-range-unit="%"></span></span><input id="positionMarqueGauche" type="range" min="0" max="100" step="1" /></label>
                   <label class="champ champ-large"><span class="champ__libelle">Hauteur <span class="valeur-range" data-range-value="hauteurMarqueGauche" data-range-unit="%"></span></span><input id="hauteurMarqueGauche" type="range" min="0" max="100" step="1" /></label>
                 </div>
               </div>
@@ -627,7 +574,7 @@
                   <label class="champ champ-large"><span class="champ__libelle">Taille <span class="valeur-range" data-range-value="tailleMarqueDroite"></span></span><input id="tailleMarqueDroite" type="range" min="50" max="520" step="5" /></label>
                   <label class="champ champ-large" data-modele-visible="MANU"><span class="champ__libelle">Diamètre <span class="valeur-range" data-range-value="diametrePastilleDroite" data-range-unit="%"></span></span><input id="diametrePastilleDroite" type="range" min="12" max="70" step="1" /></label>
                   <label class="champ champ-large"><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMarqueDroite"></span></span><input id="angleMarqueDroite" type="range" min="-180" max="180" step="5" /></label>
-                  <label class="champ champ-large" data-modele-visible="MANU"><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarqueDroite" data-range-unit="%"></span></span><input id="positionMarqueDroite" type="range" min="0" max="100" step="1" /></label>
+                  <label class="champ champ-large"><span class="champ__libelle">Distance du bord <span class="valeur-range" data-range-value="positionMarqueDroite" data-range-unit="%"></span></span><input id="positionMarqueDroite" type="range" min="0" max="100" step="1" /></label>
                   <label class="champ champ-large"><span class="champ__libelle">Hauteur <span class="valeur-range" data-range-value="hauteurMarqueDroite" data-range-unit="%"></span></span><input id="hauteurMarqueDroite" type="range" min="0" max="100" step="1" /></label>
                 </div>
               </div>

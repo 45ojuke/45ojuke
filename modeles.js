@@ -151,6 +151,7 @@ export const modelesParTheme = {
     ["MANU", "MANU"],
     ["CELESTE", "CELESTE"],
     ["LEON", "LEON"],
+    ["JEAN", "JEAN"],
   ],
   classique: [
     ["ALICE", "ALICE"],
@@ -158,6 +159,7 @@ export const modelesParTheme = {
     ["JUJU", "JUJU"],
     ["MANU", "MANU"],
     ["LEON", "LEON"],
+    ["JEAN", "JEAN"],
   ],
   moderne: [
     ["CELESTE", "CELESTE"],
@@ -192,10 +194,10 @@ function normaliserStyleEtiquette(style, index) {
   }
   const idSource = String(style.id || `${modele}-${index + 1}`).trim() || `${modele}-${index + 1}`;
   const id = idSource;
-  const nomModele = modelesParTheme.tout.find(([valeur]) => valeur === modele)?.[1] || modele;
+  const libelleModele = modelesParTheme.tout.find(([valeur]) => valeur === modele)?.[1] || modele;
   return {
     id,
-    nom: id === modele ? nomModele : String(style.nom || style.label || nomModele),
+    nom: id === modele ? libelleModele : String(style.nom || style.label || libelleModele),
     theme: String(style.theme || reglages.theme || "tout"),
     reglages: {
       ...reglages,
@@ -284,6 +286,11 @@ export const capacitesModeles = {
     bandeCentrale: false,
   },
   LEON: {
+    marques: true,
+    ruban: false,
+    bandeCentrale: false,
+  },
+  JEAN: {
     marques: true,
     ruban: false,
     bandeCentrale: false,
