@@ -430,6 +430,8 @@ Object.assign(phrasesInterface, {
   "Chargement...": phrase("Loading...", "Laden...", "Wird geladen...", "Cargando...", "Caricamento..."),
   "Aperçu étiquette Canvas": phrase("Canvas label preview", "Canvas-labelvoorbeeld", "Canvas-Etikettenvorschau", "Vista previa de etiqueta Canvas", "Anteprima etichetta Canvas"),
   "Aperçu étiquette secondaire Canvas": phrase("Secondary Canvas label preview", "Voorbeeld tweede Canvas-label", "Vorschau des zweiten Canvas-Etiketts", "Vista previa de etiqueta secundaria Canvas", "Anteprima etichetta Canvas secondaria"),
+  "Verrouiller le style": phrase("Lock style", "Stijl vergrendelen", "Stil sperren", "Bloquear estilo", "Blocca stile"),
+  "Déverrouiller le style": phrase("Unlock style", "Stijl ontgrendelen", "Stil entsperren", "Desbloquear estilo", "Sblocca stile"),
   "Face A": phrase("Side A", "Kant A", "Seite A", "Cara A", "Lato A"),
   "Artiste": phrase("Artist", "Artiest", "Künstler", "Artista", "Artista"),
   "Face B": phrase("Side B", "Kant B", "Seite B", "Cara B", "Lato B"),

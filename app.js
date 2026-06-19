@@ -99,6 +99,7 @@ const elements = {
   scene: document.querySelector(".scene"),
   sceneEntete: document.querySelector("#sceneEntete"),
   actionsApercu: document.querySelector("#actionsApercu"),
+  verrouillerStyle: document.querySelector("#verrouillerStyle"),
   apercu: document.querySelector("#apercu"),
   apercuSecondaire: document.querySelector("#apercuSecondaire"),
   apercus: document.querySelector(".apercus"),
@@ -299,6 +300,8 @@ const PALETTES_TEINTES = [
 let vinyles = [];
 let indexApercu = 0;
 let etiquetteActive = "1";
+let stylesVerrouillesParLigne = {};
+let reglagesParLigne = {};
 let modeleChoisi = false;
 let chargementReglages = false;
 let temporisateurRedimensionnement = null;
@@ -501,6 +504,7 @@ function brancherEvenements() {
     champ.addEventListener("input", modifierTexteApercu);
   });
   elements.aimerReglage.addEventListener("click", basculerFavori);
+  elements.verrouillerStyle.addEventListener("click", basculerVerrouillageStyle);
   elements.ouvrirFavoris.addEventListener("click", ouvrirListeFavoris);
   elements.listeFavoris.addEventListener("click", gererActionFavori);
   elements.precedent.addEventListener("click", () => changerApercu(-1));
@@ -624,6 +628,13 @@ function restaurerReglagesAutomatiques() {
 
     reglagesParEtiquette[1] = reglagesPrincipaux;
     reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
+    stylesVerrouillesParLigne = { ...(sauvegarde.stylesVerrouillesParLigne || {}) };
+    reglagesParLigne = Object.fromEntries(
+      Object.entries(sauvegarde.reglagesParLigne || {}).map(([cle, reglages]) => [
+        cle,
+        normaliserReglagesImportes(reglages),
+      ]),
+    );
     synchroniserBoutonDeuxiemeEtiquette(secondeActive);
     if (secondeActive) {
       elements.modeleSecondaire.value = reglagesSecondaires.modele;
@@ -678,6 +689,8 @@ function sauvegarderReglagesAutomatiques() {
       sauvegardeLe: new Date().toISOString(),
       etiquetteActive,
       deuxiemeEtiquetteActive: deuxiemeEtiquetteActive(),
+      stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
+      reglagesParLigne: clonerReglages(reglagesParLigne),
       reglages: {
         1: etiquetteActive === "1" ? reglagesActifs : reglagesParEtiquette[1],
         2: deuxiemeEtiquetteActive()
@@ -1256,6 +1269,9 @@ function appliquerLangueSite(langue, options = {}) {
   synchroniserOptionsMotifSecondaire();
   traduireAidesOptions();
   mettreAJourAssistantReglages();
+  if (modeleChoisi) {
+    mettreAJourVerrouillageStyle();
+  }
   synchroniserBoutonsLangue();
 }
 
@@ -2219,7 +2235,7 @@ function choisirModeleDepuisAccueil(evenement) {
 
 function choisirModeleSecondaireDepuisGalerie(evenement) {
   const bouton = evenement.target.closest("[data-modele]");
-  if (!bouton) {
+  if (!bouton || (etiquetteActive === "2" && styleActifVerrouille())) {
     return;
   }
   enregistrerHistoriqueAvantAction();
@@ -2244,6 +2260,64 @@ function choisirModeleSecondaireDepuisGalerie(evenement) {
 
 function deuxiemeEtiquetteActive() {
   return [...elements.deuxiemeEtiquette].some((radio) => radio.value === "oui" && radio.checked);
+}
+
+function obtenirCleLigneApercu(numero = etiquetteActive) {
+  const ligne = obtenirLigneApercu(obtenirLignes(), numero);
+  return ligne ? String(ligne.index) : null;
+}
+
+function styleActifVerrouille() {
+  const cle = obtenirCleLigneApercu();
+  return cle !== null && Boolean(stylesVerrouillesParLigne[cle]);
+}
+
+function basculerVerrouillageStyle() {
+  enregistrerReglagesActifs();
+  enregistrerHistoriqueAvantAction();
+  const cle = obtenirCleLigneApercu();
+  if (cle === null) {
+    return;
+  }
+  stylesVerrouillesParLigne[cle] = !stylesVerrouillesParLigne[cle];
+  sauvegarderReglagesAutomatiques();
+  mettreAJour();
+}
+
+function mettreAJourVerrouillageStyle() {
+  const verrouille = styleActifVerrouille();
+  const libelle = traduirePhrase(verrouille ? "Déverrouiller le style" : "Verrouiller le style");
+  elements.verrouillerStyle.querySelector("span").textContent = verrouille ? "🔒" : "🔓";
+  elements.verrouillerStyle.setAttribute("aria-pressed", String(verrouille));
+  elements.verrouillerStyle.setAttribute("aria-label", libelle);
+  elements.verrouillerStyle.title = libelle;
+  elements.verrouillerStyle.classList.toggle("is-verrouille", verrouille);
+
+  elements.panneauxReglages.forEach((panneau) => {
+    const verrouillable = !["style", "donnees"].includes(panneau.dataset.tabPanel);
+    panneau.inert = verrouille && verrouillable;
+    panneau.classList.toggle("is-verrouille", verrouille && verrouillable);
+  });
+
+  const verrouillerModeleSecondaire = verrouille && etiquetteActive === "2";
+  elements.galerieModelesSecondaires.inert = verrouillerModeleSecondaire;
+  elements.galerieModelesSecondaires.classList.toggle("is-verrouille", verrouillerModeleSecondaire);
+  elements.modelesSecondairesPrecedent.disabled = verrouillerModeleSecondaire;
+  elements.modelesSecondairesSuivant.disabled = verrouillerModeleSecondaire;
+
+  [
+    elements.reinitialiserReglage,
+    elements.inverser,
+    elements.teinte,
+    elements.importerStyleDonnees,
+  ].forEach((bouton) => {
+    bouton.disabled = verrouille;
+  });
+  elements.importStyleFile.disabled = verrouille;
+  const clePrincipale = obtenirCleLigneApercu("1");
+  const cleSecondaire = obtenirCleLigneApercu("2");
+  elements.apercu.classList.toggle("is-verrouillee", clePrincipale !== null && Boolean(stylesVerrouillesParLigne[clePrincipale]));
+  elements.apercuSecondaire.classList.toggle("is-verrouillee", cleSecondaire !== null && Boolean(stylesVerrouillesParLigne[cleSecondaire]));
 }
 
 function synchroniserBoutonDeuxiemeEtiquette(active) {
@@ -2368,6 +2442,8 @@ function creerInstantaneReglages() {
     etiquetteActive: actif,
     modeleChoisi,
     deuxiemeActive: deuxiemeEtiquetteActive(),
+    stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
+    reglagesParLigne: clonerReglages(reglagesParLigne),
     modeleSecondaire: elements.modeleSecondaire.value,
     reglagesParEtiquette: {
       1: clonerReglages(actif === "1" ? reglagesActifs : lireReglages("1")),
@@ -2501,6 +2577,8 @@ function restaurerInstantaneReglages(instantane) {
   historiqueReglages.restaurationEnCours = true;
   reglagesParEtiquette[1] = clonerReglages(instantane.reglagesParEtiquette[1]);
   reglagesParEtiquette[2] = clonerReglages(instantane.deuxiemeActive ? instantane.reglagesParEtiquette[2] : null);
+  stylesVerrouillesParLigne = { ...(instantane.stylesVerrouillesParLigne || {}) };
+  reglagesParLigne = clonerReglages(instantane.reglagesParLigne) || {};
   etiquetteActive = instantane.etiquetteActive === "2" && instantane.deuxiemeActive ? "2" : "1";
   modeleChoisi = instantane.modeleChoisi;
   elements.modeleSecondaire.value = instantane.modeleSecondaire;
@@ -2553,7 +2631,10 @@ const { obtenirFavoris, enregistrerFavoris, signatureReglages } = creerGestionFa
 
 function basculerFavori() {
   const reglages = lireReglagesFormulaire();
-  reglagesParEtiquette[etiquetteActive] = reglages;
+  const cle = obtenirCleLigneApercu();
+  if (cle !== null) {
+    reglagesParLigne[cle] = reglages;
+  }
   const id = signatureReglages(reglages);
   const favoris = obtenirFavoris();
   const dejaPresent = favoris.some((favori) => favori.id === id);
@@ -2890,7 +2971,11 @@ function lireDimensionEtiquette(element, cle) {
   return Number(Math.max(limites.min, Math.min(limites.max, valeur)).toFixed(1));
 }
 
-function lireReglages(numero = etiquetteActive) {
+function lireReglages(numero = etiquetteActive, ligne = null) {
+  const ligneCible = ligne || (modeleChoisi ? obtenirLigneApercu(obtenirLignes(), numero) : null);
+  if (ligneCible && reglagesParLigne[String(ligneCible.index)]) {
+    return reglagesParLigne[String(ligneCible.index)];
+  }
   if (numero === "2") {
     return reglagesParEtiquette[2] || creerReglagesSecondaires();
   }
@@ -2899,7 +2984,13 @@ function lireReglages(numero = etiquetteActive) {
 }
 
 function enregistrerReglagesActifs() {
-  reglagesParEtiquette[etiquetteActive] = lireReglagesFormulaire();
+  const reglages = lireReglagesFormulaire();
+  const cle = obtenirCleLigneApercu();
+  if (cle !== null) {
+    reglagesParLigne[cle] = reglages;
+  } else {
+    reglagesParEtiquette[etiquetteActive] = reglages;
+  }
   sauvegarderReglagesAutomatiques();
 }
 
@@ -2949,6 +3040,11 @@ function changerModeleSecondaire() {
     return;
   }
 
+  if (etiquetteActive === "2" && styleActifVerrouille()) {
+    appliquerReglagesAuFormulaire(lireReglages("2"));
+    mettreAJour();
+    return;
+  }
   afficherApercuApresChoixModele();
   reglagesParEtiquette[2] = creerReglagesSecondaires();
   etiquetteActive = "2";
@@ -4108,8 +4204,16 @@ function obtenirLignes(selection = "") {
     }));
 }
 
+function obtenirIndexLigneApercu(numeroEtiquette = etiquetteActive) {
+  return indexApercu + (deuxiemeEtiquetteActive() && numeroEtiquette === "2" ? 1 : 0);
+}
+
+function obtenirLigneApercu(lignes, numeroEtiquette = etiquetteActive) {
+  return lignes[obtenirIndexLigneApercu(numeroEtiquette)] || null;
+}
+
 function modifierTexteApercu() {
-  const ligne = obtenirLignes()[indexApercu];
+  const ligne = obtenirLigneApercu(obtenirLignes());
   const vinyle = ligne ? vinyles[ligne.index] : null;
   if (!vinyle) {
     return;
@@ -4646,7 +4750,14 @@ function changerApercu(delta) {
     return;
   }
   animerChangementApercu(delta);
-  indexApercu = (indexApercu + delta + lignes.length) % lignes.length;
+  if (deuxiemeEtiquetteActive()) {
+    const nombrePaires = Math.ceil(lignes.length / 2);
+    const paireActive = Math.floor(indexApercu / 2);
+    indexApercu = ((paireActive + delta + nombrePaires) % nombrePaires) * 2;
+  } else {
+    indexApercu = (indexApercu + delta + lignes.length) % lignes.length;
+  }
+  appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
   mettreAJour();
 }
 
@@ -4739,6 +4850,7 @@ function mettreAJour() {
   elements.apercuSecondaire.classList.toggle("is-selectionnee", deuxiemeActive && etiquetteActive === "2");
   elements.apercu.toggleAttribute("aria-current", deuxiemeActive && etiquetteActive === "1");
   elements.apercuSecondaire.toggleAttribute("aria-current", deuxiemeActive && etiquetteActive === "2");
+  mettreAJourVerrouillageStyle();
   [elements.apercu, elements.apercuSecondaire].forEach((image, index) => {
     if (deuxiemeActive) {
       image.setAttribute("role", "button");
@@ -4765,13 +4877,19 @@ function mettreAJour() {
   }
 
   indexApercu = ((indexApercu % lignes.length) + lignes.length) % lignes.length;
-  const reglagesPrincipaux = lireReglages("1");
-  const image = dessinerEtiquette(lignes[indexApercu], reglagesPrincipaux).toDataURL("image/png");
+  if (deuxiemeActive) {
+    indexApercu = Math.floor(indexApercu / 2) * 2;
+  }
+  const lignePrincipale = obtenirLigneApercu(lignes, "1");
+  const ligneSecondaire = obtenirLigneApercu(lignes, "2");
+  const ligneEdition = obtenirLigneApercu(lignes);
+  const reglagesPrincipaux = lireReglages("1", lignePrincipale);
+  const image = dessinerEtiquette(lignePrincipale, reglagesPrincipaux).toDataURL("image/png");
   elements.apercu.src = image;
   appliquerTailleApercu(elements.apercu, reglagesPrincipaux);
-  if (deuxiemeActive) {
-    const reglagesSecondaires = lireReglages("2");
-    elements.apercuSecondaire.src = dessinerEtiquette(lignes[indexApercu], reglagesSecondaires).toDataURL("image/png");
+  if (deuxiemeActive && ligneSecondaire) {
+    const reglagesSecondaires = lireReglages("2", ligneSecondaire);
+    elements.apercuSecondaire.src = dessinerEtiquette(ligneSecondaire, reglagesSecondaires).toDataURL("image/png");
     appliquerTailleApercu(elements.apercuSecondaire, reglagesSecondaires);
     elements.apercuSecondaire.hidden = false;
   } else {
@@ -4780,9 +4898,9 @@ function mettreAJour() {
   }
   elements.etat.textContent = MEDIA_MOBILE.matches
     ? ""
-    : `${indexApercu + 1} / ${lignes.length} - ${traduirePhrase("ligne")} ${lignes[indexApercu].numeroTableau}`;
-  elements.editionTexteEtat.textContent = `${indexApercu + 1}/${lignes.length}`;
-  mettreAJourEditeurTexte(lignes[indexApercu]);
+    : `${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau} / ${lignes.length} - ${traduirePhrase("ligne")} ${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau}`;
+  elements.editionTexteEtat.textContent = `${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau}/${lignes.length}`;
+  mettreAJourEditeurTexte(ligneEdition);
   mettreAJourStatutCsv("CSV actif");
   const disposition = calculerDispositionImpression(lireReglages(etiquetteActive));
   const pages = disposition.etiquettesParPage ? Math.max(1, Math.ceil(lignes.length / disposition.etiquettesParPage)) : 0;

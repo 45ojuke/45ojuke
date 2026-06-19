@@ -32,7 +32,7 @@ export function preparerLignesSortie(lignes, options = {}) {
 
 export async function telechargerPdf(lignes, { deuxiemeEtiquetteActive, lireReglages }) {
   const deuxiemeActive = deuxiemeEtiquetteActive();
-  const reglagesPrincipaux = lireReglages("1");
+  const reglagesPrincipaux = lireReglages("1", lignes[0]);
   const disposition = calculerDispositionImpression(reglagesPrincipaux);
   if (!disposition.etiquettesParPage) {
     throw new Error("Format trop grand pour une page A4");
@@ -41,7 +41,8 @@ export async function telechargerPdf(lignes, { deuxiemeEtiquetteActive, lireRegl
   const imagesParPage = [];
   for (let index = 0; index < lignes.length; index += disposition.etiquettesParPage) {
     const images = lignes.slice(index, index + disposition.etiquettesParPage).map((ligne, decalage) => {
-      const reglages = deuxiemeActive && (index + decalage) % 2 === 1 ? lireReglages("2") : lireReglages("1");
+      const numeroStyle = deuxiemeActive && (index + decalage) % 2 === 1 ? "2" : "1";
+      const reglages = lireReglages(numeroStyle, ligne);
       const canvas = dessinerEtiquette(ligne, reglages);
       return {
         largeurPx: canvas.width,

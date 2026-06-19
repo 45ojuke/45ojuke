@@ -2483,6 +2483,29 @@ body.is-favoris-ouverts .scene {
   opacity: 0.88;
 }
 
+.bouton-verrouillage {
+  min-width: 42px;
+  font-size: 1.05rem;
+}
+
+.bouton-verrouillage.is-verrouille {
+  border-color: rgba(138, 85, 53, 0.72);
+  background: #8a5535;
+  color: #fffaf0;
+  box-shadow: 0 0 0 3px rgba(138, 85, 53, 0.14);
+}
+
+.onglet-panneau.is-verrouille,
+.galerie-modeles.is-verrouille {
+  opacity: 0.48;
+  filter: grayscale(0.3);
+}
+
+.apercu-image.is-verrouillee {
+  outline: 3px solid rgba(138, 85, 53, 0.62);
+  outline-offset: 5px;
+}
+
 .apercu-secondaire {
   justify-self: center;
   opacity: 0.96;
