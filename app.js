@@ -1012,6 +1012,25 @@ function traduirePhrase(cle) {
   return langueActive === "fr" ? cle : phrasesInterface[cle]?.[langueActive] || cle;
 }
 
+function retrouverClePhrase(texte) {
+  if (phrasesInterface[texte]) {
+    return texte;
+  }
+  if (!retrouverClePhrase.index) {
+    retrouverClePhrase.index = new Map();
+    Object.entries(phrasesInterface).forEach(([cle, traductionsPhrase]) => {
+      [cle, ...Object.values(traductionsPhrase)].forEach((traduction) => {
+        if (!retrouverClePhrase.index.has(traduction)) {
+          retrouverClePhrase.index.set(traduction, new Set());
+        }
+        retrouverClePhrase.index.get(traduction).add(cle);
+      });
+    });
+  }
+  const cles = retrouverClePhrase.index.get(texte);
+  return cles?.size === 1 ? cles.values().next().value : "";
+}
+
 function definirTexteElement(selecteur, texte) {
   const element = document.querySelector(selecteur);
   if (element) {
@@ -1027,7 +1046,7 @@ function traduireTextesVisibles() {
         return NodeFilter.FILTER_REJECT;
       }
       const texte = noeud.textContent.trim();
-      const cle = noeud.__cleI18n || texte;
+      const cle = noeud.__cleI18n || retrouverClePhrase(texte);
       return phrasesInterface[cle] ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
     },
   });
@@ -1036,7 +1055,7 @@ function traduireTextesVisibles() {
     noeuds.push(walker.currentNode);
   }
   noeuds.forEach((noeud) => {
-    const cle = noeud.__cleI18n || noeud.textContent.trim();
+    const cle = noeud.__cleI18n || retrouverClePhrase(noeud.textContent.trim());
     noeud.__cleI18n = cle;
     const traduction = langueActive === "fr" ? cle : phrasesInterface[cle]?.[langueActive] || cle;
     const prefixe = noeud.textContent.match(/^\s*/)?.[0] || "";
@@ -1052,7 +1071,8 @@ function traduireAttributsVisibles() {
         return;
       }
       const valeur = element.getAttribute(attribut);
-      const cle = element.dataset[`cleI18n${attribut.replace(/(^|-)([a-z])/g, (_, __, lettre) => lettre.toUpperCase())}`] || valeur;
+      const cle = element.dataset[`cleI18n${attribut.replace(/(^|-)([a-z])/g, (_, __, lettre) => lettre.toUpperCase())}`]
+        || retrouverClePhrase(valeur);
       if (!cle || !phrasesInterface[cle]) {
         return;
       }
