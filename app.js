@@ -2285,8 +2285,10 @@ function basculerVerrouillageStyle() {
   if (verrouiller) {
     reglagesParLigne[cle] = lireReglagesFormulaire();
   } else {
+    const reglagesConserves = clonerReglages(reglagesParLigne[cle]) || lireReglagesFormulaire();
+    reglagesParEtiquette[etiquetteActive] = reglagesConserves;
     delete reglagesParLigne[cle];
-    appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
+    appliquerReglagesAuFormulaire(reglagesConserves);
   }
   sauvegarderReglagesAutomatiques();
   mettreAJour();
