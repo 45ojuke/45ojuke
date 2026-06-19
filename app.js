@@ -588,10 +588,7 @@ function proposerRestaurationReglagesAutomatiques() {
     return;
   }
 
-  const date = new Date(sauvegarde.sauvegardeLe);
-  elements.dateRestauration.textContent = Number.isNaN(date.getTime())
-    ? traduirePhrase("Vous pouvez restaurer votre dernière configuration.")
-    : `${traduirePhrase("Dernière sauvegarde")} : ${date.toLocaleString(localeCourante(), { dateStyle: "short", timeStyle: "short" })}.`;
+  mettreAJourTexteBandeauRestauration(sauvegarde);
   elements.bandeauRestauration.hidden = false;
   document.body.classList.add("is-restauration-visible");
   clearTimeout(temporisateurBandeauRestauration);
@@ -599,6 +596,16 @@ function proposerRestaurationReglagesAutomatiques() {
     masquerBandeauRestauration,
     DELAI_MASQUAGE_BANDEAU_RESTAURATION,
   );
+}
+
+function mettreAJourTexteBandeauRestauration(sauvegarde = lireSauvegardeReglagesAutomatiques()) {
+  if (!sauvegarde) {
+    return;
+  }
+  const date = new Date(sauvegarde.sauvegardeLe);
+  elements.dateRestauration.textContent = Number.isNaN(date.getTime())
+    ? traduirePhrase("Vous pouvez restaurer votre dernière configuration.")
+    : `${traduirePhrase("Dernière sauvegarde")} : ${date.toLocaleString(localeCourante(), { dateStyle: "short", timeStyle: "short" })}.`;
 }
 
 function restaurerReglagesAutomatiques() {
@@ -1039,8 +1046,8 @@ function traduireTextesVisibles() {
 }
 
 function traduireAttributsVisibles() {
-  document.querySelectorAll("[aria-label], [title], [alt], [placeholder]").forEach((element) => {
-    ["aria-label", "title", "alt", "placeholder"].forEach((attribut) => {
+  document.querySelectorAll("[aria-label], [title], [alt], [placeholder], [label]").forEach((element) => {
+    ["aria-label", "title", "alt", "placeholder", "label"].forEach((attribut) => {
       if (!element.hasAttribute(attribut)) {
         return;
       }
@@ -1052,6 +1059,12 @@ function traduireAttributsVisibles() {
       element.dataset[`cleI18n${attribut.replace(/(^|-)([a-z])/g, (_, __, lettre) => lettre.toUpperCase())}`] = cle;
       element.setAttribute(attribut, langueActive === "fr" ? cle : phrasesInterface[cle]?.[langueActive] || cle);
     });
+  });
+}
+
+function traduireApercusModeles() {
+  document.querySelectorAll(".carte-modele__image--base[data-nom-modele]").forEach((image) => {
+    image.alt = `${traduirePhrase("Aperçu")} ${image.dataset.nomModele}`;
   });
 }
 
@@ -1212,6 +1225,13 @@ function appliquerLangueSite(langue, options = {}) {
   elements.ouvrirFavoris.textContent = traduirePhrase("Favoris");
   traduireTextesVisibles();
   traduireAttributsVisibles();
+  traduireApercusModeles();
+  if (!elements.bandeauRestauration.hidden) {
+    mettreAJourTexteBandeauRestauration();
+  }
+  if (elements.statutCsv.dataset.cleStatut) {
+    mettreAJourStatutCsv(elements.statutCsv.dataset.cleStatut);
+  }
   definirEditionTexteMobile(document.body.classList.contains("is-edition-texte-mobile"));
   synchroniserOptionsMotifSecondaire();
   traduireAidesOptions();
@@ -1640,7 +1660,8 @@ function mettreAJourStatutCsv(prefixe) {
   if (!elements.statutCsv) {
     return;
   }
-  elements.statutCsv.textContent = `${prefixe} - ${vinyles.length} ${traduirePhrase(vinyles.length > 1 ? "entrées" : "entrée")}`;
+  elements.statutCsv.dataset.cleStatut = prefixe;
+  elements.statutCsv.textContent = `${traduirePhrase(prefixe)} - ${vinyles.length} ${traduirePhrase(vinyles.length > 1 ? "entrées" : "entrée")}`;
 }
 
 async function importerCsvUtilisateur() {
@@ -1913,7 +1934,8 @@ function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cib
 
   const image = document.createElement("img");
   image.className = "carte-modele__image carte-modele__image--base";
-  image.alt = `Apercu ${libelle}`;
+  image.dataset.nomModele = libelle;
+  image.alt = `${traduirePhrase("Aperçu")} ${libelle}`;
   image.src = dessinerEtiquette(ligneDemo, reglagesCarte).toDataURL("image/png");
 
   const imageVariante = document.createElement("img");

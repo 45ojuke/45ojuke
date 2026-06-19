@@ -112,5 +112,31 @@
       <p class="erreur-404__texte">Cette adresse ne mène à aucune étiquette. Retournez à l'accueil pour reprendre la sélection.</p>
       <a class="erreur-404__retour" href="./">Retour à l'accueil</a>
     </main>
+    <script type="module">
+      import { phrasesInterface } from "./traductions.js";
+
+      const langues = ["fr", "en", "us", "nl", "de", "es", "it"];
+      const langueNavigateur = (navigator.language || "fr").toLowerCase();
+      const langueDetectee = langueNavigateur.startsWith("en-us")
+        ? "us"
+        : langues.find((langue) => langue !== "us" && langueNavigateur.startsWith(langue));
+      let langue = langueDetectee || "fr";
+      try {
+        const langueMemorisee = localStorage.getItem("45ojuke.langue");
+        if (langues.includes(langueMemorisee)) {
+          langue = langueMemorisee;
+        }
+      } catch {
+        // Le stockage local peut être indisponible en navigation privée.
+      }
+
+      const traduire = (cle) => langue === "fr" ? cle : phrasesInterface[cle]?.[langue] || cle;
+      document.documentElement.lang = langue === "us" ? "en" : langue;
+      document.title = traduire("Page introuvable - 45'O'Juke");
+      document.querySelector(".erreur-404__code").textContent = traduire("Erreur 404");
+      document.querySelector(".erreur-404__titre").textContent = traduire("Page introuvable");
+      document.querySelector(".erreur-404__texte").textContent = traduire("Cette adresse ne mène à aucune étiquette. Retournez à l'accueil pour reprendre la sélection.");
+      document.querySelector(".erreur-404__retour").textContent = traduire("Retour à l'accueil");
+    </script>
   </body>
 </html>
