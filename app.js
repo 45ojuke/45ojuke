@@ -683,7 +683,9 @@ function lireSauvegardeReglagesAutomatiques() {
 
 function sauvegarderReglagesAutomatiques() {
   try {
-    const reglagesActifs = lireReglagesFormulaire();
+    const reglagesActifs = styleActifVerrouille()
+      ? reglagesParEtiquette[etiquetteActive]
+      : lireReglagesFormulaire();
     const payload = {
       version: 1,
       sauvegardeLe: new Date().toISOString(),
@@ -2273,13 +2275,19 @@ function styleActifVerrouille() {
 }
 
 function basculerVerrouillageStyle() {
-  enregistrerReglagesActifs();
   enregistrerHistoriqueAvantAction();
   const cle = obtenirCleLigneApercu();
   if (cle === null) {
     return;
   }
-  stylesVerrouillesParLigne[cle] = !stylesVerrouillesParLigne[cle];
+  const verrouiller = !stylesVerrouillesParLigne[cle];
+  stylesVerrouillesParLigne[cle] = verrouiller;
+  if (verrouiller) {
+    reglagesParLigne[cle] = lireReglagesFormulaire();
+  } else {
+    delete reglagesParLigne[cle];
+    appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
+  }
   sauvegarderReglagesAutomatiques();
   mettreAJour();
 }
@@ -2437,7 +2445,9 @@ function clonerReglages(reglages) {
 
 function creerInstantaneReglages() {
   const actif = etiquetteActive === "2" && deuxiemeEtiquetteActive() ? "2" : "1";
-  const reglagesActifs = lireReglagesFormulaire();
+  const reglagesActifs = styleActifVerrouille()
+    ? reglagesParEtiquette[actif]
+    : lireReglagesFormulaire();
   return {
     etiquetteActive: actif,
     modeleChoisi,
@@ -2631,9 +2641,8 @@ const { obtenirFavoris, enregistrerFavoris, signatureReglages } = creerGestionFa
 
 function basculerFavori() {
   const reglages = lireReglagesFormulaire();
-  const cle = obtenirCleLigneApercu();
-  if (cle !== null) {
-    reglagesParLigne[cle] = reglages;
+  if (!styleActifVerrouille()) {
+    reglagesParEtiquette[etiquetteActive] = reglages;
   }
   const id = signatureReglages(reglages);
   const favoris = obtenirFavoris();
@@ -2973,8 +2982,9 @@ function lireDimensionEtiquette(element, cle) {
 
 function lireReglages(numero = etiquetteActive, ligne = null) {
   const ligneCible = ligne || (modeleChoisi ? obtenirLigneApercu(obtenirLignes(), numero) : null);
-  if (ligneCible && reglagesParLigne[String(ligneCible.index)]) {
-    return reglagesParLigne[String(ligneCible.index)];
+  const cleLigne = ligneCible ? String(ligneCible.index) : null;
+  if (cleLigne !== null && stylesVerrouillesParLigne[cleLigne] && reglagesParLigne[cleLigne]) {
+    return reglagesParLigne[cleLigne];
   }
   if (numero === "2") {
     return reglagesParEtiquette[2] || creerReglagesSecondaires();
@@ -2985,12 +2995,10 @@ function lireReglages(numero = etiquetteActive, ligne = null) {
 
 function enregistrerReglagesActifs() {
   const reglages = lireReglagesFormulaire();
-  const cle = obtenirCleLigneApercu();
-  if (cle !== null) {
-    reglagesParLigne[cle] = reglages;
-  } else {
-    reglagesParEtiquette[etiquetteActive] = reglages;
+  if (styleActifVerrouille()) {
+    return;
   }
+  reglagesParEtiquette[etiquetteActive] = reglages;
   sauvegarderReglagesAutomatiques();
 }
 
