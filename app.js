@@ -1,4 +1,5 @@
 import { couleurLisible, couleurTexteContraste, dessinerEtiquette } from "./etiquettes.js";
+import { initialiserOptionsAbsentesPourImport, preparerReglagesPourExport } from "./export-style.js";
 import {
   capacitesModeles,
   chargerStylesEtiquettes,
@@ -18,7 +19,6 @@ import {
   CLE_LANGUE,
   CLE_REGLAGES_AUTOMATIQUES,
   DIMENSIONS_ETIQUETTE_DEFAUT,
-  ECART_MM,
   ETAPES_ASSISTANT,
   LIEN_PAYPAL_SOUTIEN,
   LIMITES_DIMENSIONS,
@@ -39,7 +39,7 @@ import {
   telechargerPdf as telechargerPdfModule,
 } from "./impression.js";
 import { envoyerJsonStyle } from "./analytics.js";
-import { normaliserStylePolice, remplirSelectPolice, stylesPolice } from "./polices.js";
+import { chargerPolicesLocales, normaliserIdPolice, normaliserStylePolice, remplirSelectPolice, stylesPolice } from "./polices.js";
 
 const EMAIL_CONTACT = "contact@45ojuke.fr";
 const EPAISSEUR_BORDURE_MIN = 1;
@@ -179,6 +179,7 @@ const elements = {
   styleArtiste: document.querySelector("#styleArtiste"),
   guillemetsTitres: document.querySelector("#guillemetsTitres"),
   decalageRetro: document.querySelector("#decalageRetro"),
+  irregulariteCaracteres: document.querySelector("#irregulariteCaracteres"),
   afficherMarques: document.querySelector("#afficherMarques"),
   groupeMarques: document.querySelector("#groupeMarques"),
   reglagesMarques: document.querySelectorAll("[data-marque-reglage]"),
@@ -351,6 +352,7 @@ async function initialiser() {
   appliquerDimensionsEtiquetteDefaut();
   await chargerStylesEtiquettes();
   remplirMenusPolices();
+  await chargerPolicesLocales();
   remplirModelesTheme();
   synchroniserOptionsMotifSecondaire();
   const styleInitial = obtenirStylesEtiquettes("tout")[0]?.reglages || presets.ALICE;
@@ -1222,7 +1224,7 @@ function aideOptionDesactivee(element, cle) {
   if (["reglages", "cote"].includes(etape)) {
     return true;
   }
-  if (etape === "texte" && !["Effet rétro sur les titres", "Désalignement rétro"].includes(cle)) {
+  if (etape === "texte" && !["Effet rétro sur les titres", "Désalignement rétro", "Irrégularité des caractères"].includes(cle)) {
     return true;
   }
   if (etape === "decor" && !["Élément à modifier", "Vignettage", "Couleur", "Intensité", "Opacité", "Angle"].includes(cle)) {
@@ -1339,11 +1341,14 @@ function synchroniserSelectStylePolice(selectPolice, selectStyle) {
     option.hidden = !disponible;
   });
   selectStyle.value = styleCompatible;
-  selectStyle.disabled = stylesDisponibles.length <= 1;
+  const optionUnique = stylesDisponibles.length <= 1;
+  selectStyle.disabled = optionUnique;
   const conteneur = selectStyle.closest(".champ");
   if (conteneur) {
-    conteneur.classList.toggle("champ--option-unique", stylesDisponibles.length <= 1);
-    conteneur.title = stylesDisponibles.length <= 1
+    const peutEtreMasque = selectStyle === elements.styleTitres || selectStyle === elements.styleArtiste;
+    conteneur.hidden = peutEtreMasque && optionUnique;
+    conteneur.classList.toggle("champ--option-unique", optionUnique);
+    conteneur.title = optionUnique
       ? "Cette police est disponible uniquement en style normal."
       : "";
   }
@@ -2356,6 +2361,7 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.couleurTitreFaceBManuelle = reglagesNormalises.couleurTitreFaceBManuelle ?? false;
   reglagesNormalises.bordure = Math.max(EPAISSEUR_BORDURE_MIN, Number(reglagesNormalises.bordure) || EPAISSEUR_BORDURE_MIN);
   reglagesNormalises.decalageRetro = reglagesNormalises.decalageRetro || "aucun";
+  reglagesNormalises.irregulariteCaracteres = [true, 1, "true", "1"].includes(reglagesNormalises.irregulariteCaracteres);
   reglagesNormalises.angleMotif = reglagesNormalises.angleMotif ?? 0;
   reglagesNormalises.motifFond = reglagesNormalises.motifFond ?? true;
   reglagesNormalises.motifRuban = reglagesNormalises.motifRuban ?? false;
@@ -2389,6 +2395,11 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.diametrePastilleDroite = reglagesNormalises.diametrePastilleDroite ?? reglagesNormalises.diametrePastille;
   reglagesNormalises.policeMarqueGauche = reglagesNormalises.policeMarqueGauche || reglagesNormalises.policeMarques;
   reglagesNormalises.policeMarqueDroite = reglagesNormalises.policeMarqueDroite || reglagesNormalises.policeMarques;
+  reglagesNormalises.policeTitres = normaliserIdPolice(reglagesNormalises.policeTitres);
+  reglagesNormalises.policeArtiste = normaliserIdPolice(reglagesNormalises.policeArtiste);
+  reglagesNormalises.policeMarques = normaliserIdPolice(reglagesNormalises.policeMarques, "compacte");
+  reglagesNormalises.policeMarqueGauche = normaliserIdPolice(reglagesNormalises.policeMarqueGauche, "compacte");
+  reglagesNormalises.policeMarqueDroite = normaliserIdPolice(reglagesNormalises.policeMarqueDroite, "compacte");
   reglagesNormalises.styleMarqueGauche = reglagesNormalises.styleMarqueGauche || "gras";
   reglagesNormalises.styleMarqueDroite = reglagesNormalises.styleMarqueDroite || "gras";
   reglagesNormalises.styleTitres = normaliserStylePolice(reglagesNormalises.policeTitres, reglagesNormalises.styleTitres || "normal");
@@ -2939,6 +2950,7 @@ function lireReglagesFormulaire() {
     styleArtiste,
     guillemetsTitres: elements.guillemetsTitres.checked,
     decalageRetro: elements.decalageRetro.value,
+    irregulariteCaracteres: elements.irregulariteCaracteres.checked,
     afficherMarques: elements.afficherMarques.checked,
     couleurMarques: elements.couleurMarques.value,
     formePastille: elements.formePastille.value,
@@ -3275,7 +3287,7 @@ function creerSurpriseLeon(base) {
     styleArtiste: "gras",
     guillemetsTitres: Math.random() > 0.18,
     decalageRetro: choisirDecalageRetroSurprise(base, ["titres-leger", "un-titre", "artiste-leger", "tout-leger", "artiste-bas"]),
-    policeTitres: choisirAleatoire(["dactylo-seche", "dactylo-ronde", "journal-ancien", "machine-vintage", "terminal-carre"]),
+    policeTitres: choisirAleatoire(["dactylo-seche", "dactylo-ronde", "journal-ancien", "terminal-carre"]),
     policeArtiste: choisirAleatoire(["mono-moderne", "compacte", "dactylo-seche", "terminal-carre"]),
     afficherMarques: false,
   };
@@ -3422,7 +3434,7 @@ function creerSurpriseManu(base) {
     styleMarqueGauche: "gras",
     styleMarqueDroite: "gras",
     limiterMarquesBandeSurprise: false,
-    policeTitres: choisirAleatoire(["swing-50", "sans-serree", "mono-moderne", "affiche-condensee"]),
+    policeTitres: choisirAleatoire(["swing-50", "sans-serree", "mono-moderne", "rock-affiche"]),
     policeArtiste: choisirAleatoire(["sans-serree", "elegante", "compacte", "mono-moderne"]),
     tailleTitres: nombreAleatoire(118, 160, 2),
     tailleArtiste: nombreAleatoire(118, 145, 2),
@@ -3787,10 +3799,6 @@ function restaurerSauvegardeSession(donnees) {
   mettreAJour();
 }
 
-function preparerReglagesPourExport(reglages) {
-  return { ...reglages };
-}
-
 function creerPayloadJsonStyle() {
   const deuxiemeActive = deuxiemeEtiquetteActive();
   const reglagesPrincipaux = lireReglages("1");
@@ -3888,6 +3896,7 @@ function normaliserReglagesImportes(donnees) {
 
   const donneesCompatibles = { ...donnees };
   const reglages = lireReglagesFormulaire();
+  initialiserOptionsAbsentesPourImport(reglages, donneesCompatibles);
   Object.entries(donneesCompatibles).forEach(([cle, valeur]) => {
     const champ = elements[cle];
     if (!champ || !(cle in reglages)) {

@@ -633,7 +633,14 @@ function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages
     reglages.couleurArtiste,
     reglages.couleurArtisteManuelle,
   );
-  dessinerTexteAvecTransformation(ctx, contenu, x, y, transformerArtisteRetro(decalageRetro, taille));
+  dessinerTexteAvecTransformation(
+    ctx,
+    contenu,
+    x,
+    y,
+    transformerArtisteRetro(decalageRetro, taille),
+    reglages.irregulariteCaracteres,
+  );
 }
 
 function dessinerTraitsModernes(ctx, reglages, largeur, hauteur) {
@@ -1392,10 +1399,6 @@ function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, coul
   const decalageRetro = modeDecalageRetro(reglages);
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeTitres)}`;
   const texteNettoye = nettoyerGuillemetsTitre(texte);
-  const largeurEchantillon = Math.min(
-    largeurMax,
-    Math.max(taille * 5, ctx.measureText(texteNettoye.toLocaleUpperCase("fr-FR")).width * 0.86),
-  );
   ctx.fillStyle = couleurTextePourFond(
     couleurFond,
     couleurTitre,
@@ -1412,6 +1415,7 @@ function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, coul
     2,
     reglages.guillemetsTitres ? composerLignesTitreAvecParentheseSeparee : composerLignesTitre,
     decalageRetro !== "aucun" ? (ligne, index, total, taillePolice) => transformerLigneTitreRetro(decalageRetro, ligne, index, total, taillePolice) : null,
+    reglages.irregulariteCaracteres,
   );
   if (reglages.guillemetsTitres) {
     dessinerGuillemetsTitre(ctx, lignes);
@@ -1463,7 +1467,7 @@ function transformerArtisteRetro(mode, taillePolice) {
   return { angle: 0.6, decalageX: taillePolice * 0.075, decalageY: taillePolice * 0.08 };
 }
 
-function dessinerTexteAvecTransformation(ctx, texte, x, y, transformation) {
+function dessinerTexteAvecTransformation(ctx, texte, x, y, transformation, irregulariteCaracteres = false) {
   const angle = transformation.angle || 0;
   const xTexte = x + (transformation.decalageX || 0);
   const yTexte = y + (transformation.decalageY || 0);
@@ -1471,11 +1475,11 @@ function dessinerTexteAvecTransformation(ctx, texte, x, y, transformation) {
     ctx.save();
     ctx.translate(xTexte, yTexte);
     ctx.rotate((angle * Math.PI) / 180);
-    dessinerEmpreinteTexte(ctx, texte, 0, 0);
+    dessinerEmpreinteTexteOptionnelle(ctx, texte, 0, 0, irregulariteCaracteres);
     ctx.restore();
     return;
   }
-  dessinerEmpreinteTexte(ctx, texte, xTexte, yTexte);
+  dessinerEmpreinteTexteOptionnelle(ctx, texte, xTexte, yTexte, irregulariteCaracteres);
 }
 
 function nettoyerGuillemetsTitre(texte) {
@@ -1551,7 +1555,14 @@ function dessinerArtiste(ctx, texte, x, y, largeurMax, reglages, couleurFond = r
     reglages.couleurArtiste,
     reglages.couleurArtisteManuelle,
   );
-  dessinerTexteAvecTransformation(ctx, contenu, x, y, transformerArtisteRetro(decalageRetro, taille));
+  dessinerTexteAvecTransformation(
+    ctx,
+    contenu,
+    x,
+    y,
+    transformerArtisteRetro(decalageRetro, taille),
+    reglages.irregulariteCaracteres,
+  );
 }
 
 function choisirTexteArtiste(ctx, artiste, largeurMax) {
@@ -1636,7 +1647,18 @@ function composerLignesTitreAvecParentheseSeparee(ctx, texte, largeurMax) {
   return composerLignesTitre(ctx, texte, largeurMax);
 }
 
-function dessinerTexteMultiligne(ctx, texte, x, y, largeurMax, interligne, limite, composerLignes = null, transformerLigne = null) {
+function dessinerTexteMultiligne(
+  ctx,
+  texte,
+  x,
+  y,
+  largeurMax,
+  interligne,
+  limite,
+  composerLignes = null,
+  transformerLigne = null,
+  irregulariteCaracteres = false,
+) {
   const lignesForcees = composerLignes?.(ctx, texte, largeurMax);
   const mots = String(texte || "").toLocaleUpperCase("fr-FR").split(/\s+/).filter(Boolean);
   const lignes = [];
@@ -1683,10 +1705,10 @@ function dessinerTexteMultiligne(ctx, texte, x, y, largeurMax, interligne, limit
       ctx.save();
       ctx.translate(xLigne, yLigne);
       ctx.rotate((angle * Math.PI) / 180);
-      dessinerTexteCentreVisuel(ctx, ligne, 0, 0);
+      dessinerTexteCentreVisuel(ctx, ligne, 0, 0, irregulariteCaracteres);
       ctx.restore();
     } else {
-      dessinerTexteCentreVisuel(ctx, ligne, xLigne, yLigne);
+      dessinerTexteCentreVisuel(ctx, ligne, xLigne, yLigne, irregulariteCaracteres);
     }
     return {
       texte: ligne,
@@ -1698,15 +1720,55 @@ function dessinerTexteMultiligne(ctx, texte, x, y, largeurMax, interligne, limit
   });
 }
 
-function dessinerTexteCentreVisuel(ctx, texte, x, y) {
+function dessinerTexteCentreVisuel(ctx, texte, x, y, irregulariteCaracteres = false) {
   const baseline = ctx.textBaseline;
   ctx.textBaseline = "alphabetic";
   const mesures = ctx.measureText(texte);
   const ascendant = Number.isFinite(mesures.actualBoundingBoxAscent) ? mesures.actualBoundingBoxAscent : 0;
   const descendant = Number.isFinite(mesures.actualBoundingBoxDescent) ? mesures.actualBoundingBoxDescent : 0;
   const correction = ascendant || descendant ? (ascendant - descendant) / 2 : 0;
-  dessinerEmpreinteTexte(ctx, texte, x, y + correction);
+  dessinerEmpreinteTexteOptionnelle(ctx, texte, x, y + correction, irregulariteCaracteres);
   ctx.textBaseline = baseline;
+}
+
+function dessinerEmpreinteTexteOptionnelle(ctx, texte, x, y, irregulariteCaracteres) {
+  if (!irregulariteCaracteres) {
+    dessinerEmpreinteTexte(ctx, texte, x, y);
+    return;
+  }
+  dessinerEmpreinteTexteIrréguliere(ctx, texte, x, y);
+}
+
+function dessinerEmpreinteTexteIrréguliere(ctx, texte, x, y) {
+  const caracteres = Array.from(String(texte || ""));
+  const largeurs = caracteres.map((caractere) => ctx.measureText(caractere).width);
+  const largeurTotale = largeurs.reduce((total, largeur) => total + largeur, 0);
+  const alignement = ctx.textAlign;
+  const taille = parseFloat(ctx.font.match(/(\d+(?:\.\d+)?)px/)?.[1] || "16");
+  const aleatoire = creerAleatoireDeterministe(`${texte}|${ctx.font}|irregularite`);
+  let positionX = ["center"].includes(alignement)
+    ? x - largeurTotale / 2
+    : ["right", "end"].includes(alignement) ? x - largeurTotale : x;
+
+  ctx.save();
+  ctx.textAlign = "left";
+  caracteres.forEach((caractere, index) => {
+    const largeur = largeurs[index];
+    if (caractere.trim()) {
+      const decalageX = (aleatoire() - 0.5) * taille * 0.035;
+      const decalageY = (aleatoire() - 0.5) * taille * 0.07;
+      const angle = (aleatoire() - 0.5) * 2;
+      const opacite = 0.82 + aleatoire() * 0.18;
+      ctx.save();
+      ctx.globalAlpha *= opacite;
+      ctx.translate(positionX + decalageX, y + decalageY);
+      ctx.rotate((angle * Math.PI) / 180);
+      dessinerEmpreinteTexte(ctx, caractere, 0, 0);
+      ctx.restore();
+    }
+    positionX += largeur;
+  });
+  ctx.restore();
 }
 
 function policeCanvas(police) {
