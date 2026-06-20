@@ -1,6 +1,7 @@
 const STYLES_COMPLETS = ["normal", "gras", "italique", "gras-italique"];
 const STYLES_REGULIER_ITALIQUE = ["normal", "italique"];
 const STYLES_REGULIER_GRAS = ["normal", "gras"];
+const STYLES_REGULIER_GRAS_ITALIQUE = ["normal", "gras", "italique"];
 const STYLE_REGULIER = ["normal"];
 
 export const GROUPES_POLICES = [
@@ -11,6 +12,8 @@ export const GROUPES_POLICES = [
       { id: "dactylo-ronde", libelle: "Dactylo ronde", famille: '"Cutive Mono", monospace', styles: STYLE_REGULIER },
       { id: "dactylo-seche", libelle: "Dactylo sèche", famille: '"Courier Prime", monospace' },
       { id: "special-elite", libelle: "Special Elite", famille: '"Special Elite", monospace', styles: STYLE_REGULIER },
+      { id: "lekton", libelle: "Lekton", famille: 'Lekton, monospace', styles: STYLES_REGULIER_GRAS_ITALIQUE },
+      { id: "xanh-mono", libelle: "Xanh Mono", famille: '"Xanh Mono", monospace', styles: STYLES_REGULIER_ITALIQUE },
     ],
   },
   {
