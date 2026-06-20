@@ -271,9 +271,17 @@
             <div class="grille">
               <p class="champ-description champ-large" id="statutCsv">Chargement du CSV...</p>
               <input id="importStyleFile" type="file" accept="application/json,.json" hidden />
+              <input id="importSauvegardeFile" type="file" accept="application/json,.json" hidden />
               <input id="importCsv" type="file" accept=".csv,text/csv" hidden />
               <div class="barre-actions barre-actions--csv champ-large">
                 <button class="bouton bouton-principal bouton-action-large" id="ouvrirTableauCsv" type="button">Modifier les données</button>
+                <div class="bloc-fichier">
+                  <p class="bloc-fichier__titre">Sauvegarde <button class="aide-option" type="button" data-help-key="Aide sauvegarde session">?</button></p>
+                  <div class="bloc-fichier__actions">
+                    <button class="bouton bouton-secondaire" id="exporterSauvegardeDonnees" type="button">Télécharger sauvegarde</button>
+                    <button class="bouton" id="importerSauvegardeDonnees" type="button">Importer sauvegarde</button>
+                  </div>
+                </div>
                 <div class="bloc-fichier">
                   <p class="bloc-fichier__titre">Style de l’étiquette <button class="aide-option" type="button" data-help-key="Aide style export import">?</button></p>
                   <div class="bloc-fichier__actions">
@@ -586,6 +594,13 @@
           <section class="groupe onglet-panneau" data-tab-panel="favoris" hidden>
             <div class="barre-actions barre-actions--csv champ-large">
               <div class="bloc-fichier">
+                <p class="bloc-fichier__titre">Sauvegarde <button class="aide-option" type="button" data-help-key="Aide sauvegarde session">?</button></p>
+                <div class="bloc-fichier__actions">
+                  <button class="bouton bouton-secondaire" id="exporterSauvegardeFavoris" type="button">Télécharger sauvegarde</button>
+                  <button class="bouton" id="importerSauvegardeFavoris" type="button">Importer sauvegarde</button>
+                </div>
+              </div>
+              <div class="bloc-fichier">
                 <p class="bloc-fichier__titre">Style de l’étiquette <button class="aide-option" type="button" data-help-key="Aide style export import">?</button></p>
                 <div class="bloc-fichier__actions">
                   <button class="bouton bouton-secondaire" id="copierReglagesFavoris" type="button">Exporter style</button>
@@ -686,6 +701,6 @@
       </noscript>
     </footer>
 
-    <script type="module" src="./app.js?v=20260620-2"></script>
+    <script type="module" src="./app.js?v=20260620-3"></script>
   </body>
 </html>

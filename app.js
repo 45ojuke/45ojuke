@@ -233,6 +233,11 @@ const elements = {
   messageDimensions: document.querySelector("#messageDimensions"),
   statutCsv: document.querySelector("#statutCsv"),
   importStyleFile: document.querySelector("#importStyleFile"),
+  importSauvegardeFile: document.querySelector("#importSauvegardeFile"),
+  exporterSauvegardeDonnees: document.querySelector("#exporterSauvegardeDonnees"),
+  importerSauvegardeDonnees: document.querySelector("#importerSauvegardeDonnees"),
+  exporterSauvegardeFavoris: document.querySelector("#exporterSauvegardeFavoris"),
+  importerSauvegardeFavoris: document.querySelector("#importerSauvegardeFavoris"),
   importerStyleDonnees: document.querySelector("#importerStyleDonnees"),
   copierReglagesDonnees: document.querySelector("#copierReglagesDonnees"),
   importCsv: document.querySelector("#importCsv"),
@@ -493,6 +498,13 @@ function brancherEvenements() {
   elements.importerReglagesFavoris.addEventListener("click", importerReglages);
   elements.importerStyleDonnees.addEventListener("click", importerReglages);
   elements.importStyleFile.addEventListener("change", importerReglagesDepuisFichier);
+  [elements.exporterSauvegardeDonnees, elements.exporterSauvegardeFavoris].forEach((bouton) => {
+    bouton.addEventListener("click", exporterSauvegardeSession);
+  });
+  [elements.importerSauvegardeDonnees, elements.importerSauvegardeFavoris].forEach((bouton) => {
+    bouton.addEventListener("click", demanderImportSauvegardeSession);
+  });
+  elements.importSauvegardeFile.addEventListener("change", importerSauvegardeSessionDepuisFichier);
   elements.choisirCsv.addEventListener("click", demanderImportCsv);
   elements.choisirCsvSauvegarde.addEventListener("click", demanderImportCsv);
   elements.importCsv.addEventListener("change", importerCsvUtilisateur);
@@ -2304,7 +2316,7 @@ function mettreAJourVerrouillageStyle() {
   elements.verrouillerStyle.classList.toggle("is-verrouille", verrouille);
 
   elements.panneauxReglages.forEach((panneau) => {
-    const verrouillable = !["style", "donnees"].includes(panneau.dataset.tabPanel);
+    const verrouillable = !["style", "reglages", "donnees", "favoris"].includes(panneau.dataset.tabPanel);
     panneau.inert = verrouille && verrouillable;
     panneau.classList.toggle("is-verrouille", verrouille && verrouillable);
   });
@@ -2320,6 +2332,7 @@ function mettreAJourVerrouillageStyle() {
     elements.inverser,
     elements.teinte,
     elements.importerStyleDonnees,
+    elements.importerReglagesFavoris,
   ].forEach((bouton) => {
     bouton.disabled = verrouille;
   });
@@ -2998,9 +3011,28 @@ function lireReglages(numero = etiquetteActive, ligne = null) {
 function enregistrerReglagesActifs() {
   const reglages = lireReglagesFormulaire();
   if (styleActifVerrouille()) {
+    enregistrerDimensionsEtiquettesVerrouillees(reglages);
     return;
   }
   reglagesParEtiquette[etiquetteActive] = reglages;
+  sauvegarderReglagesAutomatiques();
+}
+
+function enregistrerDimensionsEtiquettesVerrouillees(reglages) {
+  const dimensions = {
+    largeurEtiquette: reglages.largeurEtiquette,
+    hauteurEtiquette: reglages.hauteurEtiquette,
+  };
+  ["1", "2"].forEach((numero) => {
+    if (reglagesParEtiquette[numero]) {
+      Object.assign(reglagesParEtiquette[numero], dimensions);
+    }
+  });
+  Object.values(reglagesParLigne).forEach((reglagesLigne) => {
+    if (reglagesLigne) {
+      Object.assign(reglagesLigne, dimensions);
+    }
+  });
   sauvegarderReglagesAutomatiques();
 }
 
@@ -3625,6 +3657,130 @@ function copierReglages(evenement) {
   setTimeout(() => {
     bouton.textContent = libelleInitial;
   }, 1400);
+}
+
+function creerSauvegardeSession() {
+  const actif = etiquetteActive === "2" && deuxiemeEtiquetteActive() ? "2" : "1";
+  const reglagesActifs = styleActifVerrouille()
+    ? reglagesParEtiquette[actif]
+    : lireReglagesFormulaire();
+  return {
+    type: "45ojuke-session",
+    version: 1,
+    sauvegardeLe: new Date().toISOString(),
+    session: {
+      etiquetteActive: actif,
+      deuxiemeEtiquetteActive: deuxiemeEtiquetteActive(),
+      indexApercu,
+      etapeReglageActive,
+      stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
+      reglagesParLigne: clonerReglages(reglagesParLigne),
+      reglages: {
+        1: clonerReglages(actif === "1" ? reglagesActifs : lireReglages("1")),
+        2: deuxiemeEtiquetteActive()
+          ? clonerReglages(actif === "2" ? reglagesActifs : lireReglages("2"))
+          : null,
+      },
+      vinyles: vinyles.map((vinyle) => ({ ...vinyle })),
+      favoris: obtenirFavoris(),
+    },
+  };
+}
+
+function exporterSauvegardeSession(evenement) {
+  const bouton = evenement.currentTarget;
+  const libelleInitial = bouton.textContent;
+  const texte = JSON.stringify(creerSauvegardeSession(), null, 2);
+  const blob = new Blob([`${texte}\n`], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement("a");
+  lien.href = url;
+  lien.download = `45ojuke-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.append(lien);
+  lien.click();
+  lien.remove();
+  URL.revokeObjectURL(url);
+  bouton.textContent = traduirePhrase("Sauvegarde téléchargée");
+  setTimeout(() => {
+    bouton.textContent = libelleInitial;
+  }, 1400);
+}
+
+function demanderImportSauvegardeSession() {
+  elements.importSauvegardeFile.value = "";
+  elements.importSauvegardeFile.click();
+}
+
+async function importerSauvegardeSessionDepuisFichier(evenement) {
+  const fichier = evenement.target.files?.[0];
+  if (!fichier) {
+    return;
+  }
+  try {
+    const donnees = JSON.parse(await fichier.text());
+    restaurerSauvegardeSession(donnees);
+    window.alert(traduirePhrase("Sauvegarde restaurée."));
+  } catch (erreur) {
+    window.alert(erreur.message || traduirePhrase("Impossible d’importer cette sauvegarde."));
+  } finally {
+    evenement.target.value = "";
+  }
+}
+
+function restaurerSauvegardeSession(donnees) {
+  if (donnees?.type !== "45ojuke-session" || donnees.version !== 1 || !donnees.session?.reglages?.["1"]) {
+    throw new Error(traduirePhrase("Format de sauvegarde invalide."));
+  }
+  const session = donnees.session;
+  if (!Array.isArray(session.vinyles)) {
+    throw new Error(traduirePhrase("Format de sauvegarde invalide."));
+  }
+
+  const reglagesPrincipaux = normaliserReglagesImportes(session.reglages["1"]);
+  const reglagesSecondaires = session.reglages["2"]
+    ? normaliserReglagesImportes(session.reglages["2"])
+    : null;
+  const secondeActive = Boolean(session.deuxiemeEtiquetteActive && reglagesSecondaires);
+
+  reglagesParEtiquette[1] = reglagesPrincipaux;
+  reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
+  stylesVerrouillesParLigne = { ...(session.stylesVerrouillesParLigne || {}) };
+  reglagesParLigne = Object.fromEntries(
+    Object.entries(session.reglagesParLigne || {}).map(([cle, reglages]) => [
+      cle,
+      normaliserReglagesImportes(reglages),
+    ]),
+  );
+  vinyles = session.vinyles.map((vinyle, index) => ({
+    ...vinyle,
+    __ordreOriginal: Number.isFinite(Number(vinyle.__ordreOriginal))
+      ? Number(vinyle.__ordreOriginal)
+      : index,
+  }));
+  enregistrerFavoris(Array.isArray(session.favoris) ? session.favoris : []);
+  memoriserOrdreOriginal();
+  indexApercu = Math.max(0, Math.min(Number(session.indexApercu) || 0, Math.max(0, vinyles.length - 1)));
+  synchroniserBoutonDeuxiemeEtiquette(secondeActive);
+  if (secondeActive) {
+    elements.modeleSecondaire.value = reglagesSecondaires.modele;
+  }
+  etiquetteActive = secondeActive && session.etiquetteActive === "2" ? "2" : "1";
+  elements.editionEtiquette.forEach((radio) => {
+    radio.checked = radio.value === etiquetteActive;
+  });
+  appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
+  sauvegarderCsvLocal();
+  sauvegarderReglagesAutomatiques();
+  afficherApercuApresChoixModele();
+  quitterIntro();
+  mettreAJourGalerieModeles();
+  afficherFavoris();
+  const etapeDemandee = ETAPES_ASSISTANT.includes(session.etapeReglageActive)
+    ? session.etapeReglageActive
+    : "donnees";
+  activerEtapeReglage(etapeDemandee);
+  rendreTableauCsvActif?.();
+  mettreAJour();
 }
 
 function preparerReglagesPourExport(reglages) {
