@@ -2328,7 +2328,6 @@ function mettreAJourVerrouillageStyle() {
   elements.modelesSecondairesSuivant.disabled = verrouillerModeleSecondaire;
 
   [
-    elements.reinitialiserReglage,
     elements.inverser,
     elements.teinte,
     elements.importerStyleDonnees,
@@ -2336,6 +2335,7 @@ function mettreAJourVerrouillageStyle() {
   ].forEach((bouton) => {
     bouton.disabled = verrouille;
   });
+  mettreAJourEtatBoutonReset(verrouille);
   elements.importStyleFile.disabled = verrouille;
   const clePrincipale = obtenirCleLigneApercu("1");
   const cleSecondaire = obtenirCleLigneApercu("2");
@@ -2645,7 +2645,11 @@ function mettreAJourBoutonsHistorique() {
   const retablirDisponible = historiqueReglages.retablissements.length > 0;
   elements.retablirReglage.disabled = !retablirDisponible;
   elements.retablirReglage.hidden = !retablirDisponible;
-  elements.reinitialiserReglage.disabled = styleCourantEstStyleDefaut();
+  mettreAJourEtatBoutonReset();
+}
+
+function mettreAJourEtatBoutonReset(verrouille = styleActifVerrouille()) {
+  elements.reinitialiserReglage.disabled = verrouille || styleCourantEstStyleDefaut();
 }
 
 const { obtenirFavoris, enregistrerFavoris, signatureReglages } = creerGestionFavoris({
