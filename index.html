@@ -354,11 +354,15 @@
                 <input id="decorPanel" type="hidden" value="motif" />
                 <input id="activerVignettage" type="checkbox" hidden />
                 <input id="activerMotif" type="checkbox" hidden />
+                <input id="activerPatine" type="checkbox" hidden />
                 <div class="choix-decor__options">
                   <button class="choix-decor__option" id="boutonVignettage" type="button" aria-pressed="false">Vignettage</button>
                   <button class="choix-decor__option" id="boutonMotif" type="button" aria-pressed="false">Motif</button>
+                  <button class="choix-decor__option" id="boutonPatine" type="button" aria-pressed="false">Patine</button>
                 </div>
               </fieldset>
+              <p class="champ-description champ-large" data-decor-panel="patine">Vieillit toute l’étiquette : couleurs légèrement passées, grain du papier, frottements et usure des bords.</p>
+              <label class="champ champ-large" data-decor-panel="patine"><span class="champ__libelle">Intensité <span class="valeur-range" data-range-value="intensitePatine" data-range-unit="%"></span></span><input id="intensitePatine" type="range" min="1" max="100" step="1" value="55" /></label>
               <label class="champ" data-decor-panel="motif">Motif de fond
                 <select id="motifType">
                   <option value="aucun">Aucun</option>
@@ -703,6 +707,6 @@
       </noscript>
     </footer>
 
-    <script type="module" src="./app.js?v=20260620-4"></script>
+    <script type="module" src="./app.js?v=20260620-5"></script>
   </body>
 </html>

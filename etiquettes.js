@@ -34,21 +34,25 @@ export function dessinerEtiquette(ligne, reglages) {
 
   if (reglages.modele === "CELESTE") {
     dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH);
+    dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
     return canvas;
   }
 
   if (reglages.modele === "LEON") {
     dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure);
+    dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
     return canvas;
   }
 
   if (reglages.modele === "JEAN") {
     dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure);
+    dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
     return canvas;
   }
 
   if (reglages.modele === "MANU") {
     dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH, bandeH, bandeY);
+    dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
     return canvas;
   }
 
@@ -132,7 +136,108 @@ export function dessinerEtiquette(ligne, reglages) {
     rubanVisible ? reglages.couleurRuban : (bandeH > 0 ? reglages.couleur1 : reglages.couleur2),
   );
 
+  dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
   return canvas;
+}
+
+function dessinerPatineGlobale(ctx, reglages, largeur, hauteur) {
+  if (reglages.activerPatine !== true) {
+    return;
+  }
+  const force = limiterNombre(Number(reglages.intensitePatine) || 0, 0, 100) / 100;
+  if (force <= 0) {
+    return;
+  }
+
+  const aleatoire = creerAleatoireDeterministe(
+    `patine-${reglages.modele}-${Math.round(largeur)}-${Math.round(hauteur)}-${Math.round(force * 100)}`,
+  );
+  const surface = largeur * hauteur;
+  const echelle = Math.max(1, Math.min(largeur, hauteur) / 160);
+
+  ctx.save();
+
+  // Voile chaud et légèrement gris : il patine réellement toutes les couleurs.
+  ctx.globalCompositeOperation = "multiply";
+  ctx.fillStyle = `rgba(150, 112, 63, ${(0.035 + force * 0.11).toFixed(3)})`;
+  ctx.fillRect(0, 0, largeur, hauteur);
+  ctx.fillStyle = `rgba(74, 65, 50, ${(force * 0.035).toFixed(3)})`;
+  ctx.fillRect(0, 0, largeur, hauteur);
+
+  // Nuages de papier, diffus et irréguliers.
+  const nombreTaches = Math.round(8 + force * 22);
+  for (let index = 0; index < nombreTaches; index += 1) {
+    const x = aleatoire() * largeur;
+    const y = aleatoire() * hauteur;
+    const rayon = Math.min(largeur, hauteur) * (0.05 + aleatoire() * 0.22);
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, rayon);
+    const sombre = aleatoire() > 0.32;
+    gradient.addColorStop(0, sombre
+      ? `rgba(92, 62, 31, ${(force * (0.018 + aleatoire() * 0.035)).toFixed(3)})`
+      : `rgba(255, 241, 193, ${(force * (0.02 + aleatoire() * 0.04)).toFixed(3)})`);
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.globalCompositeOperation = sombre ? "multiply" : "screen";
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x - rayon, y - rayon, rayon * 2, rayon * 2);
+  }
+
+  // Grain fin et fibres courtes, assez subtils pour rester beaux à l’impression.
+  ctx.globalCompositeOperation = "multiply";
+  const nombreGrains = Math.min(2600, Math.round(surface * (0.0012 + force * 0.0028)));
+  for (let index = 0; index < nombreGrains; index += 1) {
+    const alpha = force * (0.025 + aleatoire() * 0.09);
+    ctx.fillStyle = `rgba(67, 48, 29, ${alpha.toFixed(3)})`;
+    const x = aleatoire() * largeur;
+    const y = aleatoire() * hauteur;
+    const taille = echelle * (0.22 + aleatoire() * 0.72);
+    ctx.fillRect(x, y, taille * (0.45 + aleatoire()), taille * 0.34);
+  }
+
+  // Frottements clairs, micro-rayures et petits manques d’encre.
+  ctx.globalCompositeOperation = "screen";
+  ctx.strokeStyle = `rgba(255, 244, 210, ${(0.08 + force * 0.22).toFixed(3)})`;
+  ctx.lineCap = "round";
+  const nombreRayures = Math.round(5 + force * 24);
+  for (let index = 0; index < nombreRayures; index += 1) {
+    const x = aleatoire() * largeur;
+    const y = aleatoire() * hauteur;
+    const longueur = largeur * (0.015 + aleatoire() * 0.1);
+    const angle = (aleatoire() - 0.5) * 0.42;
+    ctx.lineWidth = echelle * (0.25 + aleatoire() * 0.7);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(angle) * longueur, y + Math.sin(angle) * longueur);
+    ctx.stroke();
+  }
+
+  // Usure des bords en deux couches : salissure puis abrasion claire.
+  ctx.globalCompositeOperation = "multiply";
+  const bordSombre = ctx.createRadialGradient(
+    largeur / 2, hauteur / 2, Math.min(largeur, hauteur) * 0.28,
+    largeur / 2, hauteur / 2, Math.max(largeur, hauteur) * 0.72,
+  );
+  bordSombre.addColorStop(0, "rgba(63, 42, 24, 0)");
+  bordSombre.addColorStop(0.72, `rgba(82, 53, 28, ${(force * 0.035).toFixed(3)})`);
+  bordSombre.addColorStop(1, `rgba(60, 38, 20, ${(0.06 + force * 0.2).toFixed(3)})`);
+  ctx.fillStyle = bordSombre;
+  ctx.fillRect(0, 0, largeur, hauteur);
+
+  ctx.globalCompositeOperation = "screen";
+  const nombreEclats = Math.round(18 + force * 65);
+  ctx.fillStyle = `rgba(255, 239, 198, ${(0.08 + force * 0.3).toFixed(3)})`;
+  for (let index = 0; index < nombreEclats; index += 1) {
+    const horizontal = aleatoire() > 0.5;
+    const cote = aleatoire() > 0.5;
+    const profondeur = echelle * (0.7 + aleatoire() * (1.8 + force * 3.2));
+    const longueur = echelle * (1.2 + aleatoire() * (3 + force * 7));
+    const x = horizontal ? aleatoire() * largeur : (cote ? largeur - profondeur : 0);
+    const y = horizontal ? (cote ? hauteur - profondeur : 0) : aleatoire() * hauteur;
+    ctx.beginPath();
+    ctx.ellipse(x, y, horizontal ? longueur : profondeur, horizontal ? profondeur : longueur, aleatoire() * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
 }
 
 function centreEntreTraits(debut, fin) {

@@ -132,6 +132,10 @@ function ajouterDecorActif(exportNettoye, reglages) {
       "angle",
     ]);
   }
+
+  if (reglages.activerPatine === true && Number(reglages.intensitePatine) > 0) {
+    copierChamps(exportNettoye, reglages, ["activerPatine", "intensitePatine"]);
+  }
 }
 
 function ajouterMarquesActives(exportNettoye, reglages) {
@@ -242,6 +246,7 @@ export function initialiserOptionsAbsentesPourImport(reglages, donnees) {
     motifSecondaireFond: false,
     motifSecondaireRuban: false,
     modeVignette: "aucun",
+    activerPatine: false,
     afficherMarques: false,
     synchroniserMarques: true,
     marquesVerticalesJEAN: false,

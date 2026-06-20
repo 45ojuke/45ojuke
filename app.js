@@ -130,8 +130,11 @@ const elements = {
   decorPanel: document.querySelector("#decorPanel"),
   activerMotif: document.querySelector("#activerMotif"),
   activerVignettage: document.querySelector("#activerVignettage"),
+  activerPatine: document.querySelector("#activerPatine"),
   boutonMotif: document.querySelector("#boutonMotif"),
   boutonVignettage: document.querySelector("#boutonVignettage"),
+  boutonPatine: document.querySelector("#boutonPatine"),
+  intensitePatine: document.querySelector("#intensitePatine"),
   angle: document.querySelector("#angle"),
   intensite: document.querySelector("#intensite"),
   motifType: document.querySelector("#motifType"),
@@ -458,6 +461,7 @@ function brancherEvenements() {
   });
   elements.boutonMotif.addEventListener("click", () => basculerDecor("motif"));
   elements.boutonVignettage.addEventListener("click", () => basculerDecor("vignette"));
+  elements.boutonPatine.addEventListener("click", () => basculerDecor("patine"));
   elements.afficherTraitsModernes.addEventListener("change", () => {
     if (
       elements.afficherTraitsModernes.checked
@@ -2363,6 +2367,8 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.decalageRetro = reglagesNormalises.decalageRetro || "aucun";
   reglagesNormalises.irregulariteCaracteres = [true, 1, "true", "1"].includes(reglagesNormalises.irregulariteCaracteres);
   reglagesNormalises.angleMotif = reglagesNormalises.angleMotif ?? 0;
+  reglagesNormalises.activerPatine = [true, 1, "true", "1"].includes(reglagesNormalises.activerPatine);
+  reglagesNormalises.intensitePatine = reglagesNormalises.intensitePatine ?? 55;
   reglagesNormalises.motifFond = reglagesNormalises.motifFond ?? true;
   reglagesNormalises.motifRuban = reglagesNormalises.motifRuban ?? false;
   reglagesNormalises.motifSecondaireFond = reglagesNormalises.motifSecondaireFond ?? true;
@@ -2414,7 +2420,7 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.positionMarqueDroite = reglagesNormalises.positionMarqueDroite ?? reglagesNormalises.positionMarques;
   reglagesNormalises.hauteurMarqueGauche = reglagesNormalises.hauteurMarqueGauche ?? reglagesNormalises.hauteurMarques;
   reglagesNormalises.hauteurMarqueDroite = reglagesNormalises.hauteurMarqueDroite ?? reglagesNormalises.hauteurMarques;
-  if (reglagesNormalises.decorPanel && !["motif", "vignette"].includes(reglagesNormalises.decorPanel)) {
+  if (reglagesNormalises.decorPanel && !["motif", "vignette", "patine"].includes(reglagesNormalises.decorPanel)) {
     reglagesNormalises.decorPanel = "motif";
   }
   reglagesNormalises.decorPanel = reglagesNormalises.decorPanel || (
@@ -2437,6 +2443,7 @@ function appliquerReglagesAuFormulaire(reglages) {
   synchroniserOptionsMotifSecondaire(reglagesNormalises.motifTraitsModernes);
   elements.activerMotif.checked = motifDecorActifDepuisFormulaire();
   elements.activerVignettage.checked = reglagesNormalises.modeVignette !== "aucun";
+  elements.activerPatine.checked = reglagesNormalises.activerPatine;
   const decorActif = decorActifDepuisPanel();
   rendreDecorExclusif(decorActif);
   if (decorActif) {
@@ -2884,6 +2891,7 @@ function lireReglagesFormulaire() {
   const styleArtiste = normaliserStylePolice(elements.policeArtiste.value, elements.styleArtiste.value);
   const motifActif = elements.activerMotif.checked;
   const vignettageActif = elements.activerVignettage.checked;
+  const patineActive = elements.activerPatine.checked;
   const panelDecor = elements.decorPanel.value || "motif";
   return {
     theme: presets[elements.modele.value]?.theme || "tout",
@@ -2905,7 +2913,10 @@ function lireReglagesFormulaire() {
     decorPanel: (
       (panelDecor === "vignette" && vignettageActif)
         || (panelDecor === "motif" && motifActif)
-    ) ? panelDecor : (motifActif ? "motif" : (vignettageActif ? "vignette" : panelDecor)),
+        || (panelDecor === "patine" && patineActive)
+    ) ? panelDecor : (motifActif ? "motif" : (vignettageActif ? "vignette" : (patineActive ? "patine" : panelDecor))),
+    activerPatine: patineActive,
+    intensitePatine: Number(elements.intensitePatine.value),
     angle: Number(elements.angle.value),
     intensite: Number(elements.intensite.value),
     motifType: motifActif ? elements.motifType.value : "aucun",
@@ -3560,6 +3571,14 @@ function basculerDecor(type) {
     }
     rendreDecorExclusif(elements.activerVignettage.checked ? "vignette" : null);
   }
+  if (type === "patine") {
+    elements.activerPatine.checked = !elements.activerPatine.checked;
+    elements.decorPanel.value = "patine";
+    if (elements.activerPatine.checked && Number(elements.intensitePatine.value) < 1) {
+      elements.intensitePatine.value = "55";
+    }
+    rendreDecorExclusif(elements.activerPatine.checked ? "patine" : null);
+  }
   mettreAJourBoutonsDecor();
   mettreAJourInterfaceConditionnelle(lireReglagesFormulaire());
   enregistrerReglagesActifs();
@@ -3574,11 +3593,17 @@ function decorActifDepuisPanel() {
   if (panel === "vignette" && elements.activerVignettage.checked) {
     return "vignette";
   }
+  if (panel === "patine" && elements.activerPatine.checked) {
+    return "patine";
+  }
   if (elements.activerMotif.checked) {
     return "motif";
   }
   if (elements.activerVignettage.checked) {
     return "vignette";
+  }
+  if (elements.activerPatine.checked) {
+    return "patine";
   }
   return null;
 }
@@ -3593,11 +3618,15 @@ function rendreDecorExclusif(typeActif) {
     elements.activerVignettage.checked = false;
     elements.modeVignette.value = "aucun";
   }
+  if (typeActif !== "patine") {
+    elements.activerPatine.checked = false;
+  }
 }
 
 function mettreAJourBoutonsDecor() {
   elements.boutonMotif.setAttribute("aria-pressed", String(elements.activerMotif.checked));
   elements.boutonVignettage.setAttribute("aria-pressed", String(elements.activerVignettage.checked));
+  elements.boutonPatine.setAttribute("aria-pressed", String(elements.activerPatine.checked));
 }
 
 function mettreAJourReglagesTexteMiseEnPage() {
@@ -5160,12 +5189,14 @@ function mettreAJourInterfaceConditionnelle(reglages) {
   appliquerVisibiliteModele();
   const motifActif = elements.activerMotif.checked;
   const vignettageActif = elements.activerVignettage.checked;
+  const patineActive = elements.activerPatine.checked;
   elements.reglagesDecor.forEach((champ) => {
     const panel = champ.dataset.decorPanel;
     champ.classList.toggle(
       "champ-masque",
       (panel === "motif" && !motifActif)
-        || (panel === "vignette" && !vignettageActif),
+        || (panel === "vignette" && !vignettageActif)
+        || (panel === "patine" && !patineActive),
     );
   });
   elements.reglagesMotif.forEach((champ) => {
