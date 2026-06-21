@@ -51,6 +51,7 @@ const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
 const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine)");
 const DELAI_MASQUAGE_BANDEAU_RESTAURATION = 10000;
 const LIMITE_TAILLE_TITRES = 200;
+const LIMITE_TAILLE_ARTISTE = 200;
 
 const elements = {
   intro: document.querySelector("#intro"),
@@ -81,6 +82,8 @@ const elements = {
   assistantNavigation: document.querySelector("#assistantNavigation"),
   assistantPrecedent: document.querySelector("#assistantPrecedent"),
   assistantSuivant: document.querySelector("#assistantSuivant"),
+  nombreEtiquettes: document.querySelector("#nombreEtiquettes"),
+  modeModificationEtiquettes: document.querySelectorAll('input[name="modeModificationEtiquettes"]'),
   panneauxReglages: document.querySelectorAll("[data-tab-panel]"),
   ouvrirSoutien: document.querySelector("#ouvrirSoutien"),
   ouvrirSoutienMenu: document.querySelector("#ouvrirSoutienMenu"),
@@ -187,6 +190,14 @@ const elements = {
   reglageRetourLigneTitres: document.querySelector("#reglageRetourLigneTitres"),
   decalageRetro: document.querySelector("#decalageRetro"),
   irregulariteCaracteres: document.querySelector("#irregulariteCaracteres"),
+  deplacementTextesManuel: document.querySelector("#deplacementTextesManuel"),
+  reglagesDeplacementTextes: document.querySelector("#reglagesDeplacementTextes"),
+  decalageTitreAX: document.querySelector("#decalageTitreAX"),
+  decalageTitreAY: document.querySelector("#decalageTitreAY"),
+  decalageArtisteX: document.querySelector("#decalageArtisteX"),
+  decalageArtisteY: document.querySelector("#decalageArtisteY"),
+  decalageTitreBX: document.querySelector("#decalageTitreBX"),
+  decalageTitreBY: document.querySelector("#decalageTitreBY"),
   afficherMarques: document.querySelector("#afficherMarques"),
   groupeMarques: document.querySelector("#groupeMarques"),
   reglagesMarques: document.querySelectorAll("[data-marque-reglage]"),
@@ -313,6 +324,7 @@ const PALETTES_TEINTES = [
 let vinyles = [];
 let indexApercu = 0;
 let etiquetteActive = "1";
+let modeModificationEtiquettes = "toutes";
 let stylesVerrouillesParLigne = {};
 let reglagesParLigne = {};
 let modeleChoisi = false;
@@ -337,6 +349,7 @@ let pageModelesSecondaires = 0;
 let pageAccueilModeles = 0;
 let rendreTableauCsvActif = null;
 let ordreOriginalVinyles = [];
+let vinylesReferenceOrganisation = [];
 let langueActive = lireLangueMemorisee() || document.documentElement.lang || "fr";
 let bulleAideActive = null;
 let favorisOuverts = false;
@@ -350,6 +363,7 @@ const historiqueReglages = {
   instantanesControle: new WeakMap(),
   restaurationEnCours: false,
 };
+const minuteriesMessageVerrouillage = new WeakMap();
 
 initialiser();
 
@@ -372,6 +386,7 @@ async function initialiser() {
   mettreAJourBoutonsInstallation(true);
   proposerRestaurationReglagesAutomatiques();
   await chargerBibliotheque();
+  elements.nombreEtiquettes.value = String(Math.max(1, vinyles.length));
   mettreAJourGalerieModeles();
   mettreAJour();
   afficherFavoris();
@@ -404,10 +419,28 @@ function brancherEvenements() {
   elements.formulaire.addEventListener("focusin", memoriserPointDepartControle);
   elements.formulaire.addEventListener("pointerdown", memoriserPointDepartControle);
   elements.formulaire.addEventListener("keydown", memoriserPointDepartControle);
+  elements.panneauxReglages.forEach((panneau) => {
+    panneau.addEventListener("pointerdown", (evenement) => {
+      if (!panneau.classList.contains("is-verrouille")) {
+        return;
+      }
+      evenement.preventDefault();
+      afficherMessagePanneauVerrouille(panneau);
+    });
+    panneau.addEventListener("keydown", (evenement) => {
+      if (
+        panneau.classList.contains("is-verrouille")
+        && ["Enter", " "].includes(evenement.key)
+      ) {
+        evenement.preventDefault();
+        afficherMessagePanneauVerrouille(panneau);
+      }
+    });
+  });
   brancherInteractionCurseursTactiles();
-  brancherCranSurregimeTitres();
+  brancherCransSurregimeTexte();
   elements.formulaire.addEventListener("input", (evenement) => {
-    if (chargementReglages) {
+    if (chargementReglages || evenement.target.closest("[data-configuration-etiquettes]")) {
       return;
     }
     enregistrerHistoriqueDepuisControle(evenement.target);
@@ -420,7 +453,7 @@ function brancherEvenements() {
     mettreAJour();
   });
   elements.formulaire.addEventListener("change", (evenement) => {
-    if (chargementReglages) {
+    if (chargementReglages || evenement.target.closest("[data-configuration-etiquettes]")) {
       return;
     }
     enregistrerHistoriqueDepuisControle(evenement.target);
@@ -458,6 +491,12 @@ function brancherEvenements() {
   elements.modelesAccueilSuivant.addEventListener("click", () => changerPageModelesAccueil(1));
   elements.assistantPrecedent.addEventListener("click", () => naviguerAssistant(-1));
   elements.assistantSuivant.addEventListener("click", naviguerAssistantSuivant);
+  elements.modeModificationEtiquettes.forEach((radio) => {
+    radio.addEventListener("change", () => {
+      modeModificationEtiquettes = obtenirModeModificationEtiquettes();
+      sauvegarderReglagesAutomatiques();
+    });
+  });
   elements.deuxiemeEtiquette.forEach((radio) => {
     radio.addEventListener("change", changerActivationDeuxiemeEtiquette);
   });
@@ -469,6 +508,7 @@ function brancherEvenements() {
   elements.boutonMotif.addEventListener("click", () => basculerDecor("motif"));
   elements.boutonVignettage.addEventListener("click", () => basculerDecor("vignette"));
   elements.boutonPatine.addEventListener("click", () => basculerDecor("patine"));
+  elements.intensitePatine.addEventListener("input", synchroniserPatineDepuisIntensite);
   elements.afficherTraitsModernes.addEventListener("change", () => {
     if (
       elements.afficherTraitsModernes.checked
@@ -589,33 +629,38 @@ function brancherEvenements() {
   });
 }
 
-function brancherCranSurregimeTitres() {
+function brancherCranSurregimeTexte(input, limite) {
   let surregimeDebloque = false;
   let temporisateur = null;
   const reinitialiser = () => {
     surregimeDebloque = false;
-    elements.tailleTitres.classList.remove("is-au-cran");
+    input.classList.remove("is-au-cran");
   };
 
-  elements.tailleTitres.addEventListener("input", () => {
-    const valeur = Number(elements.tailleTitres.value);
-    if (valeur <= LIMITE_TAILLE_TITRES - 5) {
+  input.addEventListener("input", () => {
+    const valeur = Number(input.value);
+    if (valeur <= limite - 5) {
       reinitialiser();
       return;
     }
-    if (valeur > LIMITE_TAILLE_TITRES && !surregimeDebloque) {
-      elements.tailleTitres.value = String(LIMITE_TAILLE_TITRES);
-      elements.tailleTitres.classList.add("is-au-cran");
+    if (valeur > limite && !surregimeDebloque) {
+      input.value = String(limite);
+      input.classList.add("is-au-cran");
       surregimeDebloque = true;
       clearTimeout(temporisateur);
       temporisateur = window.setTimeout(reinitialiser, 1200);
     }
   });
-  elements.tailleTitres.addEventListener("pointerup", () => {
-    if (Number(elements.tailleTitres.value) <= LIMITE_TAILLE_TITRES) {
+  input.addEventListener("pointerup", () => {
+    if (Number(input.value) <= limite) {
       reinitialiser();
     }
   });
+}
+
+function brancherCransSurregimeTexte() {
+  brancherCranSurregimeTexte(elements.tailleTitres, LIMITE_TAILLE_TITRES);
+  brancherCranSurregimeTexte(elements.tailleArtiste, LIMITE_TAILLE_ARTISTE);
 }
 
 function bloquerZoomMobile() {
@@ -682,6 +727,10 @@ function restaurerReglagesAutomatiques() {
 
     reglagesParEtiquette[1] = reglagesPrincipaux;
     reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
+    modeModificationEtiquettes = sauvegarde.modeModificationEtiquettes === "individuel" ? "individuel" : "toutes";
+    elements.modeModificationEtiquettes.forEach((radio) => {
+      radio.checked = radio.value === modeModificationEtiquettes;
+    });
     stylesVerrouillesParLigne = { ...(sauvegarde.stylesVerrouillesParLigne || {}) };
     reglagesParLigne = Object.fromEntries(
       Object.entries(sauvegarde.reglagesParLigne || {}).map(([cle, reglages]) => [
@@ -745,6 +794,7 @@ function sauvegarderReglagesAutomatiques() {
       sauvegardeLe: new Date().toISOString(),
       etiquetteActive,
       deuxiemeEtiquetteActive: deuxiemeEtiquetteActive(),
+      modeModificationEtiquettes,
       stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
       reglagesParLigne: clonerReglages(reglagesParLigne),
       reglages: {
@@ -1264,7 +1314,7 @@ function aideOptionDesactivee(element, cle) {
   if (["reglages", "cote"].includes(etape)) {
     return true;
   }
-  if (etape === "texte" && !["Effet rétro sur les titres", "Désalignement rétro", "Irrégularité des caractères", "Retour à la ligne automatique"].includes(cle)) {
+  if (etape === "texte" && !["Effet rétro sur les titres", "Décalage rétro automatique", "Irrégularité des caractères", "Retour à la ligne automatique", "Déplacer les textes manuellement"].includes(cle)) {
     return true;
   }
   if (etape === "decor" && !["Élément à modifier", "Vignettage", "Couleur", "Intensité", "Opacité", "Angle"].includes(cle)) {
@@ -1318,7 +1368,7 @@ function appliquerLangueSite(langue, options = {}) {
   if (!elements.bandeauRestauration.hidden) {
     mettreAJourTexteBandeauRestauration();
   }
-  if (elements.statutCsv.dataset.cleStatut) {
+  if (elements.statutCsv?.dataset.cleStatut) {
     mettreAJourStatutCsv(elements.statutCsv.dataset.cleStatut);
   }
   definirEditionTexteMobile(document.body.classList.contains("is-edition-texte-mobile"));
@@ -1687,11 +1737,60 @@ function revenirSelectionAccueil() {
 function naviguerAssistantSuivant() {
   const etapes = etapesAssistantDisponibles();
   const index = indexEtapeAssistantActive();
+  if (etapeReglageActive === "organisation") {
+    appliquerOrganisationEtiquettes();
+  }
   if (index >= etapes.length - 1) {
     imprimer();
     return;
   }
   activerEtapeReglage(etapes[index + 1]);
+}
+
+function obtenirModeModificationEtiquettes() {
+  return [...elements.modeModificationEtiquettes].find((radio) => radio.checked)?.value || "toutes";
+}
+
+function appliquerOrganisationEtiquettes() {
+  modeModificationEtiquettes = obtenirModeModificationEtiquettes();
+  const total = Math.max(1, Math.min(500, Math.round(Number(elements.nombreEtiquettes.value) || vinyles.length || 1)));
+  elements.nombreEtiquettes.value = String(total);
+  ajusterNombreEtiquettes(total);
+  sauvegarderReglagesAutomatiques();
+}
+
+function ajusterNombreEtiquettes(total) {
+  synchroniserReferenceOrganisation();
+  vinyles = Array.from({ length: total }, (_, index) => {
+    const entree = vinyles[index] || vinylesReferenceOrganisation[index];
+    return entree ? { ...entree } : creerVinyleVide(index);
+  });
+  stylesVerrouillesParLigne = Object.fromEntries(
+    Object.entries(stylesVerrouillesParLigne).filter(([cle]) => Number(cle) < total),
+  );
+  reglagesParLigne = Object.fromEntries(
+    Object.entries(reglagesParLigne).filter(([cle]) => Number(cle) < total),
+  );
+  finaliserChangementTableau();
+}
+
+function creerVinyleVide(index) {
+  return {
+    emplacement: "jukebox",
+    position_jukebox: "",
+    selection_face_a: "",
+    selection_face_b: "",
+    artiste: "",
+    titre_face_a: "",
+    titre_face_b: "",
+    __ordreOriginal: index,
+  };
+}
+
+function synchroniserReferenceOrganisation() {
+  vinyles.forEach((vinyle, index) => {
+    vinylesReferenceOrganisation[index] = { ...vinyle };
+  });
 }
 
 function libelleEtapeAssistant(nomEtape) {
@@ -1721,24 +1820,25 @@ function mettreAJourAssistantReglages() {
 
 async function chargerBibliotheque() {
   const csvLocal = localStorage.getItem(CLE_CSV_LOCAL);
+  try {
+    const reponse = await fetch("./exemple.csv", { cache: "no-store" });
+    const texte = await reponse.text();
+    vinylesReferenceOrganisation = parserCsvVinyles(texte).map((vinyle) => ({ ...vinyle }));
+  } catch (erreur) {
+    vinylesReferenceOrganisation = [];
+  }
+
   if (csvLocal) {
     vinyles = parserCsvVinyles(csvLocal);
+    synchroniserReferenceOrganisation();
     memoriserOrdreOriginal();
     mettreAJourStatutCsv("CSV local restaure");
     return;
   }
 
-  try {
-    const reponse = await fetch("./exemple.csv", { cache: "no-store" });
-    const texte = await reponse.text();
-    vinyles = parserCsvVinyles(texte);
-    memoriserOrdreOriginal();
-    mettreAJourStatutCsv("CSV exemple charge");
-  } catch (erreur) {
-    vinyles = [];
-    memoriserOrdreOriginal();
-    mettreAJourStatutCsv("Impossible de charger le CSV");
-  }
+  vinyles = vinylesReferenceOrganisation.map((vinyle) => ({ ...vinyle }));
+  memoriserOrdreOriginal();
+  mettreAJourStatutCsv(vinyles.length ? "CSV exemple charge" : "Impossible de charger le CSV");
 }
 
 
@@ -1772,6 +1872,7 @@ async function importerCsvUtilisateur() {
       return;
     }
     vinyles = nouveauxVinyles;
+    vinylesReferenceOrganisation = nouveauxVinyles.map((vinyle) => ({ ...vinyle }));
     memoriserOrdreOriginal();
     indexApercu = 0;
     sauvegarderCsvLocal();
@@ -1784,8 +1885,71 @@ async function importerCsvUtilisateur() {
 }
 
 function demanderImportCsv() {
-  mettreAJourStatutCsv("CSV attendu : Artiste, Face A, Face B");
-  elements.importCsv.click();
+  if (document.querySelector(".fenetre-choix-csv[open]")) {
+    return;
+  }
+
+  const dialogue = document.createElement("dialog");
+  dialogue.className = "fenetre-choix-csv";
+  dialogue.setAttribute("aria-labelledby", "titreChoixCsv");
+
+  const contenu = document.createElement("div");
+  contenu.className = "fenetre-choix-csv__contenu";
+
+  const entete = document.createElement("div");
+  entete.className = "fenetre-choix-csv__entete";
+
+  const titre = document.createElement("h2");
+  titre.className = "fenetre-import__titre";
+  titre.id = "titreChoixCsv";
+  titre.textContent = traduirePhrase("Importer un fichier CSV");
+
+  const fermer = document.createElement("button");
+  fermer.className = "bouton bouton-secondaire";
+  fermer.type = "button";
+  fermer.textContent = "×";
+  fermer.setAttribute("aria-label", traduirePhrase("Fermer"));
+  entete.append(titre, fermer);
+
+  const explication = document.createElement("p");
+  explication.className = "fenetre-choix-csv__texte";
+  explication.textContent = traduirePhrase("Votre fichier doit contenir trois colonnes : Artiste, Face A et Face B. La première ligne contient les noms des colonnes, puis chaque ligne correspond à une étiquette. Les fichiers séparés par des points-virgules, des virgules ou des tabulations sont acceptés.");
+
+  const exemple = document.createElement("pre");
+  exemple.className = "fenetre-choix-csv__exemple";
+  exemple.textContent = "artiste;titre_face_a;titre_face_b\nThe Beatles;Hey Jude;Let It Be\nElvis Presley;Jailhouse Rock;All Shook Up";
+
+  const actions = document.createElement("div");
+  actions.className = "fenetre-choix-csv__actions";
+
+  const telechargerExemple = document.createElement("a");
+  telechargerExemple.className = "bouton bouton-secondaire";
+  telechargerExemple.href = "./exemple.csv";
+  telechargerExemple.download = "45-o-juke-exemple.csv";
+  telechargerExemple.textContent = traduirePhrase("Télécharger un fichier d’exemple");
+
+  const choisirFichier = document.createElement("button");
+  choisirFichier.className = "bouton bouton-principal";
+  choisirFichier.type = "button";
+  choisirFichier.textContent = traduirePhrase("Choisir mon fichier CSV");
+
+  actions.append(telechargerExemple, choisirFichier);
+  contenu.append(entete, explication, exemple, actions);
+  dialogue.append(contenu);
+  document.body.append(dialogue);
+
+  fermer.addEventListener("click", () => dialogue.close());
+  choisirFichier.addEventListener("click", () => {
+    dialogue.close();
+    elements.importCsv.click();
+  });
+  dialogue.addEventListener("click", (evenement) => {
+    if (evenement.target === dialogue) {
+      dialogue.close();
+    }
+  });
+  dialogue.addEventListener("close", () => dialogue.remove(), { once: true });
+  dialogue.showModal();
 }
 
 function memoriserOrdreOriginal() {
@@ -2275,7 +2439,7 @@ function choisirModeleDepuisAccueil(evenement) {
   if (bouton.dataset.styleId) {
     afficherApercuApresChoixModele();
     if (appliquerStyleEtiquetteEnregistre(bouton.dataset.styleId)) {
-      activerEtapeReglage("reglages");
+      activerEtapeReglage("organisation");
       mettreAJour();
       return;
     }
@@ -2288,7 +2452,7 @@ function choisirModeleDepuisAccueil(evenement) {
     return;
   }
   afficherApercuApresChoixModele();
-  activerEtapeReglage("reglages");
+  activerEtapeReglage("organisation");
   mettreAJour();
 }
 
@@ -2361,9 +2525,25 @@ function mettreAJourVerrouillageStyle() {
   elements.verrouillerStyle.classList.toggle("is-verrouille", verrouille);
 
   elements.panneauxReglages.forEach((panneau) => {
-    const verrouillable = !["style", "reglages", "donnees", "favoris"].includes(panneau.dataset.tabPanel);
-    panneau.inert = verrouille && verrouillable;
-    panneau.classList.toggle("is-verrouille", verrouille && verrouillable);
+    const verrouillable = !["organisation", "style", "reglages", "donnees", "favoris"].includes(panneau.dataset.tabPanel);
+    const panneauVerrouille = verrouille && verrouillable;
+    const message = obtenirMessagePanneauVerrouille(panneau);
+    Array.from(panneau.children).forEach((enfant) => {
+      if (enfant !== message) {
+        enfant.inert = panneauVerrouille;
+      }
+    });
+    panneau.classList.toggle("is-verrouille", panneauVerrouille);
+    panneau.toggleAttribute("tabindex", panneauVerrouille);
+    panneau.toggleAttribute("role", panneauVerrouille);
+    if (panneauVerrouille) {
+      panneau.tabIndex = 0;
+      panneau.setAttribute("role", "button");
+      panneau.setAttribute("aria-label", traduirePhrase("Déverrouillez l’étiquette avec le cadenas pour la modifier."));
+    } else {
+      panneau.removeAttribute("aria-label");
+      message.hidden = true;
+    }
   });
 
   const verrouillerModeleSecondaire = verrouille && etiquetteActive === "2";
@@ -2386,6 +2566,38 @@ function mettreAJourVerrouillageStyle() {
   const cleSecondaire = obtenirCleLigneApercu("2");
   elements.apercu.classList.toggle("is-verrouillee", clePrincipale !== null && Boolean(stylesVerrouillesParLigne[clePrincipale]));
   elements.apercuSecondaire.classList.toggle("is-verrouillee", cleSecondaire !== null && Boolean(stylesVerrouillesParLigne[cleSecondaire]));
+}
+
+function obtenirMessagePanneauVerrouille(panneau) {
+  let message = panneau.querySelector(":scope > .message-panneau-verrouille");
+  if (!message) {
+    message = document.createElement("p");
+    message.className = "message-panneau-verrouille";
+    message.setAttribute("aria-live", "polite");
+    message.hidden = true;
+    panneau.append(message);
+  }
+  message.textContent = traduirePhrase("Déverrouillez l’étiquette avec le cadenas pour la modifier.");
+  return message;
+}
+
+function afficherMessagePanneauVerrouille(panneau) {
+  const message = obtenirMessagePanneauVerrouille(panneau);
+  const minuterieExistante = minuteriesMessageVerrouillage.get(panneau);
+  if (minuterieExistante) {
+    clearTimeout(minuterieExistante);
+  }
+  message.hidden = false;
+  message.classList.remove("is-visible");
+  requestAnimationFrame(() => message.classList.add("is-visible"));
+  const minuterie = window.setTimeout(() => {
+    message.classList.remove("is-visible");
+    window.setTimeout(() => {
+      message.hidden = true;
+    }, 180);
+    minuteriesMessageVerrouillage.delete(panneau);
+  }, 2600);
+  minuteriesMessageVerrouillage.set(panneau, minuterie);
 }
 
 function synchroniserBoutonDeuxiemeEtiquette(active) {
@@ -2425,11 +2637,31 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.bordure = Number.isFinite(epaisseurBordure)
     ? Math.max(EPAISSEUR_BORDURE_MIN, Math.min(100, epaisseurBordure))
     : EPAISSEUR_BORDURE_MIN;
-  reglagesNormalises.decalageRetro = reglagesNormalises.decalageRetro || "aucun";
+  reglagesNormalises.decalageRetro = reglagesNormalises.decalageRetro === "un-titre"
+    ? "titre-face-a"
+    : reglagesNormalises.decalageRetro || "aucun";
   reglagesNormalises.irregulariteCaracteres = [true, 1, "true", "1"].includes(reglagesNormalises.irregulariteCaracteres);
+  reglagesNormalises.deplacementTextesManuel = [true, 1, "true", "1"].includes(reglagesNormalises.deplacementTextesManuel);
+  [
+    "decalageTitreAX",
+    "decalageTitreAY",
+    "decalageArtisteX",
+    "decalageArtisteY",
+    "decalageTitreBX",
+    "decalageTitreBY",
+  ].forEach((cle) => {
+    const valeur = Number(reglagesNormalises[cle]);
+    reglagesNormalises[cle] = Number.isFinite(valeur) ? Math.max(-5, Math.min(5, valeur)) : 0;
+  });
   reglagesNormalises.angleMotif = reglagesNormalises.angleMotif ?? 0;
-  reglagesNormalises.activerPatine = [true, 1, "true", "1"].includes(reglagesNormalises.activerPatine);
-  reglagesNormalises.intensitePatine = reglagesNormalises.intensitePatine ?? 55;
+  const intensitePatine = Number(reglagesNormalises.intensitePatine ?? 55);
+  reglagesNormalises.intensitePatine = Number.isFinite(intensitePatine)
+    ? Math.max(0, Math.min(100, intensitePatine))
+    : 55;
+  reglagesNormalises.activerPatine = (
+    [true, 1, "true", "1"].includes(reglagesNormalises.activerPatine)
+    && reglagesNormalises.intensitePatine > 0
+  );
   reglagesNormalises.motifFond = reglagesNormalises.motifFond ?? true;
   reglagesNormalises.motifRuban = reglagesNormalises.motifRuban ?? false;
   reglagesNormalises.motifSecondaireFond = reglagesNormalises.motifSecondaireFond ?? true;
@@ -2514,6 +2746,7 @@ function appliquerReglagesAuFormulaire(reglages) {
   synchroniserTousStylesPolices();
   chargementReglages = false;
   synchroniserValeursMarquesDepuisCommun(false);
+  mettreAJourDeplacementTextes();
   mettreAJourReglagesTexteMiseEnPage();
 }
 
@@ -2952,7 +3185,8 @@ function lireReglagesFormulaire() {
   const styleArtiste = normaliserStylePolice(elements.policeArtiste.value, elements.styleArtiste.value);
   const motifActif = elements.activerMotif.checked;
   const vignettageActif = elements.activerVignettage.checked;
-  const patineActive = elements.activerPatine.checked;
+  const intensitePatine = Number(elements.intensitePatine.value);
+  const patineActive = elements.activerPatine.checked && intensitePatine > 0;
   const panelDecor = elements.decorPanel.value || "motif";
   return {
     theme: presets[elements.modele.value]?.theme || "tout",
@@ -2977,7 +3211,7 @@ function lireReglagesFormulaire() {
         || (panelDecor === "patine" && patineActive)
     ) ? panelDecor : (motifActif ? "motif" : (vignettageActif ? "vignette" : (patineActive ? "patine" : panelDecor))),
     activerPatine: patineActive,
-    intensitePatine: Number(elements.intensitePatine.value),
+    intensitePatine,
     angle: Number(elements.angle.value),
     intensite: Number(elements.intensite.value),
     motifType: motifActif ? elements.motifType.value : "aucun",
@@ -3024,6 +3258,13 @@ function lireReglagesFormulaire() {
     retourLigneTitres: elements.retourLigneTitres.checked,
     decalageRetro: elements.decalageRetro.value,
     irregulariteCaracteres: elements.irregulariteCaracteres.checked,
+    deplacementTextesManuel: elements.deplacementTextesManuel.checked,
+    decalageTitreAX: Number(elements.decalageTitreAX.value),
+    decalageTitreAY: Number(elements.decalageTitreAY.value),
+    decalageArtisteX: Number(elements.decalageArtisteX.value),
+    decalageArtisteY: Number(elements.decalageArtisteY.value),
+    decalageTitreBX: Number(elements.decalageTitreBX.value),
+    decalageTitreBY: Number(elements.decalageTitreBY.value),
     afficherMarques: elements.afficherMarques.checked,
     couleurMarques: elements.couleurMarques.value,
     formePastille: elements.formePastille.value,
@@ -3103,7 +3344,29 @@ function enregistrerReglagesActifs() {
     enregistrerDimensionsEtiquettesVerrouillees(reglages);
     return;
   }
+  if (modeModificationEtiquettes === "toutes") {
+    reglagesParEtiquette[1] = clonerReglages(reglages);
+    if (deuxiemeEtiquetteActive()) {
+      reglagesParEtiquette[2] = clonerReglages(reglages);
+    }
+  } else {
+    reglagesParEtiquette[etiquetteActive] = reglages;
+  }
+  sauvegarderReglagesAutomatiques();
+}
+
+function verrouillerEtiquetteActiveAutomatiquement() {
+  if (modeModificationEtiquettes !== "individuel" || styleActifVerrouille()) {
+    return;
+  }
+  const cle = obtenirCleLigneApercu();
+  if (cle === null) {
+    return;
+  }
+  const reglages = lireReglagesFormulaire();
   reglagesParEtiquette[etiquetteActive] = reglages;
+  stylesVerrouillesParLigne[cle] = true;
+  reglagesParLigne[cle] = clonerReglages(reglages);
   sauvegarderReglagesAutomatiques();
 }
 
@@ -3131,6 +3394,7 @@ function obtenirEditionActive() {
 
 function changerEtiquetteActive() {
   enregistrerReglagesActifs();
+  verrouillerEtiquetteActiveAutomatiquement();
   etiquetteActive = obtenirEditionActive();
   appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
   mettreAJour();
@@ -3144,7 +3408,14 @@ function selectionnerEtiquetteDepuisApercu(numero, { ouvrirEditeur = true } = {}
   if (numero === "2" && !deuxiemeEtiquetteActive()) {
     return;
   }
+  if (numero === etiquetteActive) {
+    if (ouvrirEditeur) {
+      ouvrirEditionTexteDepuisApercu();
+    }
+    return;
+  }
   enregistrerReglagesActifs();
+  verrouillerEtiquetteActiveAutomatiquement();
   etiquetteActive = numero;
   elements.editionEtiquette.forEach((radio) => {
     radio.checked = radio.value === numero;
@@ -3354,7 +3625,7 @@ function creerSurpriseLeon(base) {
     styleTitres: Math.random() > 0.35 ? "gras" : "normal",
     styleArtiste: "gras",
     guillemetsTitres: Math.random() > 0.18,
-    decalageRetro: choisirDecalageRetroSurprise(base, ["titres-leger", "un-titre", "artiste-leger", "tout-leger", "artiste-bas"]),
+    decalageRetro: choisirDecalageRetroSurprise(base, ["titres-leger", "titre-face-a", "titre-face-b", "artiste-leger", "tout-leger", "artiste-bas"]),
     policeTitres: choisirAleatoire(["dactylo-seche", "dactylo-ronde", "journal-ancien", "terminal-carre"]),
     policeArtiste: choisirAleatoire(["mono-moderne", "compacte", "dactylo-seche", "terminal-carre"]),
     afficherMarques: false,
@@ -3549,11 +3820,10 @@ function signatureEtatReglages(reglages) {
 
 function ajusterMotifVisible() {
   elements.decorPanel.value = "motif";
-  elements.activerMotif.checked = motifDecorActifDepuisFormulaire();
+  // Une case d’application désactive uniquement sa zone. Le panneau Motif
+  // reste ouvert afin de pouvoir activer le fond, le ruban ou le secondaire.
+  elements.activerMotif.checked = true;
   synchroniserOptionsMotifSecondaire();
-  if (!elements.activerMotif.checked) {
-    elements.afficherTraitsModernes.checked = false;
-  }
   mettreAJourBoutonsDecor();
   if (elements.motifFond.checked && elements.motifType.value !== "aucun" && Number(elements.motif.value) < 25) {
     elements.motif.value = "45";
@@ -3681,6 +3951,11 @@ function mettreAJourBoutonsDecor() {
   elements.boutonPatine.setAttribute("aria-pressed", String(elements.activerPatine.checked));
 }
 
+function synchroniserPatineDepuisIntensite() {
+  elements.activerPatine.checked = Number(elements.intensitePatine.value) > 0;
+  mettreAJourBoutonsDecor();
+}
+
 function mettreAJourReglagesTexteMiseEnPage() {
   const afficherDansMiseEnPage = etapeReglageActive === "ruban" && elements.modifierTextesMiseEnPage.checked;
   elements.reglagesTexteMiseEnPage.hidden = !afficherDansMiseEnPage;
@@ -3688,6 +3963,10 @@ function mettreAJourReglagesTexteMiseEnPage() {
   if (cible && !cible.contains(elements.reglagesTextePrincipaux)) {
     cible.append(elements.reglagesTextePrincipaux);
   }
+}
+
+function mettreAJourDeplacementTextes() {
+  elements.reglagesDeplacementTextes.hidden = !elements.deplacementTextesManuel.checked;
 }
 
 function appliquerPresetMarques() {
@@ -3768,6 +4047,7 @@ function creerSauvegardeSession() {
     session: {
       etiquetteActive: actif,
       deuxiemeEtiquetteActive: deuxiemeEtiquetteActive(),
+      modeModificationEtiquettes,
       indexApercu,
       etapeReglageActive,
       stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
@@ -3841,6 +4121,10 @@ function restaurerSauvegardeSession(donnees) {
 
   reglagesParEtiquette[1] = reglagesPrincipaux;
   reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
+  modeModificationEtiquettes = session.modeModificationEtiquettes === "individuel" ? "individuel" : "toutes";
+  elements.modeModificationEtiquettes.forEach((radio) => {
+    radio.checked = radio.value === modeModificationEtiquettes;
+  });
   stylesVerrouillesParLigne = { ...(session.stylesVerrouillesParLigne || {}) };
   reglagesParLigne = Object.fromEntries(
     Object.entries(session.reglagesParLigne || {}).map(([cle, reglages]) => [
@@ -3854,6 +4138,7 @@ function restaurerSauvegardeSession(donnees) {
       ? Number(vinyle.__ordreOriginal)
       : index,
   }));
+  elements.nombreEtiquettes.value = String(Math.max(1, vinyles.length));
   enregistrerFavoris(Array.isArray(session.favoris) ? session.favoris : []);
   memoriserOrdreOriginal();
   indexApercu = Math.max(0, Math.min(Number(session.indexApercu) || 0, Math.max(0, vinyles.length - 1)));
@@ -5009,6 +5294,8 @@ function changerApercu(delta) {
   if (!lignes.length) {
     return;
   }
+  enregistrerReglagesActifs();
+  verrouillerEtiquetteActiveAutomatiquement();
   animerChangementApercu(delta);
   if (deuxiemeEtiquetteActive()) {
     const nombrePaires = Math.ceil(lignes.length / 2);
@@ -5166,7 +5453,7 @@ function mettreAJour() {
   elements.reglageRetourLigneTitres.hidden = canvasEtiquetteActive.dataset.retourLigneTitresPossible !== "true";
   elements.etat.textContent = MEDIA_MOBILE.matches
     ? ""
-    : `${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau} / ${lignes.length} - ${traduirePhrase("ligne")} ${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau}`;
+    : `${traduirePhrase("Étiquette")} ${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau} ${traduirePhrase("sur")} ${lignes.length}`;
   elements.editionTexteEtat.textContent = `${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau}/${lignes.length}`;
   mettreAJourEditeurTexte(ligneEdition);
   mettreAJourStatutCsv("CSV actif");
@@ -5262,7 +5549,7 @@ function mettreAJourInterfaceConditionnelle(reglages) {
       panel !== panelDecor
         || (panel === "motif" && !motifActif)
         || (panel === "vignette" && !vignettageActif)
-        || (panel === "patine" && !patineActive),
+        || (panel === "patine" && !patineActive && panelDecor !== "patine"),
     );
   });
   elements.reglagesMotif.forEach((champ) => {
@@ -5301,6 +5588,7 @@ function mettreAJourInterfaceConditionnelle(reglages) {
       panelDecor !== "vignette" || !vignettageActif || reglages.modeVignette === "aucun",
     );
   });
+  elements.reglagesDeplacementTextes.hidden = !reglages.deplacementTextesManuel;
   mettreAJourReglagesTexteMiseEnPage();
   mettreAJourPanneauxSelonContenu();
 }
@@ -5342,9 +5630,23 @@ function mettreAJourValeursRange() {
 
 function formaterValeurRange(cle, valeur, unite) {
   const nombre = Number(valeur);
-  if (cle === "tailleTitres" && nombre > LIMITE_TAILLE_TITRES) {
-    const espacement = Math.round(((nombre - LIMITE_TAILLE_TITRES) / 40) * 100);
-    return `${LIMITE_TAILLE_TITRES}% · ${traduirePhrase("écart")} +${espacement}%`;
+  if (/^decalage(?:Titre[AB]|Artiste)[XY]$/.test(cle)) {
+    if (nombre === 0) {
+      return "0%";
+    }
+    const horizontal = cle.endsWith("X");
+    const direction = horizontal
+      ? (nombre < 0 ? "←" : "→")
+      : (nombre < 0 ? "↑" : "↓");
+    return `${direction} ${Math.abs(nombre)}%`;
+  }
+  const limiteSurregime = {
+    tailleTitres: LIMITE_TAILLE_TITRES,
+    tailleArtiste: LIMITE_TAILLE_ARTISTE,
+  }[cle];
+  if (limiteSurregime && nombre > limiteSurregime) {
+    const espacement = Math.round(((nombre - limiteSurregime) / 40) * 100);
+    return `${limiteSurregime}% · ${traduirePhrase("écart")} +${espacement}%`;
   }
   if (cle.toLowerCase().startsWith("angle")) {
     return `${nombre}°`;

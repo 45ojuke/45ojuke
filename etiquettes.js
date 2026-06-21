@@ -333,6 +333,7 @@ function dessinerTitresCentres(ctx, ligne, reglages, largeur, hauteur, geometrie
     reglages.couleur2,
     reglages.couleurTitreFaceA,
     reglages.couleurTitreFaceAManuelle,
+    "titreA",
   );
   dessinerTitre(
     ctx,
@@ -344,6 +345,7 @@ function dessinerTitresCentres(ctx, ligne, reglages, largeur, hauteur, geometrie
     reglages.couleur3,
     reglages.couleurTitreFaceB,
     reglages.couleurTitreFaceBManuelle,
+    "titreB",
   );
 }
 
@@ -637,6 +639,7 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
     fondHaut,
     reglages.couleurTitreFaceA,
     reglages.couleurTitreFaceAManuelle,
+    "titreA",
   );
   dessinerTitre(
     ctx,
@@ -648,6 +651,7 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
     fondBas,
     reglages.couleurTitreFaceB,
     reglages.couleurTitreFaceBManuelle,
+    "titreB",
   );
   dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, yBas - yHaut, reglages, fondArtiste);
 
@@ -742,6 +746,7 @@ function dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure) 
     fondHaut,
     reglages.couleurTitreFaceA,
     reglages.couleurTitreFaceAManuelle,
+    "titreA",
   );
   dessinerTitre(
     ctx,
@@ -753,20 +758,29 @@ function dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure) 
     fondBas,
     reglages.couleurTitreFaceB,
     reglages.couleurTitreFaceBManuelle,
+    "titreB",
   );
   dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, yBas - yHaut, reglages, fondArtiste);
 
 }
 
 function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages, couleurFond) {
-  let taille = 32 * reglages.tailleArtiste / 100;
+  const decalageManuel = calculerDecalageManuelTexte(ctx, reglages, "artiste");
+  x += decalageManuel.x;
+  y += decalageManuel.y;
+  const valeurTailleArtiste = Number(reglages.tailleArtiste) || 100;
+  let taille = 32 * Math.min(200, valeurTailleArtiste) / 100;
   const tailleMax = Math.max(10, hauteurZone * 0.48);
   taille = Math.min(taille, tailleMax);
+  const espacementLettres = valeurTailleArtiste > 200
+    ? taille * ((Math.min(240, valeurTailleArtiste) - 200) / 40) * 0.13
+    : 0;
   const style = normaliserStylePolice(reglages.policeArtiste, reglages.styleArtiste);
   const poids = poidsPolice(reglages.policeArtiste, styleTexteEnGras(style) ? 700 : 400);
   const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
   const decalageRetro = modeDecalageRetro(reglages);
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
+  ctx.letterSpacing = `${espacementLettres}px`;
   const contenu = choisirTexteArtiste(ctx, texte, largeurMax).toLocaleUpperCase("fr-FR");
   let mesure = ctx.measureText(contenu).width;
   if (mesure > largeurMax) {
@@ -787,6 +801,7 @@ function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages
     transformerArtisteRetro(decalageRetro, taille),
     reglages.irregulariteCaracteres,
   );
+  ctx.letterSpacing = "0px";
 }
 
 function dessinerTraitsModernes(ctx, reglages, largeur, hauteur) {
@@ -1536,7 +1551,10 @@ function dessinerVignette(ctx, reglages, largeur, hauteur) {
   ctx.restore();
 }
 
-function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, couleurTitre, couleurManuelle) {
+function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, couleurTitre, couleurManuelle, zoneTexte) {
+  const decalageManuel = calculerDecalageManuelTexte(ctx, reglages, zoneTexte);
+  x += decalageManuel.x;
+  y += decalageManuel.y;
   const valeurTailleTitres = Number(reglages.tailleTitres) || 100;
   const taille = 22 * Math.min(200, valeurTailleTitres) / 100;
   const espacementLettres = valeurTailleTitres > 200
@@ -1576,7 +1594,7 @@ function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, coul
     retourLigneAutomatique
       ? (reglages.guillemetsTitres ? composerLignesTitreAvecParentheseSeparee : composerLignesTitre)
       : (reglages.guillemetsTitres ? composerLigneUniqueTitreAvecEspaceParenthese : null),
-    decalageRetro !== "aucun" ? (ligne, index, total, taillePolice) => transformerLigneTitreRetro(decalageRetro, ligne, index, total, taillePolice) : null,
+    decalageRetro !== "aucun" ? (ligne, index, total, taillePolice) => transformerLigneTitreRetro(decalageRetro, zoneTexte, ligne, index, total, taillePolice) : null,
     reglages.irregulariteCaracteres,
   );
   if (reglages.guillemetsTitres) {
@@ -1589,18 +1607,43 @@ function modeDecalageRetro(reglages) {
   return reglages.decalageRetro || "aucun";
 }
 
+function calculerDecalageManuelTexte(ctx, reglages, zoneTexte) {
+  if (!reglages.deplacementTextesManuel) {
+    return { x: 0, y: 0 };
+  }
+  const reglagesZone = {
+    titreA: ["decalageTitreAX", "decalageTitreAY"],
+    artiste: ["decalageArtisteX", "decalageArtisteY"],
+    titreB: ["decalageTitreBX", "decalageTitreBY"],
+  }[zoneTexte];
+  if (!reglagesZone) {
+    return { x: 0, y: 0 };
+  }
+  const horizontal = Math.max(-5, Math.min(5, Number(reglages[reglagesZone[0]]) || 0));
+  const vertical = Math.max(-5, Math.min(5, Number(reglages[reglagesZone[1]]) || 0));
+  return {
+    x: ctx.canvas.width * horizontal / 100,
+    y: ctx.canvas.height * vertical / 100,
+  };
+}
+
 function styleTexteEnGras(style) {
   return style === "gras" || style === "gras-italique";
 }
 
-function transformerLigneTitreRetro(mode, ligne, index, total, taillePolice) {
+function transformerLigneTitreRetro(mode, zoneTexte, ligne, index, total, taillePolice) {
   if (ligneEstParenthese(ligne)) {
     return { angle: 0, decalageX: 0, decalageY: 0 };
   }
-  if (!["titres-leger", "un-titre", "tout-leger", "tout-bas-decale"].includes(mode)) {
+  if (!["titres-leger", "un-titre", "titre-face-a", "titre-face-b", "tout-leger", "tout-bas-decale"].includes(mode)) {
     return { angle: 0, decalageX: 0, decalageY: 0 };
   }
-  if (mode === "un-titre" && index !== 0) {
+  const zoneCiblee = mode === "titre-face-a" || mode === "un-titre"
+    ? "titreA"
+    : mode === "titre-face-b"
+      ? "titreB"
+      : null;
+  if (zoneCiblee && zoneTexte !== zoneCiblee) {
     return { angle: 0, decalageX: 0, decalageY: 0 };
   }
   const alternance = index % 2 === 0 ? -1 : 1;
@@ -1700,12 +1743,20 @@ function dessinerGuillemetIncline(ctx, texte, x, y, angle, taille) {
 }
 
 function dessinerArtiste(ctx, texte, x, y, largeurMax, reglages, couleurFond = reglages.couleurRuban) {
-  let taille = 32 * reglages.tailleArtiste / 100;
+  const decalageManuel = calculerDecalageManuelTexte(ctx, reglages, "artiste");
+  x += decalageManuel.x;
+  y += decalageManuel.y;
+  const valeurTailleArtiste = Number(reglages.tailleArtiste) || 100;
+  let taille = 32 * Math.min(200, valeurTailleArtiste) / 100;
+  const espacementLettres = valeurTailleArtiste > 200
+    ? taille * ((Math.min(240, valeurTailleArtiste) - 200) / 40) * 0.13
+    : 0;
   const style = normaliserStylePolice(reglages.policeArtiste, reglages.styleArtiste);
   const poids = poidsPolice(reglages.policeArtiste, styleTexteEnGras(style) ? 700 : 400);
   const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
   const decalageRetro = modeDecalageRetro(reglages);
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
+  ctx.letterSpacing = `${espacementLettres}px`;
   const contenu = choisirTexteArtiste(ctx, texte, largeurMax).toLocaleUpperCase("fr-FR");
   let mesure = ctx.measureText(contenu).width;
   if (mesure > largeurMax) {
@@ -1726,6 +1777,7 @@ function dessinerArtiste(ctx, texte, x, y, largeurMax, reglages, couleurFond = r
     transformerArtisteRetro(decalageRetro, taille),
     reglages.irregulariteCaracteres,
   );
+  ctx.letterSpacing = "0px";
 }
 
 function choisirTexteArtiste(ctx, artiste, largeurMax) {

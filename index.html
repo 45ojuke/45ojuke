@@ -47,7 +47,7 @@
     <link rel="apple-touch-icon" href="/Images/icons/apple-touch-icon.png" />
     <link rel="preload" as="image" href="./Images/fond-45ojuke.jpeg" />
     <link rel="stylesheet" href="./polices-locales.css" />
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./style.css?v=20260621-1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -230,11 +230,31 @@
             <p class="assistant-reglages__aide" id="assistantAide">Gardez l'aperçu sous les yeux pendant chaque réglage.</p>
           </div>
 
+          <section class="groupe onglet-panneau" data-tab-panel="organisation" data-configuration-etiquettes hidden>
+            <div class="grille grille-organisation">
+              <label class="champ champ-large">
+                Combien d’étiquettes souhaitez-vous créer ?
+                <input id="nombreEtiquettes" type="number" min="1" max="500" step="1" inputmode="numeric" />
+              </label>
+              <fieldset class="champ champ-large choix-modification-etiquettes">
+                <legend>Comment souhaitez-vous les modifier ?</legend>
+                <label>
+                  <input name="modeModificationEtiquettes" type="radio" value="toutes" checked />
+                  <span><strong>Toutes les étiquettes</strong><small>Chaque modification s’applique à toutes les étiquettes. Celles verrouillées avec le cadenas conservent leur style.</small></span>
+                </label>
+                <label>
+                  <input name="modeModificationEtiquettes" type="radio" value="individuel" />
+                  <span><strong>Une étiquette à la fois</strong><small>Mode avancé : dès que vous changez d’étiquette, la précédente est automatiquement verrouillée pour conserver son style. Vous pouvez la déverrouiller à tout moment pour la modifier à nouveau.</small></span>
+                </label>
+              </fieldset>
+            </div>
+          </section>
+
           <section class="groupe onglet-panneau" data-tab-panel="style">
             <div class="grille grille-style-secondaire">
               <select id="modele" hidden></select>
               <div class="mise-en-avant-secondaire champ-large" id="miseEnAvantSecondaire">
-                <fieldset class="selecteur-secondaire" aria-label="Ajouter une deuxième étiquette">
+                <fieldset class="selecteur-secondaire" aria-label="Ajouter un deuxième style">
                   <label><input id="deuxiemeEtiquetteNon" name="deuxiemeEtiquette" type="radio" value="non" checked /> Non</label>
                   <label><input id="deuxiemeEtiquetteOui" name="deuxiemeEtiquette" type="radio" value="oui" /> Oui</label>
                 </fieldset>
@@ -270,33 +290,37 @@
 
           <section class="groupe onglet-panneau" data-tab-panel="donnees" hidden>
             <div class="grille">
-              <p class="champ-description champ-large" id="statutCsv">Chargement du CSV...</p>
               <input id="importStyleFile" type="file" accept="application/json,.json" hidden />
               <input id="importSauvegardeFile" type="file" accept="application/json,.json" hidden />
               <input id="importCsv" type="file" accept=".csv,text/csv" hidden />
               <div class="barre-actions barre-actions--csv champ-large">
                 <button class="bouton bouton-principal bouton-action-large" id="ouvrirTableauCsv" type="button">Modifier les données</button>
-                <div class="bloc-fichier">
-                  <p class="bloc-fichier__titre">Sauvegarde <button class="aide-option" type="button" data-help-key="Aide sauvegarde session">?</button></p>
-                  <div class="bloc-fichier__actions">
-                    <button class="bouton bouton-secondaire" id="exporterSauvegardeDonnees" type="button">Télécharger sauvegarde</button>
-                    <button class="bouton" id="importerSauvegardeDonnees" type="button">Importer sauvegarde</button>
+                <details class="panneau-fichiers">
+                  <summary class="panneau-fichiers__titre">Restauration / Sauvegarde</summary>
+                  <div class="panneau-fichiers__contenu">
+                    <div class="bloc-fichier">
+                      <p class="bloc-fichier__titre">Sauvegarde <button class="aide-option" type="button" data-help-key="Aide sauvegarde session">?</button></p>
+                      <div class="bloc-fichier__actions">
+                        <button class="bouton bouton-secondaire" id="exporterSauvegardeDonnees" type="button">Télécharger sauvegarde</button>
+                        <button class="bouton" id="importerSauvegardeDonnees" type="button">Importer sauvegarde</button>
+                      </div>
+                    </div>
+                    <div class="bloc-fichier">
+                      <p class="bloc-fichier__titre">Style de l’étiquette <button class="aide-option" type="button" data-help-key="Aide style export import">?</button></p>
+                      <div class="bloc-fichier__actions">
+                        <button class="bouton bouton-secondaire" id="copierReglagesDonnees" type="button">Exporter style</button>
+                        <button class="bouton" id="importerStyleDonnees" type="button">Importer style</button>
+                      </div>
+                    </div>
+                    <div class="bloc-fichier">
+                      <p class="bloc-fichier__titre">Données du tableau <button class="aide-option" type="button" data-help-key="Aide donnees CSV">?</button></p>
+                      <div class="bloc-fichier__actions">
+                        <button class="bouton" id="choisirCsv" type="button">Importer CSV</button>
+                        <button class="bouton bouton-secondaire" id="exporterCsv" type="button">Exporter CSV</button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div class="bloc-fichier">
-                  <p class="bloc-fichier__titre">Style de l’étiquette <button class="aide-option" type="button" data-help-key="Aide style export import">?</button></p>
-                  <div class="bloc-fichier__actions">
-                    <button class="bouton bouton-secondaire" id="copierReglagesDonnees" type="button">Exporter style</button>
-                    <button class="bouton" id="importerStyleDonnees" type="button">Importer style</button>
-                  </div>
-                </div>
-                <div class="bloc-fichier">
-                  <p class="bloc-fichier__titre">Données du tableau <button class="aide-option" type="button" data-help-key="Aide donnees CSV">?</button></p>
-                  <div class="bloc-fichier__actions">
-                    <button class="bouton" id="choisirCsv" type="button">Importer CSV</button>
-                    <button class="bouton bouton-secondaire" id="exporterCsv" type="button">Exporter CSV</button>
-                  </div>
-                </div>
+                </details>
               </div>
             </div>
           </section>
@@ -315,7 +339,19 @@
                 <label class="champ">Artiste <input id="couleurArtiste" type="color" /></label>
               </div>
               <label class="champ champ-surregime"><span class="champ__libelle">Taille des titres <span class="valeur-range" data-range-value="tailleTitres"></span></span><input id="tailleTitres" type="range" min="60" max="240" step="5" /></label>
-              <label class="champ"><span class="champ__libelle">Taille de l’artiste <span class="valeur-range" data-range-value="tailleArtiste"></span></span><input id="tailleArtiste" type="range" min="70" max="200" step="5" /></label>
+              <label class="champ champ-surregime"><span class="champ__libelle">Taille de l’artiste <span class="valeur-range" data-range-value="tailleArtiste"></span></span><input id="tailleArtiste" type="range" min="70" max="240" step="5" /></label>
+              <label class="champ champ-large">Déplacer les textes manuellement <input id="deplacementTextesManuel" type="checkbox" /></label>
+              <div class="champ-large reglages-deplacement-textes" id="reglagesDeplacementTextes" hidden>
+                <p class="reglages-deplacement-textes__titre">Titre face A</p>
+                <label class="champ"><span class="champ__libelle">Horizontal <span class="valeur-range" data-range-value="decalageTitreAX"></span></span><input id="decalageTitreAX" type="range" min="-5" max="5" step="0.5" value="0" /></label>
+                <label class="champ"><span class="champ__libelle">Vertical <span class="valeur-range" data-range-value="decalageTitreAY"></span></span><input id="decalageTitreAY" type="range" min="-5" max="5" step="0.5" value="0" /></label>
+                <p class="reglages-deplacement-textes__titre">Artiste</p>
+                <label class="champ"><span class="champ__libelle">Horizontal <span class="valeur-range" data-range-value="decalageArtisteX"></span></span><input id="decalageArtisteX" type="range" min="-5" max="5" step="0.5" value="0" /></label>
+                <label class="champ"><span class="champ__libelle">Vertical <span class="valeur-range" data-range-value="decalageArtisteY"></span></span><input id="decalageArtisteY" type="range" min="-5" max="5" step="0.5" value="0" /></label>
+                <p class="reglages-deplacement-textes__titre">Titre face B</p>
+                <label class="champ"><span class="champ__libelle">Horizontal <span class="valeur-range" data-range-value="decalageTitreBX"></span></span><input id="decalageTitreBX" type="range" min="-5" max="5" step="0.5" value="0" /></label>
+                <label class="champ"><span class="champ__libelle">Vertical <span class="valeur-range" data-range-value="decalageTitreBY"></span></span><input id="decalageTitreBY" type="range" min="-5" max="5" step="0.5" value="0" /></label>
+              </div>
               <label class="champ">Style des titres
                 <select id="styleTitres">
                   <option value="normal">Normal</option>
@@ -332,15 +368,16 @@
                   <option value="gras-italique">Gras italique</option>
                 </select>
               </label>
-              <label class="champ champ-large">Désalignement rétro
+              <label class="champ champ-large">Décalage rétro automatique
                 <select id="decalageRetro">
                   <option value="aucun">Aucun</option>
-                  <option value="titres-leger">Titres légers</option>
-                  <option value="un-titre">Une ligne de titre</option>
-                  <option value="artiste-leger">Artiste léger</option>
-                  <option value="tout-leger">Titres + artiste légers</option>
-                  <option value="artiste-bas">Artiste plus bas</option>
-                  <option value="tout-bas-decale">Tout plus bas et décalé</option>
+                  <option value="titres-leger">Titres légèrement décalés</option>
+                  <option value="titre-face-a">Titre face A uniquement</option>
+                  <option value="titre-face-b">Titre face B uniquement</option>
+                  <option value="artiste-leger">Artiste légèrement décalé</option>
+                  <option value="tout-leger">Titres et artiste légèrement décalés</option>
+                  <option value="artiste-bas">Artiste abaissé</option>
+                  <option value="tout-bas-decale">Tout abaissé et décalé</option>
                 </select>
               </label>
               <label class="champ champ-large">Effet rétro sur les titres <input id="guillemetsTitres" type="checkbox" /></label>
@@ -363,7 +400,7 @@
                 </div>
               </fieldset>
               <p class="champ-description champ-large" data-decor-panel="patine">Vieillit toute l’étiquette : couleurs légèrement passées, grain du papier, frottements et usure des bords.</p>
-              <label class="champ champ-large" data-decor-panel="patine"><span class="champ__libelle">Intensité <span class="valeur-range" data-range-value="intensitePatine" data-range-unit="%"></span></span><input id="intensitePatine" type="range" min="1" max="100" step="1" value="55" /></label>
+              <label class="champ champ-large" data-decor-panel="patine"><span class="champ__libelle">Intensité <span class="valeur-range" data-range-value="intensitePatine" data-range-unit="%"></span></span><input id="intensitePatine" type="range" min="0" max="100" step="1" value="55" /></label>
               <label class="champ" data-decor-panel="motif">Motif de fond
                 <select id="motifType">
                   <option value="aucun">Aucun</option>
@@ -379,14 +416,18 @@
               </label>
               <div class="champ champ-large options-bordure" data-decor-panel="motif">
                 <span class="champ__libelle">Motif appliqué</span>
-                <div class="options-bordure__choix">
+                <div class="options-bordure__choix options-bordure__choix--simple">
                   <label class="option-case">Fond <input id="motifFond" type="checkbox" checked /></label>
-                  <label class="option-case">Ruban <input id="motifRuban" type="checkbox" /></label>
                 </div>
               </div>
               <label class="champ" data-decor-panel="motif" data-motif-reglage>Couleur <input id="couleurMotif" type="color" /></label>
               <label class="champ" data-decor-panel="motif" data-motif-reglage><span class="champ__libelle">Opacité <span class="valeur-range" data-range-value="motif" data-range-unit="%"></span></span><input id="motif" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-decor-panel="motif" data-motif-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMotif"></span></span><input id="angleMotif" type="range" min="-80" max="80" step="1" /></label>
+              <div class="champ champ-large options-bordure" data-decor-panel="motif">
+                <div class="options-bordure__choix options-bordure__choix--simple">
+                  <label class="option-case">Ruban <input id="motifRuban" type="checkbox" /></label>
+                </div>
+              </div>
               <label class="champ" data-decor-panel="motif" data-motif-ruban-reglage>Motif ruban
                 <select id="motifRubanType">
                   <option value="aucun">Aucun</option>

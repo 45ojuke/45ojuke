@@ -14,6 +14,7 @@ const CHAMPS_COMMUNS = [
   "styleTitres",
   "styleArtiste",
   "guillemetsTitres",
+  "retourLigneTitres",
   "decalageRetro",
   "irregulariteCaracteres",
   "largeurEtiquette",
@@ -68,6 +69,21 @@ function ajouterCouleursTexteManuelles(exportNettoye, reglages) {
       exportNettoye[couleur] = reglages[couleur];
     }
   });
+}
+
+function ajouterDeplacementTextesActif(exportNettoye, reglages) {
+  if (reglages.deplacementTextesManuel !== true) {
+    return;
+  }
+  copierChamps(exportNettoye, reglages, [
+    "deplacementTextesManuel",
+    "decalageTitreAX",
+    "decalageTitreAY",
+    "decalageArtisteX",
+    "decalageArtisteY",
+    "decalageTitreBX",
+    "decalageTitreBY",
+  ]);
 }
 
 function ajouterDecorActif(exportNettoye, reglages) {
@@ -227,6 +243,7 @@ export function preparerReglagesPourExport(reglages) {
   }
 
   ajouterCouleursTexteManuelles(exportNettoye, reglages);
+  ajouterDeplacementTextesActif(exportNettoye, reglages);
   ajouterDecorActif(exportNettoye, reglages);
   ajouterMarquesActives(exportNettoye, reglages);
 
@@ -251,5 +268,12 @@ export function initialiserOptionsAbsentesPourImport(reglages, donnees) {
     synchroniserMarques: true,
     marquesVerticalesJEAN: false,
     limiterMarquesBandeSurprise: false,
+    deplacementTextesManuel: false,
+    decalageTitreAX: 0,
+    decalageTitreAY: 0,
+    decalageArtisteX: 0,
+    decalageArtisteY: 0,
+    decalageTitreBX: 0,
+    decalageTitreBY: 0,
   });
 }

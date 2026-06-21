@@ -825,6 +825,63 @@ body:not(.is-intro-active) .hero-site__contenu {
   display: none !important;
 }
 
+.grille.grille-organisation {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.choix-modification-etiquettes {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.choix-modification-etiquettes legend {
+  margin-bottom: 8px;
+  color: var(--accent-2);
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.choix-modification-etiquettes label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--bordure);
+  border-radius: 9px;
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.58);
+  cursor: pointer;
+}
+
+.choix-modification-etiquettes label:has(input:checked) {
+  border-color: rgba(145, 26, 16, 0.55);
+  background: rgba(145, 26, 16, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(145, 26, 16, 0.1);
+}
+
+.choix-modification-etiquettes input {
+  margin-top: 3px;
+}
+
+.choix-modification-etiquettes span {
+  display: grid;
+  gap: 3px;
+}
+
+.choix-modification-etiquettes strong {
+  color: var(--accent-2);
+  font-size: 0.82rem;
+}
+
+.choix-modification-etiquettes small {
+  color: var(--texte-doux);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .grille {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -914,6 +971,33 @@ body:not(.is-intro-active) .hero-site__contenu {
 
 .champ-masque {
   display: none !important;
+}
+
+.reglages-deplacement-textes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 12px;
+  margin-top: 2px;
+  padding: 8px 10px 4px;
+  border: 1px solid var(--bordure-legere);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.reglages-deplacement-textes__titre {
+  grid-column: 1 / -1;
+  margin: 7px 0 0;
+  color: var(--texte);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.reglages-deplacement-textes__titre:first-child {
+  margin-top: 0;
+}
+
+.reglages-deplacement-textes .champ:has(input[type="range"]) {
+  grid-column: auto;
 }
 
 .champ-description {
@@ -1027,6 +1111,10 @@ body:not(.is-intro-active) .hero-site__contenu {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.options-bordure__choix--simple {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .option-case {
@@ -1555,6 +1643,75 @@ body:not(.is-intro-active) .hero-site__contenu {
   background: var(--surface);
   color: var(--texte);
   box-shadow: 0 24px 70px rgba(7, 7, 5, 0.28);
+}
+
+.fenetre-choix-csv {
+  width: min(620px, calc(100vw - 28px));
+  max-height: min(760px, calc(100dvh - 28px));
+  padding: 0;
+  border: 1px solid rgba(145, 26, 16, 0.22);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--texte);
+  box-shadow: 0 24px 70px rgba(7, 7, 5, 0.28);
+}
+
+.fenetre-choix-csv::backdrop {
+  background: rgba(7, 7, 5, 0.42);
+}
+
+.fenetre-choix-csv__contenu {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+
+.fenetre-choix-csv__entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fenetre-choix-csv__entete .bouton {
+  width: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0;
+  font-size: 1.35rem;
+}
+
+.fenetre-choix-csv__texte {
+  margin: 0;
+  color: var(--texte-doux);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.fenetre-choix-csv__exemple {
+  max-width: 100%;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  overflow-x: auto;
+  color: var(--texte);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.fenetre-choix-csv__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fenetre-choix-csv__actions .bouton {
+  min-height: 48px;
+  text-align: center;
+  white-space: normal;
 }
 
 .fenetre-csv {
@@ -2204,6 +2361,49 @@ body:not(.is-intro-active) .hero-site__contenu {
   min-height: 42px;
 }
 
+.panneau-fichiers {
+  min-width: 0;
+  border: 1px solid rgba(138, 85, 53, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 250, 238, 0.52);
+  overflow: hidden;
+}
+
+.panneau-fichiers__titre {
+  position: relative;
+  padding: 13px 42px 13px 14px;
+  color: var(--texte-doux);
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+  list-style: none;
+}
+
+.panneau-fichiers__titre::-webkit-details-marker {
+  display: none;
+}
+
+.panneau-fichiers__titre::after {
+  content: "›";
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  font-size: 1.35rem;
+  line-height: 1;
+  transform: translateY(-50%) rotate(90deg);
+  transition: transform 160ms ease;
+}
+
+.panneau-fichiers[open] .panneau-fichiers__titre::after {
+  transform: translateY(-50%) rotate(-90deg);
+}
+
+.panneau-fichiers__contenu {
+  display: grid;
+  gap: 10px;
+  padding: 0 10px 10px;
+}
+
 .bloc-fichier {
   min-width: 0;
   display: grid;
@@ -2521,10 +2721,48 @@ body.is-favoris-ouverts .scene {
   box-shadow: 0 0 0 3px rgba(138, 85, 53, 0.14);
 }
 
-.onglet-panneau.is-verrouille,
 .galerie-modeles.is-verrouille {
   opacity: 0.48;
   filter: grayscale(0.3);
+}
+
+.onglet-panneau.is-verrouille {
+  position: relative;
+  cursor: pointer;
+}
+
+.onglet-panneau.is-verrouille > :not(.message-panneau-verrouille) {
+  opacity: 0.48;
+  filter: grayscale(0.3);
+}
+
+.message-panneau-verrouille {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  z-index: 4;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  border: 1px solid rgba(138, 85, 53, 0.38);
+  border-radius: 9px;
+  padding: 8px 11px;
+  background: rgba(255, 250, 229, 0.98);
+  box-shadow: 0 8px 22px rgba(31, 21, 14, 0.18);
+  color: var(--accent-2);
+  font-size: 0.72rem;
+  font-weight: 850;
+  line-height: 1.3;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -5px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.message-panneau-verrouille.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .apercu-image.is-verrouillee {
@@ -3328,6 +3566,14 @@ body.is-favoris-ouverts .scene {
     color: #fff;
     border-color: transparent;
     background: var(--accent-2);
+  }
+
+  .fenetre-choix-csv__contenu {
+    padding: 16px;
+  }
+
+  .fenetre-choix-csv__actions {
+    grid-template-columns: 1fr;
   }
 
   .fenetre-csv {
