@@ -5490,11 +5490,11 @@ function ouvrirDialogueImpression(lignes) {
     const libelleInitial = boutonImpression.textContent;
     boutonImpression.disabled = true;
     boutonImpression.textContent = traduirePhrase("Préparation...");
+    envoyerJsonStyle("pdf_downloaded", creerPayloadJsonStyle());
     const lignesSortie = preparerLignesSortie(selectionLignes, { vierges: viergesInput.checked });
     await attendreRenduInterface();
     try {
       await telechargerPdf(lignesSortie);
-      envoyerJsonStyle("pdf_downloaded", creerPayloadJsonStyle());
       dialogue.close();
     } catch {
       message.hidden = false;
