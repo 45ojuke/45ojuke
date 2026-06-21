@@ -322,7 +322,7 @@ let signatureDerniereVarianteCouleur = "";
 let cycleVarianteBouton = null;
 let indexTeinteActif = -1;
 let ignorerProchainClicApercu = false;
-let etapeReglageActive = "style";
+let etapeReglageActive = "reglages";
 const reglagesParEtiquette = {
   1: null,
   2: null,
@@ -2240,7 +2240,7 @@ function choisirModeleDepuisAccueil(evenement) {
   if (bouton.dataset.styleId) {
     afficherApercuApresChoixModele();
     if (appliquerStyleEtiquetteEnregistre(bouton.dataset.styleId)) {
-      activerEtapeReglage("style");
+      activerEtapeReglage("reglages");
       mettreAJour();
       return;
     }
@@ -2253,7 +2253,7 @@ function choisirModeleDepuisAccueil(evenement) {
     return;
   }
   afficherApercuApresChoixModele();
-  activerEtapeReglage("style");
+  activerEtapeReglage("reglages");
   mettreAJour();
 }
 
