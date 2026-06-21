@@ -3498,6 +3498,7 @@ body.is-favoris-ouverts .scene {
     min-height: var(--hauteur-controles-mobile, auto);
     max-height: var(--hauteur-controles-mobile, none);
     overflow-y: auto;
+    overflow-anchor: none;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
@@ -3590,32 +3591,11 @@ body.is-favoris-ouverts .scene {
   }
 
   .zoom-apercu {
-    grid-template-columns: 28px 54px 28px auto;
-    gap: 5px;
-    padding: 1px 3px;
+    display: none;
   }
 
   .regle-apercu {
-    height: 22px;
-  }
-
-  .regle-apercu__graduations {
-    height: 10px;
-    background-size: auto 3px, auto 6px, auto 10px;
-  }
-
-  .regle-apercu__nombres {
-    top: 11px;
-  }
-
-  .regle-apercu__nombres span {
-    font-size: 0.5rem;
-  }
-
-  .regle-apercu__unite {
-    top: 11px;
-    left: calc(100% + 5px);
-    font-size: 0.5rem;
+    display: none;
   }
 
   .zoom-apercu__curseur {

@@ -1729,15 +1729,7 @@ function ajusterHauteurPanneauOptionsMobile() {
     formulaire.style.removeProperty("--hauteur-controles-mobile");
     return;
   }
-  // Sur Safari mobile, recalculer la hauteur du conteneur défilant pendant
-  // le glissement d'un range peut remettre son scrollTop à zéro.
-  if (document.body.classList.contains("is-range-dragging")) {
-    return;
-  }
   requestAnimationFrame(() => {
-    if (document.body.classList.contains("is-range-dragging")) {
-      return;
-    }
     const viewport = window.visualViewport;
     const hauteurVue = viewport?.height || window.innerHeight;
     const hautVue = viewport?.offsetTop || 0;
@@ -1745,10 +1737,7 @@ function ajusterHauteurPanneauOptionsMobile() {
     const margeBasse = 12;
     const { top } = formulaire.getBoundingClientRect();
     const hauteurDisponible = Math.max(240, hauteurVue + hautVue - top - hauteurPied - margeBasse);
-    const nouvelleHauteur = `${Math.round(hauteurDisponible)}px`;
-    if (formulaire.style.getPropertyValue("--hauteur-controles-mobile") !== nouvelleHauteur) {
-      formulaire.style.setProperty("--hauteur-controles-mobile", nouvelleHauteur);
-    }
+    formulaire.style.setProperty("--hauteur-controles-mobile", `${Math.round(hauteurDisponible)}px`);
   });
 }
 
@@ -2923,6 +2912,29 @@ function rangeDepuisCible(cible) {
 function brancherInteractionCurseursTactiles() {
   let rangeActif = null;
   let pointeurRangeActif = null;
+  let positionPanneauVerrouillee = null;
+
+  const verrouillerPositionPanneau = () => {
+    positionPanneauVerrouillee = {
+      panneau: elements.formulaire.scrollTop,
+      page: window.scrollY,
+    };
+  };
+
+  const restaurerPositionPanneau = () => {
+    if (!positionPanneauVerrouillee) {
+      return;
+    }
+    elements.formulaire.scrollTop = positionPanneauVerrouillee.panneau;
+    if (window.scrollY !== positionPanneauVerrouillee.page) {
+      window.scrollTo(window.scrollX, positionPanneauVerrouillee.page);
+    }
+  };
+
+  const protegerPositionApresRendu = () => {
+    restaurerPositionPanneau();
+    requestAnimationFrame(restaurerPositionPanneau);
+  };
 
   const appliquerValeurDepuisPosition = (range, clientX) => {
     const rect = range.getBoundingClientRect();
@@ -2940,6 +2952,7 @@ function brancherInteractionCurseursTactiles() {
     const precision = String(range.step || "").split(".")[1]?.length || 0;
     range.value = String(Number(Math.max(min, Math.min(max, valeur)).toFixed(precision)));
     range.dispatchEvent(new Event("input", { bubbles: true }));
+    protegerPositionApresRendu();
   };
 
   const terminerInteraction = () => {
@@ -2947,15 +2960,24 @@ function brancherInteractionCurseursTactiles() {
       return;
     }
     rangeActif.dispatchEvent(new Event("change", { bubbles: true }));
+    protegerPositionApresRendu();
     rangeActif = null;
     pointeurRangeActif = null;
     document.body.classList.remove("is-range-dragging");
+    requestAnimationFrame(() => {
+      restaurerPositionPanneau();
+      positionPanneauVerrouillee = null;
+    });
   };
 
   elements.formulaire.addEventListener("pointerdown", (evenement) => {
     const range = rangeDepuisCible(evenement.target);
     if (!range) {
       return;
+    }
+    verrouillerPositionPanneau();
+    if (evenement.pointerType !== "mouse" && evenement.cancelable) {
+      evenement.preventDefault();
     }
     rangeActif = range;
     pointeurRangeActif = evenement.pointerId;
