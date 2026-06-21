@@ -2445,7 +2445,6 @@ function appliquerReglagesAuFormulaire(reglages) {
   elements.activerVignettage.checked = reglagesNormalises.modeVignette !== "aucun";
   elements.activerPatine.checked = reglagesNormalises.activerPatine;
   const decorActif = decorActifDepuisPanel();
-  rendreDecorExclusif(decorActif);
   if (decorActif) {
     elements.decorPanel.value = decorActif;
   }
@@ -3485,7 +3484,6 @@ function signatureStyleEnregistre(reglages) {
 function ajusterMotifVisible() {
   elements.decorPanel.value = "motif";
   elements.activerMotif.checked = motifDecorActifDepuisFormulaire();
-  rendreDecorExclusif(elements.activerMotif.checked ? "motif" : null);
   synchroniserOptionsMotifSecondaire();
   if (!elements.activerMotif.checked) {
     elements.afficherTraitsModernes.checked = false;
@@ -3520,7 +3518,6 @@ function motifDecorActifDepuisFormulaire() {
 function ajusterVignetteVisible() {
   elements.decorPanel.value = "vignette";
   elements.activerVignettage.checked = elements.modeVignette.value !== "aucun";
-  rendreDecorExclusif(elements.activerVignettage.checked ? "vignette" : null);
   mettreAJourBoutonsDecor();
   if (elements.modeVignette.value !== "aucun" && Number(elements.vignette.value) < 25) {
     elements.vignette.value = "80";
@@ -3533,8 +3530,11 @@ function ajusterVignetteVisible() {
 
 function basculerDecor(type) {
   enregistrerHistoriqueAvantAction();
+  const panelDejaOuvert = elements.decorPanel.value === type;
   if (type === "motif") {
-    elements.activerMotif.checked = !elements.activerMotif.checked;
+    elements.activerMotif.checked = panelDejaOuvert
+      ? !elements.activerMotif.checked
+      : true;
     elements.decorPanel.value = "motif";
     if (elements.activerMotif.checked) {
       if (elements.motifType.value === "aucun") {
@@ -3554,10 +3554,11 @@ function basculerDecor(type) {
       elements.motifSecondaireFond.checked = true;
       elements.motifSecondaireRuban.checked = false;
     }
-    rendreDecorExclusif(elements.activerMotif.checked ? "motif" : null);
   }
   if (type === "vignette") {
-    elements.activerVignettage.checked = !elements.activerVignettage.checked;
+    elements.activerVignettage.checked = panelDejaOuvert
+      ? !elements.activerVignettage.checked
+      : true;
     elements.decorPanel.value = "vignette";
     if (elements.activerVignettage.checked) {
       if (elements.modeVignette.value === "aucun") {
@@ -3569,15 +3570,15 @@ function basculerDecor(type) {
     } else {
       elements.modeVignette.value = "aucun";
     }
-    rendreDecorExclusif(elements.activerVignettage.checked ? "vignette" : null);
   }
   if (type === "patine") {
-    elements.activerPatine.checked = !elements.activerPatine.checked;
+    elements.activerPatine.checked = panelDejaOuvert
+      ? !elements.activerPatine.checked
+      : true;
     elements.decorPanel.value = "patine";
     if (elements.activerPatine.checked && Number(elements.intensitePatine.value) < 1) {
       elements.intensitePatine.value = "55";
     }
-    rendreDecorExclusif(elements.activerPatine.checked ? "patine" : null);
   }
   mettreAJourBoutonsDecor();
   mettreAJourInterfaceConditionnelle(lireReglagesFormulaire());
@@ -3606,21 +3607,6 @@ function decorActifDepuisPanel() {
     return "patine";
   }
   return null;
-}
-
-function rendreDecorExclusif(typeActif) {
-  if (typeActif !== "motif") {
-    elements.activerMotif.checked = false;
-    elements.motifType.value = "aucun";
-    elements.afficherTraitsModernes.checked = false;
-  }
-  if (typeActif !== "vignette") {
-    elements.activerVignettage.checked = false;
-    elements.modeVignette.value = "aucun";
-  }
-  if (typeActif !== "patine") {
-    elements.activerPatine.checked = false;
-  }
 }
 
 function mettreAJourBoutonsDecor() {
@@ -5190,11 +5176,13 @@ function mettreAJourInterfaceConditionnelle(reglages) {
   const motifActif = elements.activerMotif.checked;
   const vignettageActif = elements.activerVignettage.checked;
   const patineActive = elements.activerPatine.checked;
+  const panelDecor = elements.decorPanel.value || "motif";
   elements.reglagesDecor.forEach((champ) => {
     const panel = champ.dataset.decorPanel;
     champ.classList.toggle(
       "champ-masque",
-      (panel === "motif" && !motifActif)
+      panel !== panelDecor
+        || (panel === "motif" && !motifActif)
         || (panel === "vignette" && !vignettageActif)
         || (panel === "patine" && !patineActive),
     );
@@ -5202,26 +5190,38 @@ function mettreAJourInterfaceConditionnelle(reglages) {
   elements.reglagesMotif.forEach((champ) => {
     champ.classList.toggle(
       "champ-masque",
-      !motifActif || !reglages.motifFond || reglages.motifType === "aucun",
+      panelDecor !== "motif"
+        || !motifActif
+        || !reglages.motifFond
+        || reglages.motifType === "aucun",
     );
   });
   elements.reglagesMotifRuban.forEach((champ) => {
-    champ.classList.toggle("champ-masque", !motifActif || !reglages.motifRuban);
+    champ.classList.toggle(
+      "champ-masque",
+      panelDecor !== "motif" || !motifActif || !reglages.motifRuban,
+    );
   });
   elements.reglagesMotifRubanDetails.forEach((champ) => {
     champ.classList.toggle(
       "champ-masque",
-      !motifActif || !reglages.motifRuban || reglages.motifRubanType === "aucun",
+      panelDecor !== "motif"
+        || !motifActif
+        || !reglages.motifRuban
+        || reglages.motifRubanType === "aucun",
     );
   });
   elements.reglagesTraitsModernes.forEach((champ) => {
     champ.classList.toggle(
       "champ-masque",
-      !motifActif || !reglages.afficherTraitsModernes,
+      panelDecor !== "motif" || !motifActif || !reglages.afficherTraitsModernes,
     );
   });
   elements.reglagesVignette.forEach((champ) => {
-    champ.classList.toggle("champ-masque", !vignettageActif || reglages.modeVignette === "aucun");
+    champ.classList.toggle(
+      "champ-masque",
+      panelDecor !== "vignette" || !vignettageActif || reglages.modeVignette === "aucun",
+    );
   });
   mettreAJourReglagesTexteMiseEnPage();
   mettreAJourPanneauxSelonContenu();
