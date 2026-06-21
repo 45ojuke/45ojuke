@@ -2474,10 +2474,12 @@ body:not(.is-intro-active) .hero-site__contenu {
   overflow: hidden;
   padding: 14px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.42) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(138, 85, 53, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(138, 85, 53, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(138, 85, 53, 0.075) 1px, transparent 1px),
+    linear-gradient(rgba(138, 85, 53, 0.075) 1px, transparent 1px),
     rgba(255, 250, 241, 0.58);
-  background-size: 24px 24px;
+  background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
 }
 
 @media screen and (min-width: 861px) {
@@ -2666,6 +2668,143 @@ body.is-favoris-ouverts .scene {
   display: block;
   margin-inline: auto;
   filter: drop-shadow(0 16px 18px rgba(31, 21, 14, 0.16));
+  transition: width 180ms ease, height 180ms ease, filter 180ms ease;
+}
+
+.zoom-apercu {
+  justify-self: center;
+  display: grid;
+  grid-template-columns: 30px minmax(130px, 220px) 58px 30px auto;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 2px 4px;
+  color: var(--accent-2);
+}
+
+.regle-apercu {
+  position: relative;
+  justify-self: center;
+  height: 28px;
+  max-width: 100%;
+  color: rgba(103, 70, 50, 0.78);
+}
+
+.regle-apercu__graduations {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 13px;
+  border-top: 1px solid rgba(103, 70, 50, 0.52);
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgba(103, 70, 50, 0.25) 0 1px,
+      transparent 1px var(--pas-regle-mm)
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(103, 70, 50, 0.44) 0 1px,
+      transparent 1px var(--pas-regle-5mm)
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(103, 70, 50, 0.72) 0 1px,
+      transparent 1px var(--pas-regle-cm)
+    );
+  background-position: left top;
+  background-repeat: repeat-x;
+  background-size: auto 4px, auto 8px, auto 13px;
+}
+
+.regle-apercu__nombres {
+  position: absolute;
+  inset: 14px 0 auto;
+  height: 11px;
+}
+
+.regle-apercu__nombres span {
+  position: absolute;
+  color: currentColor;
+  font-size: 0.56rem;
+  font-weight: 800;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.regle-apercu__unite {
+  position: absolute;
+  top: 14px;
+  left: calc(100% + 7px);
+  font-size: 0.56rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.zoom-apercu__bouton,
+.zoom-apercu__taille-reelle {
+  min-height: 28px;
+  border: 1px solid rgba(138, 85, 53, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 250, 241, 0.72);
+  color: var(--accent-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.zoom-apercu__bouton {
+  width: 30px;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.zoom-apercu__bouton:disabled {
+  cursor: default;
+  opacity: 0.34;
+}
+
+.zoom-apercu__curseur {
+  display: flex;
+  align-items: center;
+}
+
+.zoom-apercu__curseur input {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.zoom-apercu__valeur {
+  min-width: 58px;
+  color: var(--accent-2);
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.zoom-apercu__taille-reelle {
+  min-width: 62px;
+  padding: 4px 9px;
+}
+
+.zoom-apercu__taille-reelle:hover,
+.zoom-apercu__taille-reelle.is-actif {
+  border-color: var(--accent-2);
+  background: var(--accent-2);
+  color: #fffaf0;
+}
+
+.apercus.is-taille-reelle .apercu-image {
+  max-width: none;
+  filter:
+    drop-shadow(0 6px 8px rgba(31, 21, 14, 0.14))
+    drop-shadow(0 0 0 rgba(31, 21, 14, 0));
+}
+
+.apercus.is-taille-reelle {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .apercus.is-changement-etiquette .apercu-image {
@@ -3448,6 +3587,56 @@ body.is-favoris-ouverts .scene {
     cursor: pointer;
     user-select: none;
     -webkit-user-drag: none;
+  }
+
+  .zoom-apercu {
+    grid-template-columns: 28px 54px 28px auto;
+    gap: 5px;
+    padding: 1px 3px;
+  }
+
+  .regle-apercu {
+    height: 22px;
+  }
+
+  .regle-apercu__graduations {
+    height: 10px;
+    background-size: auto 3px, auto 6px, auto 10px;
+  }
+
+  .regle-apercu__nombres {
+    top: 11px;
+  }
+
+  .regle-apercu__nombres span {
+    font-size: 0.5rem;
+  }
+
+  .regle-apercu__unite {
+    top: 11px;
+    left: calc(100% + 5px);
+    font-size: 0.5rem;
+  }
+
+  .zoom-apercu__curseur {
+    display: none;
+  }
+
+  .zoom-apercu__bouton {
+    width: 28px;
+    min-height: 26px;
+  }
+
+  .zoom-apercu__valeur {
+    min-width: 54px;
+    font-size: 0.7rem;
+  }
+
+  .zoom-apercu__taille-reelle {
+    min-width: 58px;
+    min-height: 26px;
+    padding: 3px 8px;
+    font-size: 0.68rem;
   }
 
   .navigation {

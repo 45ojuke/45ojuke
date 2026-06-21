@@ -47,7 +47,7 @@
     <link rel="apple-touch-icon" href="/Images/icons/apple-touch-icon.png" />
     <link rel="preload" as="image" href="./Images/fond-45ojuke.jpeg" />
     <link rel="stylesheet" href="./polices-locales.css" />
-    <link rel="stylesheet" href="./style.css?v=20260621-1" />
+    <link rel="stylesheet" href="./style.css?v=20260622-1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -709,6 +709,21 @@
             <p class="aide-selection-etiquette" id="aideSelectionEtiquette" hidden>Cliquez sur une étiquette pour la modifier.</p>
             <img class="apercu-image" id="apercu" alt="Aperçu étiquette Canvas" data-apercu-etiquette="1" />
             <img class="apercu-image apercu-secondaire" id="apercuSecondaire" alt="Aperçu étiquette secondaire Canvas" data-apercu-etiquette="2" hidden />
+            <div class="regle-apercu" id="regleApercu" aria-label="Règle de l’aperçu">
+              <div class="regle-apercu__graduations" aria-hidden="true"></div>
+              <div class="regle-apercu__nombres" id="nombresRegleApercu" aria-hidden="true"></div>
+              <span class="regle-apercu__unite" aria-hidden="true">cm</span>
+            </div>
+            <div class="zoom-apercu" id="controleZoomApercu" aria-label="Zoom de l’aperçu">
+              <button class="zoom-apercu__bouton" id="diminuerZoomApercu" type="button" aria-label="Réduire l’aperçu">−</button>
+              <label class="zoom-apercu__curseur">
+                <span class="visuellement-cache">Zoom de l’aperçu</span>
+                <input id="zoomApercu" type="range" min="100" max="200" step="5" value="200" />
+              </label>
+              <output class="zoom-apercu__valeur" id="valeurZoomApercu" for="zoomApercu">200 %</output>
+              <button class="zoom-apercu__bouton" id="augmenterZoomApercu" type="button" aria-label="Agrandir l’aperçu">+</button>
+              <button class="zoom-apercu__taille-reelle" id="zoomApercuTailleReelle" type="button" aria-label="Afficher à la taille d’impression indicative">100 %</button>
+            </div>
             <button class="bouton-changer-etiquette-mobile" id="changerEtiquetteMobile" type="button" hidden></button>
           </div>
           <div class="navigation" id="navigationApercu" hidden>
@@ -749,6 +764,6 @@
       </noscript>
     </footer>
 
-    <script type="module" src="./app.js?v=20260620-5"></script>
+    <script type="module" src="./app.js?v=20260622-2"></script>
   </body>
 </html>

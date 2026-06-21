@@ -52,6 +52,8 @@ const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine
 const DELAI_MASQUAGE_BANDEAU_RESTAURATION = 10000;
 const LIMITE_TAILLE_TITRES = 200;
 const LIMITE_TAILLE_ARTISTE = 200;
+const PIXELS_CSS_PAR_MM = 96 / 25.4;
+const PIXELS_APERCU_PAR_MM_MAX = 12;
 
 const elements = {
   intro: document.querySelector("#intro"),
@@ -70,6 +72,14 @@ const elements = {
   ouvrirConfidentialiteMenu: document.querySelector("#ouvrirConfidentialiteMenu"),
   fermerConfidentialite: document.querySelector("#fermerConfidentialite"),
   confidentialiteModal: document.querySelector("#confidentialiteModal"),
+  controleZoomApercu: document.querySelector("#controleZoomApercu"),
+  zoomApercu: document.querySelector("#zoomApercu"),
+  diminuerZoomApercu: document.querySelector("#diminuerZoomApercu"),
+  augmenterZoomApercu: document.querySelector("#augmenterZoomApercu"),
+  valeurZoomApercu: document.querySelector("#valeurZoomApercu"),
+  zoomApercuTailleReelle: document.querySelector("#zoomApercuTailleReelle"),
+  regleApercu: document.querySelector("#regleApercu"),
+  nombresRegleApercu: document.querySelector("#nombresRegleApercu"),
   bandeauRestauration: document.querySelector("#bandeauRestauration"),
   dateRestauration: document.querySelector("#dateRestauration"),
   restaurerReglagesAuto: document.querySelector("#restaurerReglagesAuto"),
@@ -356,6 +366,8 @@ let favorisOuverts = false;
 let invitationInstallation = null;
 let dernierToucherZoom = 0;
 let temporisateurBandeauRestauration = null;
+let zoomApercuPourcentage = null;
+let zoomApercuMaximum = 200;
 const LIMITE_HISTORIQUE_REGLAGES = 40;
 const historiqueReglages = {
   annulations: [],
@@ -579,6 +591,10 @@ function brancherEvenements() {
   elements.aideSwipeMobile.addEventListener("click", () => afficherBulleAide(elements.aideSwipeMobile));
   elements.basculerEditionTexteMobile.addEventListener("click", basculerEditionTexteMobile);
   elements.imprimer.addEventListener("click", imprimer);
+  elements.zoomApercu.addEventListener("input", () => definirZoomApercu(elements.zoomApercu.value));
+  elements.diminuerZoomApercu.addEventListener("click", () => modifierZoomApercu(-10));
+  elements.augmenterZoomApercu.addEventListener("click", () => modifierZoomApercu(10));
+  elements.zoomApercuTailleReelle.addEventListener("click", () => definirZoomApercu(100));
   elements.ouvrirSoutien.addEventListener("click", ouvrirSoutien);
   elements.ouvrirSoutienMenu.addEventListener("click", ouvrirSoutien);
   elements.installerApp.addEventListener("click", installerApplication);
@@ -1377,6 +1393,7 @@ function appliquerLangueSite(langue, options = {}) {
   mettreAJourAssistantReglages();
   if (modeleChoisi) {
     mettreAJourVerrouillageStyle();
+    synchroniserControleZoomApercu();
   }
   synchroniserBoutonsLangue();
 }
@@ -1401,6 +1418,92 @@ function fermerConfidentialite() {
   if (elements.confidentialiteModal.open) {
     elements.confidentialiteModal.close();
   }
+}
+
+function calculerZoomApercuAutomatique() {
+  const largeurDisponible = Math.max(280, elements.apercus.clientWidth || elements.apercu.parentElement?.clientWidth || 760);
+  const reglagesVisibles = [lireReglages("1")];
+  if (deuxiemeEtiquetteActive()) {
+    reglagesVisibles.push(lireReglages("2"));
+  }
+  const largeurMax = Math.max(...reglagesVisibles.map((reglages) => Number(reglages.largeurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.largeur));
+  const hauteurMax = Math.max(...reglagesVisibles.map((reglages) => Number(reglages.hauteurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.hauteur));
+  const largeurReference = MEDIA_MOBILE.matches
+    ? largeurMax
+    : Math.max(LIMITES_DIMENSIONS.largeurEtiquette.max, largeurMax);
+  const zoomLargeur = (largeurDisponible * 0.96) / largeurReference;
+  const zoomHauteur = MEDIA_MOBILE.matches ? (window.innerHeight * 0.24) / hauteurMax : PIXELS_APERCU_PAR_MM_MAX;
+  const pixelsParMm = Math.min(PIXELS_APERCU_PAR_MM_MAX, zoomLargeur, zoomHauteur);
+  return Math.max(100, Math.round(((pixelsParMm / PIXELS_CSS_PAR_MM) * 100) / 5) * 5);
+}
+
+function obtenirZoomApercuCourant() {
+  zoomApercuMaximum = calculerZoomApercuAutomatique();
+  return Math.min(zoomApercuMaximum, zoomApercuPourcentage ?? zoomApercuMaximum);
+}
+
+function definirZoomApercu(valeur) {
+  zoomApercuPourcentage = Math.max(100, Math.min(zoomApercuMaximum, Math.round(Number(valeur) || 100)));
+  appliquerZoomApercuCourant();
+}
+
+function modifierZoomApercu(delta) {
+  definirZoomApercu(obtenirZoomApercuCourant() + delta);
+}
+
+function appliquerZoomApercuCourant() {
+  if (!modeleChoisi) {
+    return;
+  }
+  const zoom = obtenirZoomApercuCourant();
+  appliquerTailleApercu(elements.apercu, lireReglages("1"), zoom);
+  if (deuxiemeEtiquetteActive() && !elements.apercuSecondaire.hidden) {
+    appliquerTailleApercu(elements.apercuSecondaire, lireReglages("2"), zoom);
+  }
+  synchroniserControleZoomApercu(zoom);
+}
+
+function synchroniserControleZoomApercu(zoom = obtenirZoomApercuCourant()) {
+  elements.zoomApercu.max = String(zoomApercuMaximum);
+  elements.zoomApercu.value = String(zoom);
+  elements.valeurZoomApercu.value = `${zoom} %`;
+  elements.valeurZoomApercu.textContent = `${zoom} %`;
+  elements.diminuerZoomApercu.disabled = zoom <= 100;
+  elements.augmenterZoomApercu.disabled = zoom >= zoomApercuMaximum;
+  elements.zoomApercuTailleReelle.classList.toggle("is-actif", zoom === 100);
+  elements.apercus.classList.toggle("is-taille-reelle", zoom === 100);
+  synchroniserRegleApercu(zoom);
+}
+
+function synchroniserRegleApercu(zoom) {
+  const numero = etiquetteActive === "2" && deuxiemeEtiquetteActive() ? "2" : "1";
+  const reglages = lireReglages(numero);
+  const largeurMm = Number(reglages.largeurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.largeur;
+  const pixelsParMm = PIXELS_CSS_PAR_MM * zoom / 100;
+  elements.regleApercu.style.width = `${largeurMm * pixelsParMm}px`;
+  elements.regleApercu.style.setProperty("--pas-regle-mm", `${pixelsParMm}px`);
+  elements.regleApercu.style.setProperty("--pas-regle-5mm", `${pixelsParMm * 5}px`);
+  elements.regleApercu.style.setProperty("--pas-regle-cm", `${pixelsParMm * 10}px`);
+  elements.regleApercu.setAttribute(
+    "aria-label",
+    `${traduirePhrase("Règle de l’aperçu")} : ${largeurMm.toLocaleString(localeCourante())} mm`,
+  );
+
+  const nombres = [];
+  for (let positionMm = 0; positionMm <= largeurMm; positionMm += 10) {
+    nombres.push([positionMm, positionMm / 10]);
+  }
+  if (nombres.at(-1)?.[0] !== largeurMm) {
+    nombres.push([largeurMm, largeurMm / 10]);
+  }
+  elements.nombresRegleApercu.replaceChildren(
+    ...nombres.map(([positionMm, valeurCm]) => {
+      const nombre = document.createElement("span");
+      nombre.style.left = `${positionMm / largeurMm * 100}%`;
+      nombre.textContent = valeurCm.toLocaleString(localeCourante(), { maximumFractionDigits: 1 });
+      return nombre;
+    }),
+  );
 }
 
 function remplirMenusPolices() {
@@ -1626,7 +1729,15 @@ function ajusterHauteurPanneauOptionsMobile() {
     formulaire.style.removeProperty("--hauteur-controles-mobile");
     return;
   }
+  // Sur Safari mobile, recalculer la hauteur du conteneur défilant pendant
+  // le glissement d'un range peut remettre son scrollTop à zéro.
+  if (document.body.classList.contains("is-range-dragging")) {
+    return;
+  }
   requestAnimationFrame(() => {
+    if (document.body.classList.contains("is-range-dragging")) {
+      return;
+    }
     const viewport = window.visualViewport;
     const hauteurVue = viewport?.height || window.innerHeight;
     const hautVue = viewport?.offsetTop || 0;
@@ -1634,7 +1745,10 @@ function ajusterHauteurPanneauOptionsMobile() {
     const margeBasse = 12;
     const { top } = formulaire.getBoundingClientRect();
     const hauteurDisponible = Math.max(240, hauteurVue + hautVue - top - hauteurPied - margeBasse);
-    formulaire.style.setProperty("--hauteur-controles-mobile", `${Math.round(hauteurDisponible)}px`);
+    const nouvelleHauteur = `${Math.round(hauteurDisponible)}px`;
+    if (formulaire.style.getPropertyValue("--hauteur-controles-mobile") !== nouvelleHauteur) {
+      formulaire.style.setProperty("--hauteur-controles-mobile", nouvelleHauteur);
+    }
   });
 }
 
@@ -5435,13 +5549,14 @@ function mettreAJour() {
   const reglagesPrincipaux = lireReglages("1", lignePrincipale);
   const canvasPrincipal = dessinerEtiquette(lignePrincipale, reglagesPrincipaux);
   elements.apercu.src = canvasPrincipal.toDataURL("image/png");
-  appliquerTailleApercu(elements.apercu, reglagesPrincipaux);
+  const zoomApercu = obtenirZoomApercuCourant();
+  appliquerTailleApercu(elements.apercu, reglagesPrincipaux, zoomApercu);
   let canvasSecondaire = null;
   if (deuxiemeActive && ligneSecondaire) {
     const reglagesSecondaires = lireReglages("2", ligneSecondaire);
     canvasSecondaire = dessinerEtiquette(ligneSecondaire, reglagesSecondaires);
     elements.apercuSecondaire.src = canvasSecondaire.toDataURL("image/png");
-    appliquerTailleApercu(elements.apercuSecondaire, reglagesSecondaires);
+    appliquerTailleApercu(elements.apercuSecondaire, reglagesSecondaires, zoomApercu);
     elements.apercuSecondaire.hidden = false;
   } else {
     elements.apercuSecondaire.hidden = true;
@@ -5450,6 +5565,7 @@ function mettreAJour() {
   const canvasEtiquetteActive = etiquetteActive === "2" && canvasSecondaire
     ? canvasSecondaire
     : canvasPrincipal;
+  synchroniserControleZoomApercu(zoomApercu);
   elements.reglageRetourLigneTitres.hidden = canvasEtiquetteActive.dataset.retourLigneTitresPossible !== "true";
   elements.etat.textContent = MEDIA_MOBILE.matches
     ? ""
@@ -5474,11 +5590,10 @@ function mettreAJourVisibiliteApercu() {
   elements.editionTexte.hidden = !modeleChoisi;
 }
 
-function appliquerTailleApercu(image, reglages) {
-  const largeurDisponible = Math.max(320, elements.apercus.clientWidth || image.parentElement?.clientWidth || 760);
-  const zoom = Math.min(window.PX_PAR_MM, Math.max(5.2, (largeurDisponible * 0.96) / LIMITES_DIMENSIONS.largeurEtiquette.max));
-  image.style.width = `${Math.round(reglages.largeurEtiquette * zoom)}px`;
-  image.style.height = `${Math.round(reglages.hauteurEtiquette * zoom)}px`;
+function appliquerTailleApercu(image, reglages, pourcentage = obtenirZoomApercuCourant()) {
+  const pixelsParMm = PIXELS_CSS_PAR_MM * pourcentage / 100;
+  image.style.width = `${reglages.largeurEtiquette * pixelsParMm}px`;
+  image.style.height = `${reglages.hauteurEtiquette * pixelsParMm}px`;
 }
 
 function mettreAJourMessageDimensions() {
