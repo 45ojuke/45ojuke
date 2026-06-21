@@ -42,7 +42,7 @@ import { envoyerJsonStyle } from "./analytics.js";
 import { chargerPolicesLocales, normaliserIdPolice, normaliserStylePolice, remplirSelectPolice, stylesPolice } from "./polices.js";
 
 const EMAIL_CONTACT = "contact@45ojuke.fr";
-const EPAISSEUR_BORDURE_MIN = 1;
+const EPAISSEUR_BORDURE_MIN = 0;
 const LIEN_FACEBOOK_CONTACT = "https://www.facebook.com/45.O.Juke/";
 const MOTIFS_DECOR_VARIANTES = ["grille", "rayures", "points", "diagonales", "chevrons", "croisillons", "vagues"];
 const REPARTITION_DECOR_VARIANTES = ["aucun", "aucun", "aucun", "aucun", "aucun", "aucun", "ruban", "ruban", "fond", "fond", "deux"];
@@ -50,6 +50,7 @@ const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
 const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
 const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine)");
 const DELAI_MASQUAGE_BANDEAU_RESTAURATION = 10000;
+const LIMITE_TAILLE_TITRES = 200;
 
 const elements = {
   intro: document.querySelector("#intro"),
@@ -182,6 +183,8 @@ const elements = {
   styleTitres: document.querySelector("#styleTitres"),
   styleArtiste: document.querySelector("#styleArtiste"),
   guillemetsTitres: document.querySelector("#guillemetsTitres"),
+  retourLigneTitres: document.querySelector("#retourLigneTitres"),
+  reglageRetourLigneTitres: document.querySelector("#reglageRetourLigneTitres"),
   decalageRetro: document.querySelector("#decalageRetro"),
   irregulariteCaracteres: document.querySelector("#irregulariteCaracteres"),
   afficherMarques: document.querySelector("#afficherMarques"),
@@ -327,6 +330,7 @@ const reglagesParEtiquette = {
   1: null,
   2: null,
 };
+const reglagesDefautParModele = new Map();
 const modelesAccueilMelanges = new Map();
 const MAX_MODELES_ACCUEIL_AVEC_TEASERS = Math.max(1, MAX_MODELES_ACCUEIL - 2);
 let pageModelesSecondaires = 0;
@@ -359,8 +363,9 @@ async function initialiser() {
   await chargerPolicesLocales();
   remplirModelesTheme();
   synchroniserOptionsMotifSecondaire();
-  const styleInitial = obtenirStylesEtiquettes("tout")[0]?.reglages || presets.ALICE;
-  appliquerReglagesAuFormulaire({ ...styleInitial, theme: styleInitial.theme || "tout" });
+  initialiserReglagesDefautModeles();
+  const modeleInitial = obtenirStylesEtiquettes("tout")[0]?.reglages?.modele || "ALICE";
+  appliquerReglagesAuFormulaire(obtenirReglagesDefautModele(modeleInitial));
   reglagesParEtiquette[1] = lireReglagesFormulaire();
   brancherEvenements();
   installerAidesOptions();
@@ -400,6 +405,7 @@ function brancherEvenements() {
   elements.formulaire.addEventListener("pointerdown", memoriserPointDepartControle);
   elements.formulaire.addEventListener("keydown", memoriserPointDepartControle);
   brancherInteractionCurseursTactiles();
+  brancherCranSurregimeTitres();
   elements.formulaire.addEventListener("input", (evenement) => {
     if (chargementReglages) {
       return;
@@ -580,6 +586,35 @@ function brancherEvenements() {
   window.addEventListener("appinstalled", () => {
     invitationInstallation = null;
     mettreAJourBoutonsInstallation(false);
+  });
+}
+
+function brancherCranSurregimeTitres() {
+  let surregimeDebloque = false;
+  let temporisateur = null;
+  const reinitialiser = () => {
+    surregimeDebloque = false;
+    elements.tailleTitres.classList.remove("is-au-cran");
+  };
+
+  elements.tailleTitres.addEventListener("input", () => {
+    const valeur = Number(elements.tailleTitres.value);
+    if (valeur <= LIMITE_TAILLE_TITRES - 5) {
+      reinitialiser();
+      return;
+    }
+    if (valeur > LIMITE_TAILLE_TITRES && !surregimeDebloque) {
+      elements.tailleTitres.value = String(LIMITE_TAILLE_TITRES);
+      elements.tailleTitres.classList.add("is-au-cran");
+      surregimeDebloque = true;
+      clearTimeout(temporisateur);
+      temporisateur = window.setTimeout(reinitialiser, 1200);
+    }
+  });
+  elements.tailleTitres.addEventListener("pointerup", () => {
+    if (Number(elements.tailleTitres.value) <= LIMITE_TAILLE_TITRES) {
+      reinitialiser();
+    }
   });
 }
 
@@ -1229,7 +1264,7 @@ function aideOptionDesactivee(element, cle) {
   if (["reglages", "cote"].includes(etape)) {
     return true;
   }
-  if (etape === "texte" && !["Effet rétro sur les titres", "Désalignement rétro", "Irrégularité des caractères"].includes(cle)) {
+  if (etape === "texte" && !["Effet rétro sur les titres", "Désalignement rétro", "Irrégularité des caractères", "Retour à la ligne automatique"].includes(cle)) {
     return true;
   }
   if (etape === "decor" && !["Élément à modifier", "Vignettage", "Couleur", "Intensité", "Opacité", "Angle"].includes(cle)) {
@@ -1772,11 +1807,11 @@ function exporterCsv() {
 }
 
 function appliquerPreset(modele) {
-  const preset = presets[modele];
-  if (!preset) {
+  const reglagesDefaut = obtenirReglagesDefautModele(modele);
+  if (!reglagesDefaut) {
     return;
   }
-  appliquerReglagesAuFormulaire({ ...lireReglagesFormulaire(), ...preset, theme: presets[modele]?.theme || "tout", modele });
+  appliquerReglagesAuFormulaire(reglagesDefaut);
   enregistrerReglagesActifs();
   mettreAJourGalerieModeles();
   mettreAJour();
@@ -1784,13 +1819,13 @@ function appliquerPreset(modele) {
 
 function reinitialiserStyleDefaut() {
   const modele = lireReglagesFormulaire().modele || elements.modele.value;
-  const preset = presets[modele];
-  if (!preset || styleCourantEstStyleDefaut()) {
+  const reglagesDefaut = obtenirReglagesDefautModele(modele);
+  if (!reglagesDefaut || styleCourantEstStyleDefaut()) {
     return;
   }
   enregistrerHistoriqueAvantAction();
   elements.modele.value = modele;
-  appliquerReglagesAuFormulaire({ ...lireReglagesFormulaire(), ...preset, theme: preset.theme || "tout", modele });
+  appliquerReglagesAuFormulaire(reglagesDefaut);
   signatureDerniereVarianteCouleur = "";
   cycleVarianteBouton = null;
   enregistrerReglagesActifs();
@@ -1801,13 +1836,11 @@ function reinitialiserStyleDefaut() {
 function styleCourantEstStyleDefaut() {
   const reglages = lireReglagesFormulaire();
   const modele = reglages.modele || elements.modele.value;
-  const preset = presets[modele];
-  if (!preset) {
+  const reglagesDefaut = obtenirReglagesDefautModele(modele);
+  if (!reglagesDefaut) {
     return true;
   }
-  const reglagesCourants = normaliserReglagesImportes(reglages);
-  const reglagesDefaut = normaliserReglagesImportes({ ...preset, theme: preset.theme || "tout", modele });
-  return signatureStyleEnregistre(reglagesCourants) === signatureStyleEnregistre(reglagesDefaut);
+  return signatureEtatReglages(reglages) === signatureEtatReglages(reglagesDefaut);
 }
 
 function appliquerStyleEtiquetteEnregistre(id) {
@@ -1815,7 +1848,9 @@ function appliquerStyleEtiquetteEnregistre(id) {
   if (!style) {
     return false;
   }
-  const reglages = normaliserReglagesImportes(style.reglages);
+  const modele = style.reglages.modele;
+  const reglagesDefaut = obtenirReglagesDefautModele(modele);
+  const reglages = normaliserReglagesImportes({ ...reglagesDefaut, ...style.reglages });
   elements.modele.value = reglages.modele;
   appliquerReglagesAuFormulaire(reglages);
   enregistrerReglagesActifs();
@@ -2359,12 +2394,37 @@ function synchroniserBoutonDeuxiemeEtiquette(active) {
   });
 }
 
+function initialiserReglagesDefautModeles() {
+  const reglagesSocle = lireReglagesFormulaire();
+  reglagesDefautParModele.clear();
+
+  Object.entries(presets).forEach(([modele, preset]) => {
+    appliquerReglagesAuFormulaire({
+      ...reglagesSocle,
+      ...preset,
+      theme: preset.theme || "tout",
+      modele,
+    });
+    reglagesDefautParModele.set(modele, lireReglagesFormulaire());
+  });
+
+  appliquerReglagesAuFormulaire(reglagesSocle);
+}
+
+function obtenirReglagesDefautModele(modele) {
+  const reglages = reglagesDefautParModele.get(modele);
+  return reglages ? { ...reglages } : null;
+}
+
 function appliquerReglagesAuFormulaire(reglages) {
   chargementReglages = true;
   const reglagesNormalises = { ...reglages };
   reglagesNormalises.couleurTitreFaceAManuelle = reglagesNormalises.couleurTitreFaceAManuelle ?? false;
   reglagesNormalises.couleurTitreFaceBManuelle = reglagesNormalises.couleurTitreFaceBManuelle ?? false;
-  reglagesNormalises.bordure = Math.max(EPAISSEUR_BORDURE_MIN, Number(reglagesNormalises.bordure) || EPAISSEUR_BORDURE_MIN);
+  const epaisseurBordure = Number(reglagesNormalises.bordure);
+  reglagesNormalises.bordure = Number.isFinite(epaisseurBordure)
+    ? Math.max(EPAISSEUR_BORDURE_MIN, Math.min(100, epaisseurBordure))
+    : EPAISSEUR_BORDURE_MIN;
   reglagesNormalises.decalageRetro = reglagesNormalises.decalageRetro || "aucun";
   reglagesNormalises.irregulariteCaracteres = [true, 1, "true", "1"].includes(reglagesNormalises.irregulariteCaracteres);
   reglagesNormalises.angleMotif = reglagesNormalises.angleMotif ?? 0;
@@ -2411,6 +2471,7 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.styleMarqueDroite = reglagesNormalises.styleMarqueDroite || "gras";
   reglagesNormalises.styleTitres = normaliserStylePolice(reglagesNormalises.policeTitres, reglagesNormalises.styleTitres || "normal");
   reglagesNormalises.styleArtiste = normaliserStylePolice(reglagesNormalises.policeArtiste, reglagesNormalises.styleArtiste || "normal");
+  reglagesNormalises.retourLigneTitres = reglagesNormalises.retourLigneTitres !== false;
   reglagesNormalises.styleMarqueGauche = normaliserStylePolice(reglagesNormalises.policeMarqueGauche, reglagesNormalises.styleMarqueGauche);
   reglagesNormalises.styleMarqueDroite = normaliserStylePolice(reglagesNormalises.policeMarqueDroite, reglagesNormalises.styleMarqueDroite);
   reglagesNormalises.tailleMarqueGauche = reglagesNormalises.tailleMarqueGauche ?? reglagesNormalises.tailleMarques;
@@ -2938,7 +2999,7 @@ function lireReglagesFormulaire() {
     angleTraitsModernes: Number(elements.angleTraitsModernes.value),
     modeVignette: vignettageActif ? elements.modeVignette.value : "aucun",
     vignette: Number(elements.vignette.value),
-    bordure: Math.max(EPAISSEUR_BORDURE_MIN, Number(elements.bordure.value) || EPAISSEUR_BORDURE_MIN),
+    bordure: Math.max(EPAISSEUR_BORDURE_MIN, Math.min(100, Number(elements.bordure.value) || 0)),
     bordureHorizontale: elements.bordureHorizontale.checked,
     bordureVerticale: elements.modele.value === "JEAN" ? false : elements.bordureVerticale.checked,
     arrondiInterieurBordure: elements.arrondiInterieurBordure.checked,
@@ -2960,6 +3021,7 @@ function lireReglagesFormulaire() {
     styleTitres,
     styleArtiste,
     guillemetsTitres: elements.guillemetsTitres.checked,
+    retourLigneTitres: elements.retourLigneTitres.checked,
     decalageRetro: elements.decalageRetro.value,
     irregulariteCaracteres: elements.irregulariteCaracteres.checked,
     afficherMarques: elements.afficherMarques.checked,
@@ -3159,12 +3221,7 @@ function afficherApercuApresChoixModele() {
 
 function creerReglagesSecondaires() {
   const modele = elements.modeleSecondaire.value || elements.modele.value;
-  return {
-    ...lireReglages("1"),
-    ...presets[modele],
-    theme: presets[modele]?.theme || "tout",
-    modele,
-  };
+  return obtenirReglagesDefautModele(modele) || lireReglages("1");
 }
 
 function choisirAleatoire(liste) {
@@ -3480,6 +3537,14 @@ function signatureStyleEnregistre(reglages) {
     reglages.policeTitres,
     reglages.policeArtiste,
   ]);
+}
+
+function signatureEtatReglages(reglages) {
+  return JSON.stringify(
+    Object.keys(reglages)
+      .sort()
+      .map((cle) => [cle, reglages[cle]]),
+  );
 }
 
 function ajusterMotifVisible() {
@@ -4262,12 +4327,12 @@ function estStyleParDefautVariante(style, modele) {
   if (String(style.id || "").trim() === modele) {
     return true;
   }
-  const styleDefaut = obtenirStyleEtiquette(modele);
-  if (!styleDefaut) {
+  const reglagesDefaut = obtenirReglagesDefautModele(modele);
+  if (!reglagesDefaut) {
     return false;
   }
-  return signatureStyleEnregistre(normaliserReglagesImportes(style.reglages))
-    === signatureStyleEnregistre(normaliserReglagesImportes(styleDefaut.reglages));
+  const reglagesStyle = normaliserReglagesImportes({ ...reglagesDefaut, ...style.reglages });
+  return signatureEtatReglages(reglagesStyle) === signatureEtatReglages(reglagesDefaut);
 }
 
 function signatureBaseVariante(reglages) {
@@ -5026,6 +5091,7 @@ function mettreAJour() {
     elements.apercu.removeAttribute("src");
     elements.apercuSecondaire.removeAttribute("src");
     elements.apercuSecondaire.hidden = true;
+    elements.reglageRetourLigneTitres.hidden = true;
     mettreAJourEditeurTexte(null);
     afficherFavoris();
     ajusterHauteurPanneauOptionsMobile();
@@ -5064,6 +5130,7 @@ function mettreAJour() {
     elements.editionTexteEtat.textContent = "0/0";
     elements.apercu.removeAttribute("src");
     elements.apercuSecondaire.hidden = true;
+    elements.reglageRetourLigneTitres.hidden = true;
     elements.statutPlanche.textContent = "0 page";
     mettreAJourEditeurTexte(null);
     afficherFavoris();
@@ -5079,18 +5146,24 @@ function mettreAJour() {
   const ligneSecondaire = obtenirLigneApercu(lignes, "2");
   const ligneEdition = obtenirLigneApercu(lignes);
   const reglagesPrincipaux = lireReglages("1", lignePrincipale);
-  const image = dessinerEtiquette(lignePrincipale, reglagesPrincipaux).toDataURL("image/png");
-  elements.apercu.src = image;
+  const canvasPrincipal = dessinerEtiquette(lignePrincipale, reglagesPrincipaux);
+  elements.apercu.src = canvasPrincipal.toDataURL("image/png");
   appliquerTailleApercu(elements.apercu, reglagesPrincipaux);
+  let canvasSecondaire = null;
   if (deuxiemeActive && ligneSecondaire) {
     const reglagesSecondaires = lireReglages("2", ligneSecondaire);
-    elements.apercuSecondaire.src = dessinerEtiquette(ligneSecondaire, reglagesSecondaires).toDataURL("image/png");
+    canvasSecondaire = dessinerEtiquette(ligneSecondaire, reglagesSecondaires);
+    elements.apercuSecondaire.src = canvasSecondaire.toDataURL("image/png");
     appliquerTailleApercu(elements.apercuSecondaire, reglagesSecondaires);
     elements.apercuSecondaire.hidden = false;
   } else {
     elements.apercuSecondaire.hidden = true;
     elements.apercuSecondaire.removeAttribute("src");
   }
+  const canvasEtiquetteActive = etiquetteActive === "2" && canvasSecondaire
+    ? canvasSecondaire
+    : canvasPrincipal;
+  elements.reglageRetourLigneTitres.hidden = canvasEtiquetteActive.dataset.retourLigneTitresPossible !== "true";
   elements.etat.textContent = MEDIA_MOBILE.matches
     ? ""
     : `${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau} / ${lignes.length} - ${traduirePhrase("ligne")} ${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau}`;
@@ -5269,6 +5342,10 @@ function mettreAJourValeursRange() {
 
 function formaterValeurRange(cle, valeur, unite) {
   const nombre = Number(valeur);
+  if (cle === "tailleTitres" && nombre > LIMITE_TAILLE_TITRES) {
+    const espacement = Math.round(((nombre - LIMITE_TAILLE_TITRES) / 40) * 100);
+    return `${LIMITE_TAILLE_TITRES}% · ${traduirePhrase("écart")} +${espacement}%`;
+  }
   if (cle.toLowerCase().startsWith("angle")) {
     return `${nombre}°`;
   }

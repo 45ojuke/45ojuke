@@ -40,7 +40,7 @@ body {
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow-x: clip;
   background:
     linear-gradient(rgba(255, 247, 223, 0.86), rgba(255, 243, 216, 0.9)),
     var(--fond);
@@ -1469,6 +1469,22 @@ body:not(.is-intro-active) .hero-site__contenu {
   background: linear-gradient(90deg, var(--accent), var(--accent)) 0 / var(--range-progression, 50%) 100% no-repeat, rgba(44, 35, 28, 0.12);
 }
 
+.champ-surregime input[type="range"] {
+  --range-cran: 77.78%;
+}
+
+.champ-surregime input[type="range"]::-webkit-slider-runnable-track {
+  background:
+    linear-gradient(90deg, transparent calc(var(--range-cran) - 1px), rgba(122, 47, 29, 0.72) calc(var(--range-cran) - 1px), rgba(122, 47, 29, 0.72) calc(var(--range-cran) + 1px), transparent calc(var(--range-cran) + 1px)),
+    linear-gradient(90deg, transparent var(--range-cran), rgba(192, 139, 48, 0.18) var(--range-cran), rgba(192, 139, 48, 0.18) 100%),
+    linear-gradient(90deg, var(--accent), var(--accent)) 0 / var(--range-progression, 50%) 100% no-repeat,
+    rgba(44, 35, 28, 0.12);
+}
+
+.champ-surregime input[type="range"].is-au-cran::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(192, 139, 48, 0.22), 0 1px 4px rgba(37, 27, 20, 0.22);
+}
+
 .champ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
@@ -2262,6 +2278,16 @@ body:not(.is-intro-active) .hero-site__contenu {
     linear-gradient(rgba(255, 255, 255, 0.42) 1px, transparent 1px),
     rgba(255, 250, 241, 0.58);
   background-size: 24px 24px;
+}
+
+@media screen and (min-width: 861px) {
+  body:not(.is-accueil-selection) .scene {
+    max-height: calc(100dvh - clamp(24px, 3vw, 48px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
 }
 
 body.is-favoris-ouverts .scene {

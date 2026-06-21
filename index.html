@@ -314,7 +314,7 @@
                 <label class="champ">Titre face B <input id="couleurTitreFaceB" type="color" /></label>
                 <label class="champ">Artiste <input id="couleurArtiste" type="color" /></label>
               </div>
-              <label class="champ"><span class="champ__libelle">Taille des titres <span class="valeur-range" data-range-value="tailleTitres"></span></span><input id="tailleTitres" type="range" min="60" max="200" step="5" /></label>
+              <label class="champ champ-surregime"><span class="champ__libelle">Taille des titres <span class="valeur-range" data-range-value="tailleTitres"></span></span><input id="tailleTitres" type="range" min="60" max="240" step="5" /></label>
               <label class="champ"><span class="champ__libelle">Taille de l’artiste <span class="valeur-range" data-range-value="tailleArtiste"></span></span><input id="tailleArtiste" type="range" min="70" max="200" step="5" /></label>
               <label class="champ">Style des titres
                 <select id="styleTitres">
@@ -345,6 +345,7 @@
               </label>
               <label class="champ champ-large">Effet rétro sur les titres <input id="guillemetsTitres" type="checkbox" /></label>
               <label class="champ champ-large">Irrégularité des caractères <input id="irregulariteCaracteres" type="checkbox" /></label>
+              <label class="champ champ-large" id="reglageRetourLigneTitres" hidden>Retour à la ligne automatique <input id="retourLigneTitres" type="checkbox" checked /></label>
             </div>
           </section>
 
@@ -450,7 +451,7 @@
               <label class="champ" data-modele-visible="CELESTE">Bande droite <input id="couleurBandeDroite" type="color" /></label>
               <label class="champ champ-large">
                 <span class="champ__libelle">Épaisseur de bordure <span class="valeur-range" data-range-value="bordure" data-range-unit="%"></span></span>
-                <input id="bordure" type="range" min="1" max="100" step="1" />
+                <input id="bordure" type="range" min="0" max="100" step="1" />
               </label>
               <div class="champ champ-large options-bordure">
                 <span class="champ__libelle">Bordure visible</span>

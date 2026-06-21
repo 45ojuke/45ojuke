@@ -18,6 +18,7 @@ export function dessinerEtiquette(ligne, reglages) {
   const canvas = document.createElement("canvas");
   canvas.width = largeur;
   canvas.height = hauteur;
+  canvas.dataset.retourLigneTitresPossible = "false";
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   ctx.imageSmoothingEnabled = true;
   ctx.textAlign = "center";
@@ -34,25 +35,25 @@ export function dessinerEtiquette(ligne, reglages) {
 
   if (reglages.modele === "CELESTE") {
     dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH);
-    dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
+    finaliserEtiquette(ctx, reglages, largeur, hauteur);
     return canvas;
   }
 
   if (reglages.modele === "LEON") {
     dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure);
-    dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
+    finaliserEtiquette(ctx, reglages, largeur, hauteur);
     return canvas;
   }
 
   if (reglages.modele === "JEAN") {
     dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure);
-    dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
+    finaliserEtiquette(ctx, reglages, largeur, hauteur);
     return canvas;
   }
 
   if (reglages.modele === "MANU") {
     dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH, bandeH, bandeY);
-    dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
+    finaliserEtiquette(ctx, reglages, largeur, hauteur);
     return canvas;
   }
 
@@ -124,20 +125,54 @@ export function dessinerEtiquette(ligne, reglages) {
     rubanY,
     rubanH,
     traitRuban,
-    largeurTitre: largeur * 0.72,
+    largeurTitre: largeurUtileAvecMarge(largeur, bordure),
   });
   dessinerArtiste(
     ctx,
     ligne.artiste,
     largeur / 2,
     hauteur / 2,
-    rubanVisible ? rubanW * (reglages.modele === "MARTIN" ? 0.72 : 0.7) : largeur * 0.58,
+    rubanVisible ? rubanW * (reglages.modele === "MARTIN" ? 0.82 : 0.88) : largeurUtileAvecMarge(largeur, bordure),
     reglages,
     rubanVisible ? reglages.couleurRuban : (bandeH > 0 ? reglages.couleur1 : reglages.couleur2),
   );
 
-  dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
+  finaliserEtiquette(ctx, reglages, largeur, hauteur);
   return canvas;
+}
+
+function finaliserEtiquette(ctx, reglages, largeur, hauteur) {
+  dessinerPatineGlobale(ctx, reglages, largeur, hauteur);
+  dessinerRepereDecoupe(ctx, reglages, largeur, hauteur);
+}
+
+function dessinerRepereDecoupe(ctx, reglages, largeur, hauteur) {
+  const bordureInvisible = Number(reglages.bordure) <= 0;
+  const bordureHorizontaleMasquee = reglages.bordureHorizontale === false;
+  const bordureVerticaleMasquee = reglages.modele !== "JEAN" && reglages.bordureVerticale === false;
+  const modeleSansBordureVerticale = reglages.modele === "JEAN";
+  if (
+    !bordureInvisible
+    && !bordureHorizontaleMasquee
+    && !bordureVerticaleMasquee
+    && !modeleSansBordureVerticale
+  ) {
+    return;
+  }
+
+  const epaisseur = 0.6;
+  const retrait = epaisseur / 2;
+  ctx.save();
+  ctx.strokeStyle = "rgba(25, 25, 25, 0.48)";
+  ctx.lineWidth = epaisseur;
+  ctx.setLineDash([2.2, 2.2]);
+  ctx.strokeRect(
+    retrait,
+    retrait,
+    Math.max(0, largeur - epaisseur),
+    Math.max(0, hauteur - epaisseur),
+  );
+  ctx.restore();
 }
 
 function dessinerPatineGlobale(ctx, reglages, largeur, hauteur) {
@@ -293,7 +328,7 @@ function dessinerTitresCentres(ctx, ligne, reglages, largeur, hauteur, geometrie
     ligne.titreA,
     largeur / 2,
     zonesTitres.haut,
-    geometrie.largeurTitre,
+    geometrie.largeurTitreHaut || geometrie.largeurTitre,
     reglages,
     reglages.couleur2,
     reglages.couleurTitreFaceA,
@@ -304,7 +339,7 @@ function dessinerTitresCentres(ctx, ligne, reglages, largeur, hauteur, geometrie
     ligne.titreB,
     largeur / 2,
     zonesTitres.bas,
-    geometrie.largeurTitre,
+    geometrie.largeurTitreBas || geometrie.largeurTitre,
     reglages,
     reglages.couleur3,
     reglages.couleurTitreFaceB,
@@ -312,12 +347,22 @@ function dessinerTitresCentres(ctx, ligne, reglages, largeur, hauteur, geometrie
   );
 }
 
+function largeurUtileAvecMarge(largeur, bordure = 0, proportionMarge = 0.03) {
+  const marge = Math.max(largeur * proportionMarge, bordure + largeur * 0.012);
+  return Math.max(largeur * 0.35, largeur - marge * 2);
+}
+
 function largeurTexteModerne(reglages, largeur, hauteur, y, largeurMax) {
   const marge = largeur * 0.035;
   const gauche = limiteBandeModerneAuY("gauche", reglages.tailleBandeGauche, reglages.angleBandeGauche, largeur, hauteur, y);
   const droite = limiteBandeModerneAuY("droite", reglages.tailleBandeDroite, reglages.angleBandeDroite, largeur, hauteur, y);
+  const largeurZoneClaire = droite - gauche;
+  const bandesCouvrentLaZone = largeurZoneClaire <= largeur * 0.12;
+  if (bandesCouvrentLaZone) {
+    return largeurMax;
+  }
   const centre = largeur / 2;
-  const disponible = Math.max(largeur * 0.28, Math.min(centre - gauche - marge, droite - centre - marge) * 2);
+  const disponible = Math.max(largeur * 0.12, Math.min(centre - gauche - marge, droite - centre - marge) * 2);
   return Math.min(largeurMax, disponible);
 }
 
@@ -419,17 +464,13 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
     dessinerMarquesModernes(ctx, reglages, largeur, hauteur);
   }
 
-  const zonesTitres = calculerZonesTitres(hauteur, traitBordure, rubanY, rubanH, traitRuban);
-  const largeurTitre = Math.min(
-    largeurTexteModerne(reglages, largeur, hauteur, zonesTitres.haut, largeur * 0.56),
-    largeurTexteModerne(reglages, largeur, hauteur, zonesTitres.bas, largeur * 0.56),
-  );
+  const largeurTitres = largeurUtileAvecMarge(largeur, traitBordure);
   dessinerTitresCentres(ctx, ligne, reglages, largeur, hauteur, {
     bordure: traitBordure,
     rubanY,
     rubanH,
     traitRuban,
-    largeurTitre,
+    largeurTitre: largeurTitres,
   });
   dessinerArtiste(
     ctx,
@@ -513,14 +554,14 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
     rubanY,
     rubanH,
     traitRuban,
-    largeurTitre: Math.max(largeur * 0.32, rubanWManu * 0.82),
+    largeurTitre: largeurUtileAvecMarge(largeur, traitBordure),
   });
   dessinerArtiste(
     ctx,
     ligne.artiste,
     largeur / 2,
     hauteur / 2,
-    rubanWManu * 0.74,
+    rubanWManu * 0.88,
     reglages,
     rubanWManu > 0.5 && rubanH > 0.5 ? reglages.couleurRuban : (bandeVisibleH > 0 ? reglages.couleur1 : reglages.couleur2),
   );
@@ -584,7 +625,7 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
     dessinerMarques(ctx, reglages, largeur, hauteur, yHaut, yBas - yHaut, yBas - yHaut);
   }
 
-  const margeX = Math.max(largeur * 0.09, traitBordure + largeur * 0.035);
+  const margeX = Math.max(largeur * 0.035, traitBordure + largeur * 0.012);
   const largeurTexte = largeur - margeX * 2;
   dessinerTitre(
     ctx,
@@ -1496,13 +1537,18 @@ function dessinerVignette(ctx, reglages, largeur, hauteur) {
 }
 
 function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, couleurTitre, couleurManuelle) {
-  const taille = 22 * reglages.tailleTitres / 100;
+  const valeurTailleTitres = Number(reglages.tailleTitres) || 100;
+  const taille = 22 * Math.min(200, valeurTailleTitres) / 100;
+  const espacementLettres = valeurTailleTitres > 200
+    ? taille * ((Math.min(240, valeurTailleTitres) - 200) / 40) * 0.13
+    : 0;
   const style = normaliserStylePolice(reglages.policeTitres, reglages.styleTitres);
   const poids = poidsPolice(reglages.policeTitres, styleTexteEnGras(style) ? 700 : 400);
   const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
   const interligne = taille * 1.12;
   const decalageRetro = modeDecalageRetro(reglages);
   ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeTitres)}`;
+  ctx.letterSpacing = `${espacementLettres}px`;
   const texteNettoye = nettoyerGuillemetsTitre(texte);
   ctx.fillStyle = couleurTextePourFond(
     couleurFond,
@@ -1510,21 +1556,33 @@ function dessinerTitre(ctx, texte, x, y, largeurMax, reglages, couleurFond, coul
     couleurManuelle,
   );
   const margeGuillemets = reglages.guillemetsTitres ? taille * 1.35 : 0;
+  const largeurTexteDisponible = Math.max(taille * 3, largeurMax - margeGuillemets);
+  const motsTitre = texteNettoye.split(/\s+/).filter(Boolean);
+  if (
+    motsTitre.length > 1
+    && ctx.measureText(texteNettoye.toLocaleUpperCase("fr-FR")).width > largeurTexteDisponible
+  ) {
+    ctx.canvas.dataset.retourLigneTitresPossible = "true";
+  }
+  const retourLigneAutomatique = reglages.retourLigneTitres !== false;
   const lignes = dessinerTexteMultiligne(
     ctx,
     texteNettoye,
     x,
     y,
-    Math.max(taille * 3, largeurMax - margeGuillemets),
+    largeurTexteDisponible,
     interligne,
-    2,
-    reglages.guillemetsTitres ? composerLignesTitreAvecParentheseSeparee : composerLignesTitre,
+    retourLigneAutomatique ? 2 : 1,
+    retourLigneAutomatique
+      ? (reglages.guillemetsTitres ? composerLignesTitreAvecParentheseSeparee : composerLignesTitre)
+      : (reglages.guillemetsTitres ? composerLigneUniqueTitreAvecEspaceParenthese : null),
     decalageRetro !== "aucun" ? (ligne, index, total, taillePolice) => transformerLigneTitreRetro(decalageRetro, ligne, index, total, taillePolice) : null,
     reglages.irregulariteCaracteres,
   );
   if (reglages.guillemetsTitres) {
     dessinerGuillemetsTitre(ctx, lignes);
   }
+  ctx.letterSpacing = "0px";
 }
 
 function modeDecalageRetro(reglages) {
@@ -1747,9 +1805,27 @@ function composerLignesTitreAvecParentheseSeparee(ctx, texte, largeurMax) {
   const contenu = String(texte || "").trim();
   const parenthese = contenu.match(/^(.*?)\s*(\((?=[^)]*[A-Za-zÀ-ÖØ-öø-ÿ0-9])[^)]+\))\s*$/);
   if (parenthese && parenthese[1].trim()) {
+    const ligneAvecReserve = titreAvecEspaceAvantParenthese(parenthese);
+    if (ctx.measureText(ligneAvecReserve.toLocaleUpperCase("fr-FR")).width <= largeurMax) {
+      return [ligneAvecReserve];
+    }
     return [parenthese[1].trim(), parenthese[2].trim()];
   }
   return composerLignesTitre(ctx, texte, largeurMax);
+}
+
+function composerLigneUniqueTitreAvecEspaceParenthese(ctx, texte) {
+  const contenu = String(texte || "").trim();
+  const parenthese = contenu.match(/^(.*?)\s*(\((?=[^)]*[A-Za-zÀ-ÖØ-öø-ÿ0-9])[^)]+\))\s*$/);
+  if (!parenthese || !parenthese[1].trim()) {
+    return [contenu];
+  }
+  return [titreAvecEspaceAvantParenthese(parenthese)];
+}
+
+function titreAvecEspaceAvantParenthese(parenthese) {
+  const espaceReserveGuillemet = "\u00A0".repeat(5);
+  return `${parenthese[1].trim()}${espaceReserveGuillemet}${parenthese[2].trim()}`;
 }
 
 function dessinerTexteMultiligne(
@@ -1902,6 +1978,7 @@ function dessinerEmpreinteTexte(ctx, texte, x, y) {
   tampon.textAlign = ctx.textAlign;
   tampon.textBaseline = ctx.textBaseline;
   tampon.direction = ctx.direction;
+  tampon.letterSpacing = ctx.letterSpacing;
   tampon.fillStyle = typeof ctx.fillStyle === "string" ? ctx.fillStyle : "#000000";
 
   const ancreX = ["right", "end"].includes(ctx.textAlign)
