@@ -160,6 +160,7 @@ const elements = {
   bordureHorizontale: document.querySelector("#bordureHorizontale"),
   bordureVerticale: document.querySelector("#bordureVerticale"),
   arrondiInterieurBordure: document.querySelector("#arrondiInterieurBordure"),
+  reglageArrondiBordure: document.querySelector("[data-reglage-arrondi-bordure]"),
   largeurRuban: document.querySelector("#largeurRuban"),
   hauteurRuban: document.querySelector("#hauteurRuban"),
   hauteurBande: document.querySelector("#hauteurBande"),
@@ -5173,6 +5174,10 @@ function mettreAJourInterfaceConditionnelle(reglages) {
     });
   }
   appliquerVisibiliteModele();
+  elements.reglageArrondiBordure.classList.toggle(
+    "champ-masque",
+    modele === "JEAN" || !reglages.bordureHorizontale || !reglages.bordureVerticale,
+  );
   const motifActif = elements.activerMotif.checked;
   const vignettageActif = elements.activerVignettage.checked;
   const patineActive = elements.activerPatine.checked;
