@@ -118,17 +118,6 @@
       </div>
     </div>
 
-    <aside class="bandeau-restauration" id="bandeauRestauration" aria-live="polite" hidden>
-      <div class="bandeau-restauration__texte">
-        <strong>Réglages sauvegardés trouvés</strong>
-        <span id="dateRestauration">Vous pouvez restaurer votre dernière configuration.</span>
-      </div>
-      <div class="bandeau-restauration__actions">
-        <button class="bouton bouton-principal" id="restaurerReglagesAuto" type="button">Restaurer</button>
-        <button class="bouton bouton-secondaire" id="ignorerReglagesAuto" type="button">Ignorer</button>
-      </div>
-    </aside>
-
     <section class="intro" id="intro">
       <div class="intro-fond" id="introFond" aria-hidden="true">
         <img src="./Images/fond-45ojuke.jpeg" alt="" draggable="false" />
@@ -504,6 +493,27 @@
               <label class="champ champ-large" data-modele-masque="JEAN" data-reglage-arrondi-bordure>Arrondi intérieur <input id="arrondiInterieurBordure" type="checkbox" /></label>
               <label class="champ" data-capacite-modele="ruban"><span class="champ__libelle">Largeur du ruban <span class="valeur-range" data-range-value="largeurRuban" data-range-unit="%"></span></span><input id="largeurRuban" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-capacite-modele="ruban"><span class="champ__libelle">Hauteur du ruban <span class="valeur-range" data-range-value="hauteurRuban" data-range-unit="%"></span></span><input id="hauteurRuban" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ champ-large" data-modele-visible="STELLA">Étoiles visibles <input id="afficherEtoiles" type="checkbox" /></label>
+              <label class="champ" data-modele-visible="STELLA" data-reglage-etoiles>Nombre d’étoiles par côté
+                <select id="nombreEtoiles">
+                  <option value="3">3 étoiles</option>
+                  <option value="4">4 étoiles</option>
+                  <option value="5">5 étoiles</option>
+                </select>
+              </label>
+              <label class="champ" data-modele-visible="STELLA" data-reglage-etoiles>Disposition des étoiles
+                <select id="dispositionEtoiles">
+                  <option value="droite">Droite</option>
+                  <option value="concave">Concave</option>
+                  <option value="convexe">Convexe</option>
+                </select>
+              </label>
+              <label class="champ" data-modele-visible="STELLA" data-reglage-etoiles data-reglage-courbure-etoiles><span class="champ__libelle">Courbure des étoiles <span class="valeur-range" data-range-value="courbureEtoiles" data-range-unit="%"></span></span><input id="courbureEtoiles" type="range" min="0" max="100" step="1" /></label>
+              <label class="champ" data-modele-visible="STELLA" data-reglage-etoiles><span class="champ__libelle">Distance des étoiles du bord <span class="valeur-range" data-range-value="positionHorizontaleEtoiles" data-range-unit="%"></span></span><input id="positionHorizontaleEtoiles" type="range" min="3" max="18" step="0.5" /></label>
+              <label class="champ" data-modele-visible="STELLA" data-reglage-etoiles><span class="champ__libelle">Position verticale des étoiles <span class="valeur-range" data-range-value="positionVerticaleEtoiles" data-range-unit="%"></span></span><input id="positionVerticaleEtoiles" type="range" min="35" max="65" step="1" /></label>
+              <label class="champ" data-modele-visible="STELLA" data-reglage-etoiles><span class="champ__libelle">Étendue verticale des étoiles <span class="valeur-range" data-range-value="etendueEtoiles" data-range-unit="%"></span></span><input id="etendueEtoiles" type="range" min="35" max="78" step="1" /></label>
+              <label class="champ" data-modele-visible="STELLA" data-reglage-etoiles><span class="champ__libelle">Taille des étoiles <span class="valeur-range" data-range-value="tailleEtoiles" data-range-unit="%"></span></span><input id="tailleEtoiles" type="range" min="70" max="130" step="1" /></label>
+              <label class="champ" data-modele-visible="STELLA" data-reglage-etoiles>Fond des étoiles <input id="couleurFondEtoiles" type="color" /></label>
               <label class="champ" data-capacite-modele="bandeCentrale"><span class="champ__libelle">Bande centrale <span class="valeur-range" data-range-value="hauteurBande" data-range-unit="%"></span></span><input id="hauteurBande" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-modele-visible="CELESTE"><span class="champ__libelle">Taille bande gauche <span class="valeur-range" data-range-value="tailleBandeGauche" data-range-unit="%"></span></span><input id="tailleBandeGauche" type="range" min="0" max="60" step="1" /></label>
               <label class="champ" data-modele-visible="CELESTE"><span class="champ__libelle">Orientation gauche <span class="valeur-range" data-range-value="angleBandeGauche"></span></span><input id="angleBandeGauche" type="range" min="-80" max="80" step="1" /></label>
@@ -703,6 +713,16 @@
               <button class="bouton bouton-navigation-modeles" id="modelesAccueilPrecedent" type="button" aria-label="Modèles précédents">‹</button>
               <div class="galerie-modeles galerie-modeles--accueil champ-large" id="galerieModelesAccueil" aria-label="Styles d'étiquette de départ"></div>
               <button class="bouton bouton-navigation-modeles" id="modelesAccueilSuivant" type="button" aria-label="Modèles suivants">›</button>
+            </div>
+            <div class="restauration-accueil" id="restaurationAccueil" aria-live="polite" hidden>
+              <span class="restauration-accueil__separateur">ou</span>
+              <div class="restauration-accueil__contenu">
+                <div>
+                  <strong>Restaurer une ancienne sauvegarde</strong>
+                  <span id="dateRestauration">Vous pouvez reprendre votre dernière configuration.</span>
+                </div>
+                <button class="bouton bouton-secondaire" id="restaurerReglagesAuto" type="button">Restaurer</button>
+              </div>
             </div>
           </section>
           <div class="apercus" hidden>

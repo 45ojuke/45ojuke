@@ -387,49 +387,6 @@ body:not(.is-intro-active) .top-actions__menu .facebook-text {
   color: #1877f2;
 }
 
-.bandeau-restauration {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  z-index: 36;
-  width: min(720px, calc(100vw - 32px));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  transform: translateX(-50%);
-  padding: 10px 12px 10px 16px;
-  border: 1px solid rgba(122, 47, 29, 0.22);
-  border-radius: 8px;
-  background: rgba(255, 250, 238, 0.96);
-  color: var(--texte);
-  box-shadow: 0 14px 30px rgba(50, 28, 15, 0.18);
-}
-
-.bandeau-restauration__texte {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-  font-size: 0.88rem;
-  line-height: 1.28;
-}
-
-.bandeau-restauration__texte strong {
-  color: var(--accent-2);
-  font-size: 0.92rem;
-}
-
-.bandeau-restauration__texte span {
-  color: var(--texte-doux);
-  font-weight: 700;
-}
-
-.bandeau-restauration__actions {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 8px;
-}
-
 .about-modal {
   position: fixed;
   inset: 0;
@@ -2583,6 +2540,62 @@ body.is-favoris-ouverts .scene {
   align-content: start;
 }
 
+.restauration-accueil {
+  width: min(620px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.restauration-accueil__separateur {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  color: var(--texte-doux);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.restauration-accueil__separateur::before,
+.restauration-accueil__separateur::after {
+  height: 1px;
+  flex: 1;
+  background: var(--bordure);
+  content: "";
+}
+
+.restauration-accueil__contenu {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(255, 250, 238, 0.72);
+  text-align: left;
+}
+
+.restauration-accueil__contenu > div {
+  display: grid;
+  gap: 2px;
+}
+
+.restauration-accueil__contenu strong {
+  color: var(--accent-2);
+  font-size: 0.88rem;
+}
+
+.restauration-accueil__contenu span {
+  color: var(--texte-doux);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
 .accueil-selection .carte-modele__nom {
   font-size: 0.58rem;
 }
@@ -3415,25 +3428,14 @@ body.is-favoris-ouverts .scene {
     display: none;
   }
 
-  body.is-restauration-visible .top-actions {
-    top: calc(76px + var(--safe-top));
-  }
-
-  .bandeau-restauration {
-    top: calc(10px + var(--safe-top));
+  .restauration-accueil__contenu {
     align-items: stretch;
     flex-direction: column;
-    gap: 10px;
-    padding: 10px;
+    text-align: center;
   }
 
-  .bandeau-restauration__actions {
+  .restauration-accueil__contenu .bouton {
     width: 100%;
-  }
-
-  .bandeau-restauration__actions .bouton {
-    flex: 1 1 0;
-    min-height: 40px;
   }
 
   .about-btn,

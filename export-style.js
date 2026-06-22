@@ -23,6 +23,17 @@ const CHAMPS_COMMUNS = [
 
 const CHAMPS_FONDS_CLASSIQUES = ["couleur2", "couleur3"];
 const CHAMPS_RUBAN = ["largeurRuban", "hauteurRuban"];
+const CHAMPS_STELLA = [
+  "afficherEtoiles",
+  "nombreEtoiles",
+  "dispositionEtoiles",
+  "courbureEtoiles",
+  "positionHorizontaleEtoiles",
+  "positionVerticaleEtoiles",
+  "etendueEtoiles",
+  "tailleEtoiles",
+  "couleurFondEtoiles",
+];
 const CHAMPS_BANDE_CENTRALE = ["hauteurBande"];
 const CHAMPS_CELESTE = [
   "couleurFondModerne",
@@ -229,6 +240,9 @@ export function preparerReglagesPourExport(reglages) {
   if (!["LEON", "JEAN"].includes(modele)) {
     copierChamps(exportNettoye, reglages, CHAMPS_RUBAN);
   }
+  if (modele === "STELLA") {
+    copierChamps(exportNettoye, reglages, CHAMPS_STELLA);
+  }
   if (["ALICE", "MARTIN", "JUJU", "MANU"].includes(modele)) {
     copierChamps(exportNettoye, reglages, CHAMPS_BANDE_CENTRALE);
   }
@@ -265,6 +279,7 @@ export function initialiserOptionsAbsentesPourImport(reglages, donnees) {
     modeVignette: "aucun",
     activerPatine: false,
     afficherMarques: false,
+    afficherEtoiles: false,
     synchroniserMarques: true,
     marquesVerticalesJEAN: false,
     limiterMarquesBandeSurprise: false,

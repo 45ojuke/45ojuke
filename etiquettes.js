@@ -1,4 +1,5 @@
 import { effetPoliceDepuisFont, famillePolice, normaliserStylePolice, poidsPolice } from "./polices.js";
+import { capacitesModeles } from "./modeles.js";
 
 window.PX_PAR_MM = window.PX_PAR_MM || 12;
 
@@ -30,7 +31,9 @@ export function dessinerEtiquette(ligne, reglages) {
   const rubanX = (largeur - rubanW) / 2;
   const rubanY = (hauteur - rubanH) / 2;
   const rubanVisible = rubanW > 0.5 && rubanH > 0.5;
-  const bandeH = hauteur * reglages.hauteurBande / 100;
+  const bandeH = capaciteBandeCentrale(reglages.modele)
+    ? hauteur * reglages.hauteurBande / 100
+    : 0;
   const bandeY = (hauteur - bandeH) / 2;
 
   if (reglages.modele === "CELESTE") {
@@ -93,6 +96,8 @@ export function dessinerEtiquette(ligne, reglages) {
       dessinerFlechesAlice(ctx, reglages, largeur, rubanX, rubanY, rubanW, rubanH);
     } else if (reglages.modele === "JUJU") {
       traitRuban = dessinerRubanSimple(ctx, reglages, rubanX, rubanY, rubanW, rubanH);
+    } else if (reglages.modele === "STELLA") {
+      traitRuban = dessinerRubanArrondi(ctx, reglages, rubanX, rubanY, rubanW, rubanH);
     } else {
       dessinerRubanMartin(ctx, reglages, rubanX, rubanY, rubanW, rubanH);
     }
@@ -116,7 +121,11 @@ export function dessinerEtiquette(ligne, reglages) {
     );
   }
 
-  if (rubanVisible && reglages.afficherMarques) {
+  if (reglages.modele === "STELLA" && reglages.afficherEtoiles !== false) {
+    dessinerEtoilesStella(ctx, reglages, largeur, hauteur, rubanX, rubanW);
+  }
+
+  if (rubanVisible && capacitesModeles[reglages.modele]?.marques === true && reglages.afficherMarques) {
     dessinerMarques(ctx, reglages, largeur, hauteur, rubanY, rubanH, bandeH);
   }
 
@@ -139,6 +148,10 @@ export function dessinerEtiquette(ligne, reglages) {
 
   finaliserEtiquette(ctx, reglages, largeur, hauteur);
   return canvas;
+}
+
+function capaciteBandeCentrale(modele) {
+  return ["ALICE", "MARTIN", "JUJU", "MANU"].includes(modele);
 }
 
 function finaliserEtiquette(ctx, reglages, largeur, hauteur) {
@@ -1136,6 +1149,98 @@ function dessinerRubanSimple(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
   tracerRubanSimple(ctx, rubanX, rubanY, rubanW, rubanH, pointe);
   ctx.stroke();
   return trait;
+}
+
+function dessinerRubanArrondi(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
+  const trait = Math.max(2, rubanH * 0.06);
+  const rayon = Math.min(rubanH * 0.34, rubanW * 0.04);
+  ctx.save();
+  ctx.fillStyle = reglages.couleurRuban;
+  ctx.strokeStyle = reglages.couleur1;
+  ctx.lineWidth = trait;
+  tracerRectangleArrondi(
+    ctx,
+    rubanX + trait / 2,
+    rubanY + trait / 2,
+    Math.max(0, rubanW - trait),
+    Math.max(0, rubanH - trait),
+    rayon,
+  );
+  ctx.fill();
+  ctx.restore();
+  dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
+  dessinerMotifSecondaireRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
+  ctx.save();
+  ctx.strokeStyle = reglages.couleur1;
+  ctx.lineWidth = trait;
+  tracerRectangleArrondi(
+    ctx,
+    rubanX + trait / 2,
+    rubanY + trait / 2,
+    Math.max(0, rubanW - trait),
+    Math.max(0, rubanH - trait),
+    rayon,
+  );
+  ctx.stroke();
+  ctx.restore();
+  return trait;
+}
+
+function dessinerEtoilesStella(ctx, reglages, largeur, hauteur, rubanX, rubanW) {
+  const nombre = Math.max(3, Math.min(5, Math.round(Number(reglages.nombreEtoiles) || 5)));
+  const disposition = ["droite", "concave", "convexe"].includes(reglages.dispositionEtoiles)
+    ? reglages.dispositionEtoiles
+    : "droite";
+  const courbure = Math.max(0, Math.min(100, Number(reglages.courbureEtoiles) || 0)) / 100;
+  const positionX = Math.max(3, Math.min(18, Number(reglages.positionHorizontaleEtoiles) || 7)) / 100;
+  const centreY = Math.max(35, Math.min(65, Number(reglages.positionVerticaleEtoiles) || 50)) / 100;
+  const etendue = Math.max(35, Math.min(78, Number(reglages.etendueEtoiles) || 66)) / 100;
+  const taille = Math.max(70, Math.min(130, Number(reglages.tailleEtoiles) || 100)) / 100;
+  const xGaucheBase = largeur * positionX;
+  const xDroiteBase = largeur - xGaucheBase;
+  const rayonExterieur = hauteur * 0.035 * taille;
+  const amplitudeCourbe = Math.min(rubanX * 0.36, largeur * 0.035) * courbure;
+  const debutY = centreY - etendue / 2;
+  ctx.save();
+  ctx.fillStyle = reglages.couleurFondEtoiles || reglages.couleur2;
+  ctx.strokeStyle = reglages.couleur1;
+  ctx.lineWidth = Math.max(1.2, hauteur * 0.006);
+  ctx.lineJoin = "round";
+  for (let index = 0; index < nombre; index += 1) {
+    const progression = nombre === 1 ? 0.5 : index / (nombre - 1);
+    const positionNormalisee = progression * 2 - 1;
+    const bombement = (1 - positionNormalisee * positionNormalisee) * amplitudeCourbe;
+    const direction = disposition === "concave" ? 1 : (disposition === "convexe" ? -1 : 0);
+    const xGauche = xGaucheBase + bombement * direction;
+    const xDroite = xDroiteBase - bombement * direction;
+    const y = Math.max(
+      rayonExterieur + ctx.lineWidth,
+      Math.min(hauteur - rayonExterieur - ctx.lineWidth, hauteur * (debutY + progression * etendue)),
+    );
+    tracerEtoile(ctx, xGauche, y, rayonExterieur, rayonExterieur * 0.44);
+    ctx.fill();
+    ctx.stroke();
+    tracerEtoile(ctx, xDroite, y, rayonExterieur, rayonExterieur * 0.44);
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function tracerEtoile(ctx, x, y, rayonExterieur, rayonInterieur) {
+  ctx.beginPath();
+  for (let index = 0; index < 10; index += 1) {
+    const rayon = index % 2 === 0 ? rayonExterieur : rayonInterieur;
+    const angle = -Math.PI / 2 + index * Math.PI / 5;
+    const px = x + Math.cos(angle) * rayon;
+    const py = y + Math.sin(angle) * rayon;
+    if (index === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
 }
 
 function tracerRubanSimple(ctx, rubanX, rubanY, rubanW, rubanH, pointe) {

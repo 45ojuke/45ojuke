@@ -49,7 +49,6 @@ const REPARTITION_DECOR_VARIANTES = ["aucun", "aucun", "aucun", "aucun", "aucun"
 const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
 const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
 const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine)");
-const DELAI_MASQUAGE_BANDEAU_RESTAURATION = 10000;
 const LIMITE_TAILLE_TITRES = 200;
 const LIMITE_TAILLE_ARTISTE = 200;
 const PIXELS_CSS_PAR_MM = 96 / 25.4;
@@ -80,10 +79,9 @@ const elements = {
   zoomApercuTailleReelle: document.querySelector("#zoomApercuTailleReelle"),
   regleApercu: document.querySelector("#regleApercu"),
   nombresRegleApercu: document.querySelector("#nombresRegleApercu"),
-  bandeauRestauration: document.querySelector("#bandeauRestauration"),
+  restaurationAccueil: document.querySelector("#restaurationAccueil"),
   dateRestauration: document.querySelector("#dateRestauration"),
   restaurerReglagesAuto: document.querySelector("#restaurerReglagesAuto"),
-  ignorerReglagesAuto: document.querySelector("#ignorerReglagesAuto"),
   formulaire: document.querySelector("#formulaire"),
   assistantReglages: document.querySelector("#assistantReglages"),
   assistantEtape: document.querySelector("#assistantEtape"),
@@ -177,6 +175,15 @@ const elements = {
   reglageArrondiBordure: document.querySelector("[data-reglage-arrondi-bordure]"),
   largeurRuban: document.querySelector("#largeurRuban"),
   hauteurRuban: document.querySelector("#hauteurRuban"),
+  afficherEtoiles: document.querySelector("#afficherEtoiles"),
+  nombreEtoiles: document.querySelector("#nombreEtoiles"),
+  dispositionEtoiles: document.querySelector("#dispositionEtoiles"),
+  courbureEtoiles: document.querySelector("#courbureEtoiles"),
+  positionHorizontaleEtoiles: document.querySelector("#positionHorizontaleEtoiles"),
+  positionVerticaleEtoiles: document.querySelector("#positionVerticaleEtoiles"),
+  etendueEtoiles: document.querySelector("#etendueEtoiles"),
+  tailleEtoiles: document.querySelector("#tailleEtoiles"),
+  couleurFondEtoiles: document.querySelector("#couleurFondEtoiles"),
   hauteurBande: document.querySelector("#hauteurBande"),
   epaisseurTraitsLEON: document.querySelector("#epaisseurTraitsLEON"),
   positionTraitsLEON: document.querySelector("#positionTraitsLEON"),
@@ -220,6 +227,8 @@ const elements = {
   champsModele: document.querySelectorAll("[data-modele-visible]"),
   champsMasquesModele: document.querySelectorAll("[data-modele-masque]"),
   champsCapaciteModele: document.querySelectorAll("[data-capacite-modele]"),
+  reglagesEtoiles: document.querySelectorAll("[data-reglage-etoiles]"),
+  reglageCourbureEtoiles: document.querySelector("[data-reglage-courbure-etoiles]"),
   valeursRange: document.querySelectorAll("[data-range-value]"),
   presetMarques: document.querySelector("#presetMarques"),
   couleurMarques: document.querySelector("#couleurMarques"),
@@ -365,7 +374,6 @@ let bulleAideActive = null;
 let favorisOuverts = false;
 let invitationInstallation = null;
 let dernierToucherZoom = 0;
-let temporisateurBandeauRestauration = null;
 let zoomApercuPourcentage = null;
 let zoomApercuMaximum = 200;
 const LIMITE_HISTORIQUE_REGLAGES = 40;
@@ -415,7 +423,7 @@ function appliquerDimensionsEtiquetteDefaut() {
 
 function brancherEvenements() {
   brancherAccueilIntro();
-  brancherBandeauRestauration();
+  brancherRestaurationAccueil();
   document.addEventListener("click", (evenement) => {
     if (!evenement.target.closest(".aide-option, .aide-bulle")) {
       fermerBulleAide();
@@ -692,44 +700,35 @@ function bloquerZoomMobile() {
   }, { passive: false });
 }
 
-function brancherBandeauRestauration() {
+function brancherRestaurationAccueil() {
   elements.restaurerReglagesAuto.addEventListener("click", restaurerReglagesAutomatiques);
-  elements.ignorerReglagesAuto.addEventListener("click", () => {
-    supprimerReglagesAutomatiques();
-    masquerBandeauRestauration();
-  });
 }
 
 function proposerRestaurationReglagesAutomatiques() {
   const sauvegarde = lireSauvegardeReglagesAutomatiques();
   if (!sauvegarde) {
+    masquerOptionRestauration();
     return;
   }
 
-  mettreAJourTexteBandeauRestauration(sauvegarde);
-  elements.bandeauRestauration.hidden = false;
-  document.body.classList.add("is-restauration-visible");
-  clearTimeout(temporisateurBandeauRestauration);
-  temporisateurBandeauRestauration = setTimeout(
-    masquerBandeauRestauration,
-    DELAI_MASQUAGE_BANDEAU_RESTAURATION,
-  );
+  mettreAJourTexteRestauration(sauvegarde);
+  elements.restaurationAccueil.hidden = false;
 }
 
-function mettreAJourTexteBandeauRestauration(sauvegarde = lireSauvegardeReglagesAutomatiques()) {
+function mettreAJourTexteRestauration(sauvegarde = lireSauvegardeReglagesAutomatiques()) {
   if (!sauvegarde) {
     return;
   }
   const date = new Date(sauvegarde.sauvegardeLe);
   elements.dateRestauration.textContent = Number.isNaN(date.getTime())
-    ? traduirePhrase("Vous pouvez restaurer votre dernière configuration.")
+    ? traduirePhrase("Vous pouvez reprendre votre dernière configuration.")
     : `${traduirePhrase("Dernière sauvegarde")} : ${date.toLocaleString(localeCourante(), { dateStyle: "short", timeStyle: "short" })}.`;
 }
 
 function restaurerReglagesAutomatiques() {
   const sauvegarde = lireSauvegardeReglagesAutomatiques();
   if (!sauvegarde) {
-    masquerBandeauRestauration();
+    masquerOptionRestauration();
     return;
   }
 
@@ -768,19 +767,16 @@ function restaurerReglagesAutomatiques() {
     mettreAJourGalerieModeles();
     mettreAJour();
     sauvegarderReglagesAutomatiques();
-    masquerBandeauRestauration();
+    masquerOptionRestauration();
   } catch (erreur) {
     supprimerReglagesAutomatiques();
-    masquerBandeauRestauration();
+    masquerOptionRestauration();
     window.alert(erreur.message || traduirePhrase("Impossible de restaurer les réglages sauvegardés."));
   }
 }
 
-function masquerBandeauRestauration() {
-  clearTimeout(temporisateurBandeauRestauration);
-  temporisateurBandeauRestauration = null;
-  elements.bandeauRestauration.hidden = true;
-  document.body.classList.remove("is-restauration-visible");
+function masquerOptionRestauration() {
+  elements.restaurationAccueil.hidden = true;
 }
 
 function lireSauvegardeReglagesAutomatiques() {
@@ -1383,8 +1379,8 @@ function appliquerLangueSite(langue, options = {}) {
   traduireTextesVisibles();
   traduireAttributsVisibles();
   traduireApercusModeles();
-  if (!elements.bandeauRestauration.hidden) {
-    mettreAJourTexteBandeauRestauration();
+  if (!elements.restaurationAccueil.hidden) {
+    mettreAJourTexteRestauration();
   }
   if (elements.statutCsv?.dataset.cleStatut) {
     mettreAJourStatutCsv(elements.statutCsv.dataset.cleStatut);
@@ -2283,10 +2279,13 @@ function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cib
     bouton.classList.add("is-actif");
   }
 
+  const reglagesDefaut = obtenirReglagesDefautModele(valeur) || {};
   const reglagesCarte = {
-    ...reglagesBase,
+    ...reglagesDefaut,
     ...(reglagesStyle || presets[valeur]),
     modele: valeur,
+    largeurEtiquette: reglagesBase?.largeurEtiquette ?? reglagesDefaut.largeurEtiquette,
+    hauteurEtiquette: reglagesBase?.hauteurEtiquette ?? reglagesDefaut.hauteurEtiquette,
   };
   if (!Object.prototype.hasOwnProperty.call(reglagesStyle || presets[valeur] || {}, "motifRuban")) {
     reglagesCarte.motifRuban = false;
@@ -2308,7 +2307,7 @@ function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cib
   imageVariante.alt = "";
   imageVariante.setAttribute("aria-hidden", "true");
 
-  const cycleVariante = creerCycleVariante(reglagesCarte);
+  const cycleVariante = creerCycleVarianteSurvol(reglagesCarte);
   const mettreAJourVariante = () => {
     imageVariante.src = dessinerEtiquette(ligneDemo, cycleVariante.prochaine()).toDataURL("image/png");
   };
@@ -2333,11 +2332,42 @@ function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cib
   return bouton;
 }
 
+function creerCycleVarianteSurvol(reglages) {
+  const motifsDecorRecents = [reglages.motifRubanType, reglages.motifType].filter((motif) => motif && motif !== "aucun");
+  const avecDecorMotifVarie = (variante) => {
+    const varianteAvecDecor = appliquerDecorMotifVariante(variante, reglages, motifsDecorRecents);
+    return {
+      ...appliquerBordureVisibleAleatoire(varianteAvecDecor),
+      // Une variante peut proposer d'autres textes latéraux, mais seul
+      // l'utilisateur décide s'ils sont visibles ou non, lorsque le modèle
+      // prend en charge ces mentions.
+      afficherMarques: capacitesModeles[reglages.modele]?.marques === true
+        && reglages.afficherMarques === true,
+    };
+  };
+  const premiereVariante = avecDecorMotifVarie(creerVarianteCouleur(reglages));
+  let premiereVarianteAffichee = false;
+  let dernierePalette = null;
+
+  const prochaine = () => {
+    if (!premiereVarianteAffichee) {
+      premiereVarianteAffichee = true;
+      return premiereVariante;
+    }
+
+    const palettesPossibles = PALETTES_TEINTES.filter((palette) => palette !== dernierePalette);
+    dernierePalette = choisirAleatoire(palettesPossibles.length ? palettesPossibles : PALETTES_TEINTES);
+    return appliquerPaletteTeinte(premiereVariante, dernierePalette);
+  };
+
+  return { prochaine };
+}
+
 function creerCycleVariante(reglages) {
   const signatureBase = signatureStyleEnregistre(reglages);
   const stylesEnregistres = obtenirStylesEtiquettes("tout")
     .filter((item) => item.reglages?.modele === reglages.modele && !estStyleParDefautVariante(item, reglages.modele))
-    .map((item) => normaliserReglagesImportes(item.reglages))
+    .map((item) => normaliserReglagesStyle(item.reglages))
     .filter((reglagesStyle) => signatureStyleEnregistre(reglagesStyle) !== signatureBase);
   const signaturesRecentes = [signatureBase];
   const motifsDecorRecents = [reglages.motifRubanType, reglages.motifType].filter((motif) => motif && motif !== "aucun");
@@ -2349,7 +2379,14 @@ function creerCycleVariante(reglages) {
       .filter((motif) => motif && motif !== "aucun")
       .forEach((motif) => motifsDecorRecents.push(motif));
     motifsDecorRecents.splice(0, Math.max(0, motifsDecorRecents.length - 4));
-    return appliquerBordureVisibleAleatoire(varianteAvecDecor);
+    return {
+      ...appliquerBordureVisibleAleatoire(varianteAvecDecor),
+      // Une variante peut proposer d'autres textes latéraux, mais seul
+      // l'utilisateur décide s'ils sont visibles ou non, lorsque le modèle
+      // prend en charge ces mentions.
+      afficherMarques: capacitesModeles[reglages.modele]?.marques === true
+        && reglages.afficherMarques === true,
+    };
   };
 
   const prochaine = () => {
@@ -2577,7 +2614,7 @@ function choisirModeleSecondaireDepuisGalerie(evenement) {
   const memeModeleQuePrincipal = bouton.dataset.modele === reglagesPrincipaux.modele;
   reglagesParEtiquette[2] = memeModeleQuePrincipal
     ? appliquerBordureVisibleAleatoire(creerVarianteCouleur(reglagesPrincipaux))
-    : style ? normaliserReglagesImportes(style.reglages) : creerReglagesSecondaires();
+    : style ? normaliserReglagesStyle(style.reglages) : creerReglagesSecondaires();
   etiquetteActive = "2";
   elements.editionEtiquette.forEach((radio) => {
     radio.checked = radio.value === "2";
@@ -2781,11 +2818,27 @@ function appliquerReglagesAuFormulaire(reglages) {
     ? false
     : reglagesNormalises.bordureVerticale ?? true;
   reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.arrondiInterieurBordure ?? false;
+  if (!capacitesModeles[reglagesNormalises.modele]?.bandeCentrale) {
+    reglagesNormalises.hauteurBande = 0;
+  }
+  reglagesNormalises.afficherEtoiles = reglagesNormalises.afficherEtoiles ?? reglagesNormalises.modele === "STELLA";
+  reglagesNormalises.nombreEtoiles = Math.max(3, Math.min(5, Math.round(Number(reglagesNormalises.nombreEtoiles) || 5)));
+  reglagesNormalises.dispositionEtoiles = ["droite", "concave", "convexe"].includes(reglagesNormalises.dispositionEtoiles)
+    ? reglagesNormalises.dispositionEtoiles
+    : "droite";
+  reglagesNormalises.courbureEtoiles = Math.max(0, Math.min(100, Number(reglagesNormalises.courbureEtoiles) || 0));
+  reglagesNormalises.positionHorizontaleEtoiles = Math.max(3, Math.min(18, Number(reglagesNormalises.positionHorizontaleEtoiles) || 7));
+  reglagesNormalises.positionVerticaleEtoiles = Math.max(35, Math.min(65, Number(reglagesNormalises.positionVerticaleEtoiles) || 50));
+  reglagesNormalises.etendueEtoiles = Math.max(35, Math.min(78, Number(reglagesNormalises.etendueEtoiles) || 66));
+  reglagesNormalises.tailleEtoiles = Math.max(70, Math.min(130, Number(reglagesNormalises.tailleEtoiles) || 100));
+  reglagesNormalises.couleurFondEtoiles = reglagesNormalises.couleurFondEtoiles || reglagesNormalises.couleur2 || "#ffffff";
   reglagesNormalises.epaisseurTraitsLEON = reglagesNormalises.epaisseurTraitsLEON ?? 3;
   reglagesNormalises.positionTraitsLEON = reglagesNormalises.positionTraitsLEON ?? 50;
   reglagesNormalises.ecartTraitsLEON = reglagesNormalises.ecartTraitsLEON ?? 24;
   reglagesNormalises.tailleTrianglesJEAN = reglagesNormalises.tailleTrianglesJEAN ?? 11;
   reglagesNormalises.tailleTrianglesJEAN = convertirTailleTrianglesEnCurseur(reglagesNormalises.tailleTrianglesJEAN);
+  reglagesNormalises.afficherMarques = capacitesModeles[reglagesNormalises.modele]?.marques === true
+    && [true, 1, "true", "1"].includes(reglagesNormalises.afficherMarques);
   reglagesNormalises.synchroniserMarques = ![false, 0, "false", "0"].includes(reglagesNormalises.synchroniserMarques);
   reglagesNormalises.marquesVerticalesJEAN = [true, 1, "true", "1"].includes(reglagesNormalises.marquesVerticalesJEAN);
   reglagesNormalises.marqueGaucheTexte = reglagesNormalises.marqueGaucheTexte ?? reglagesNormalises.marqueGauche ?? "";
@@ -3378,6 +3431,15 @@ function lireReglagesFormulaire() {
     arrondiInterieurBordure: elements.arrondiInterieurBordure.checked,
     largeurRuban: Number(elements.largeurRuban.value),
     hauteurRuban: Number(elements.hauteurRuban.value),
+    afficherEtoiles: elements.afficherEtoiles.checked,
+    nombreEtoiles: Number(elements.nombreEtoiles.value),
+    dispositionEtoiles: elements.dispositionEtoiles.value,
+    courbureEtoiles: Number(elements.courbureEtoiles.value),
+    positionHorizontaleEtoiles: Number(elements.positionHorizontaleEtoiles.value),
+    positionVerticaleEtoiles: Number(elements.positionVerticaleEtoiles.value),
+    etendueEtoiles: Number(elements.etendueEtoiles.value),
+    tailleEtoiles: Number(elements.tailleEtoiles.value),
+    couleurFondEtoiles: elements.couleurFondEtoiles.value,
     hauteurBande: Number(elements.hauteurBande.value),
     epaisseurTraitsLEON: Number(elements.epaisseurTraitsLEON.value),
     positionTraitsLEON: Number(elements.positionTraitsLEON.value),
@@ -3404,7 +3466,8 @@ function lireReglagesFormulaire() {
     decalageArtisteY: Number(elements.decalageArtisteY.value),
     decalageTitreBX: Number(elements.decalageTitreBX.value),
     decalageTitreBY: Number(elements.decalageTitreBY.value),
-    afficherMarques: elements.afficherMarques.checked,
+    afficherMarques: capacitesModeles[elements.modele.value]?.marques === true
+      && elements.afficherMarques.checked,
     couleurMarques: elements.couleurMarques.value,
     formePastille: elements.formePastille.value,
     diametrePastille: Number(elements.diametrePastille.value),
@@ -3623,7 +3686,7 @@ function changerActivationDeuxiemeEtiquette() {
 
 function afficherApercuApresChoixModele() {
   modeleChoisi = true;
-  masquerBandeauRestauration();
+  masquerOptionRestauration();
   document.body.classList.remove("is-accueil-selection");
   window.scrollTo({ top: 0, left: 0 });
   elements.formulaire?.scrollTo?.({ top: 0, left: 0 });
@@ -3646,7 +3709,7 @@ function nombreAleatoire(minimum, maximum, pas = 1) {
 
 function creerMarquesSurprise(combo, reglagesBase) {
   const modele = reglagesBase.modele;
-  if (modele === "JUJU" || modele === "MARTIN" || combo.marques === "aucun") {
+  if (modele === "STELLA" || modele === "JUJU" || modele === "MARTIN" || combo.marques === "aucun") {
     return {
       afficherMarques: false,
       presetMarques: "custom",
@@ -4393,6 +4456,16 @@ async function importerReglagesDepuisFichier(evenement) {
   } finally {
     evenement.target.value = "";
   }
+}
+
+function normaliserReglagesStyle(reglagesStyle) {
+  const modele = String(reglagesStyle?.modele || "").trim();
+  const reglagesDefaut = obtenirReglagesDefautModele(modele) || {};
+  return normaliserReglagesImportes({
+    ...reglagesDefaut,
+    ...reglagesStyle,
+    modele,
+  });
 }
 
 function normaliserReglagesImportes(donnees) {
@@ -5675,6 +5748,13 @@ function mettreAJourInterfaceConditionnelle(reglages) {
     });
   }
   appliquerVisibiliteModele();
+  elements.reglagesEtoiles.forEach((champ) => {
+    champ.classList.toggle("champ-masque", modele !== "STELLA" || !reglages.afficherEtoiles);
+  });
+  elements.reglageCourbureEtoiles.classList.toggle(
+    "champ-masque",
+    modele !== "STELLA" || !reglages.afficherEtoiles || reglages.dispositionEtoiles === "droite",
+  );
   elements.reglageArrondiBordure.classList.toggle(
     "champ-masque",
     modele === "JEAN" || !reglages.bordureHorizontale || !reglages.bordureVerticale,
@@ -5771,6 +5851,9 @@ function mettreAJourValeursRange() {
 
 function formaterValeurRange(cle, valeur, unite) {
   const nombre = Number(valeur);
+  if (cle === "nombreEtoiles") {
+    return String(Math.round(nombre));
+  }
   if (/^decalage(?:Titre[AB]|Artiste)[XY]$/.test(cle)) {
     if (nombre === 0) {
       return "0%";
