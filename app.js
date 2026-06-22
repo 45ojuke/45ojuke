@@ -463,7 +463,9 @@ function brancherEvenements() {
       return;
     }
     enregistrerHistoriqueDepuisControle(evenement.target);
+    appliquerReglagesMarquesALActivation(evenement.target);
     marquerCouleurTexteManuelle(evenement.target);
+    actualiserCouleurMarquesAutomatiqueDepuisFormulaire();
     desactiverLimiteMarquesSurpriseSiModificationManuelle(evenement.target);
     if (evenement.target.closest("[data-marque-commun]")) {
       synchroniserValeursMarquesDepuisCommun();
@@ -476,7 +478,9 @@ function brancherEvenements() {
       return;
     }
     enregistrerHistoriqueDepuisControle(evenement.target);
+    appliquerReglagesMarquesALActivation(evenement.target);
     marquerCouleurTexteManuelle(evenement.target);
+    actualiserCouleurMarquesAutomatiqueDepuisFormulaire();
     desactiverLimiteMarquesSurpriseSiModificationManuelle(evenement.target);
     if ([
       elements.policeTitres,
@@ -2343,6 +2347,12 @@ function creerCycleVarianteSurvol(reglages) {
       // prend en charge ces mentions.
       afficherMarques: capacitesModeles[reglages.modele]?.marques === true
         && reglages.afficherMarques === true,
+      ...(reglages.couleurMarquesManuelle ? {
+        couleurMarques: reglages.couleurMarques,
+        couleurMarqueGauche: reglages.couleurMarqueGauche,
+        couleurMarqueDroite: reglages.couleurMarqueDroite,
+        couleurMarquesManuelle: true,
+      } : {}),
     };
   };
   const premiereVariante = avecDecorMotifVarie(creerVarianteCouleur(reglages));
@@ -2386,6 +2396,12 @@ function creerCycleVariante(reglages) {
       // prend en charge ces mentions.
       afficherMarques: capacitesModeles[reglages.modele]?.marques === true
         && reglages.afficherMarques === true,
+      ...(reglages.couleurMarquesManuelle ? {
+        couleurMarques: reglages.couleurMarques,
+        couleurMarqueGauche: reglages.couleurMarqueGauche,
+        couleurMarqueDroite: reglages.couleurMarqueDroite,
+        couleurMarquesManuelle: true,
+      } : {}),
     };
   };
 
@@ -2839,6 +2855,14 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.tailleTrianglesJEAN = convertirTailleTrianglesEnCurseur(reglagesNormalises.tailleTrianglesJEAN);
   reglagesNormalises.afficherMarques = capacitesModeles[reglagesNormalises.modele]?.marques === true
     && [true, 1, "true", "1"].includes(reglagesNormalises.afficherMarques);
+  reglagesNormalises.couleurMarquesManuelle = [true, 1, "true", "1"].includes(
+    reglagesNormalises.couleurMarquesManuelle,
+  );
+  if (reglagesNormalises.afficherMarques && !reglagesNormalises.couleurMarquesManuelle) {
+    reglagesNormalises.couleurMarques = couleurMarquesAutomatique(reglagesNormalises);
+    reglagesNormalises.couleurMarqueGauche = reglagesNormalises.couleurMarques;
+    reglagesNormalises.couleurMarqueDroite = reglagesNormalises.couleurMarques;
+  }
   reglagesNormalises.synchroniserMarques = ![false, 0, "false", "0"].includes(reglagesNormalises.synchroniserMarques);
   reglagesNormalises.marquesVerticales = [true, 1, "true", "1"].includes(
     reglagesNormalises.marquesVerticales ?? reglagesNormalises.marquesVerticalesJEAN,
@@ -2895,6 +2919,7 @@ function appliquerReglagesAuFormulaire(reglages) {
   elements.couleurTitreFaceA.dataset.modifieeManuellement = reglagesNormalises.couleurTitreFaceAManuelle ? "true" : "false";
   elements.couleurTitreFaceB.dataset.modifieeManuellement = reglagesNormalises.couleurTitreFaceBManuelle ? "true" : "false";
   elements.couleurArtiste.dataset.modifieeManuellement = reglagesNormalises.couleurArtisteManuelle ? "true" : "false";
+  elements.couleurMarques.dataset.modifieeManuellement = reglagesNormalises.couleurMarquesManuelle ? "true" : "false";
   synchroniserOptionsMotifSecondaire(reglagesNormalises.motifTraitsModernes);
   elements.activerMotif.checked = motifDecorActifDepuisFormulaire();
   elements.activerVignettage.checked = reglagesNormalises.modeVignette !== "aucun";
@@ -3471,6 +3496,7 @@ function lireReglagesFormulaire() {
     afficherMarques: capacitesModeles[elements.modele.value]?.marques === true
       && elements.afficherMarques.checked,
     couleurMarques: elements.couleurMarques.value,
+    couleurMarquesManuelle: elements.couleurMarques.dataset.modifieeManuellement === "true",
     formePastille: elements.formePastille.value,
     diametrePastille: Number(elements.diametrePastille.value),
     presetMarques: elements.presetMarques.value,
@@ -3514,9 +3540,64 @@ function marquerCouleurTexteManuelle(champ) {
     champ === elements.couleurTitreFaceA
     || champ === elements.couleurTitreFaceB
     || champ === elements.couleurArtiste
+    || champ === elements.couleurMarques
   ) {
     champ.dataset.modifieeManuellement = "true";
   }
+}
+
+function appliquerReglagesMarquesALActivation(champ) {
+  if (champ !== elements.afficherMarques || !elements.afficherMarques.checked) {
+    return;
+  }
+  elements.synchroniserMarques.checked = true;
+  elements.presetMarques.value = "45-rpm";
+  elements.marqueGauche.value = "45";
+  elements.marqueDroite.value = "RPM";
+  elements.policeMarques.value = "compacte";
+  elements.tailleMarques.value = "175";
+  elements.marquesVerticales.checked = elements.modele.value === "JEAN";
+  elements.angleMarques.value = "-90";
+  elements.positionMarques.value = "3";
+  elements.hauteurMarques.value = "50";
+  elements.couleurMarques.dataset.modifieeManuellement = "false";
+  actualiserCouleurMarquesAutomatiqueDepuisFormulaire();
+  synchroniserValeursMarquesDepuisCommun();
+}
+
+function actualiserCouleurMarquesAutomatiqueDepuisFormulaire() {
+  if (elements.couleurMarques.dataset.modifieeManuellement === "true") {
+    return;
+  }
+  const couleur = couleurMarquesAutomatique({
+    modele: elements.modele.value,
+    couleur1: elements.couleur1.value,
+    couleur2: elements.couleur2.value,
+    couleur3: elements.couleur3.value,
+    couleurFondModerne: elements.couleurFondModerne.value,
+  });
+  elements.couleurMarques.value = couleur;
+  elements.couleurMarqueGauche.value = couleur;
+  elements.couleurMarqueDroite.value = couleur;
+}
+
+function couleurMarquesAutomatique(reglages) {
+  const fonds = reglages.modele === "CELESTE"
+    ? [reglages.couleurFondModerne]
+    : [reglages.couleur2, reglages.couleur3];
+  const contrasteMinimum = (couleur) => fonds.reduce(
+    (minimum, fond) => Math.min(minimum, ratioContrasteTeinte(fond, couleur)),
+    Infinity,
+  );
+  if (/^#[0-9a-f]{6}$/i.test(String(reglages.couleur1)) && contrasteMinimum(reglages.couleur1) >= 3) {
+    return reglages.couleur1;
+  }
+  const candidats = ["#16120d", "#fffdf8"]
+    .filter((couleur) => /^#[0-9a-f]{6}$/i.test(String(couleur)));
+  return candidats.reduce((meilleure, couleur) => {
+    const contraste = contrasteMinimum(couleur);
+    return contraste > meilleure.contraste ? { couleur, contraste } : meilleure;
+  }, { couleur: "#16120d", contraste: -Infinity }).couleur;
 }
 
 function lireDimensionEtiquette(element, cle) {
@@ -4524,6 +4605,9 @@ function normaliserReglagesImportes(donnees) {
   reglages.couleurTitreFaceAManuelle = couleurTexteEstManuelle("couleurTitreFaceA", "couleurTitreFaceAManuelle");
   reglages.couleurTitreFaceBManuelle = couleurTexteEstManuelle("couleurTitreFaceB", "couleurTitreFaceBManuelle");
   reglages.couleurArtisteManuelle = couleurTexteEstManuelle("couleurArtiste", "couleurArtisteManuelle");
+  reglages.couleurMarquesManuelle = Object.prototype.hasOwnProperty.call(donneesCompatibles, "couleurMarquesManuelle")
+    ? donneesCompatibles.couleurMarquesManuelle === true
+    : Object.prototype.hasOwnProperty.call(donneesCompatibles, "couleurMarques");
 
   if (reglages.modele === "MARTIN" && !Object.prototype.hasOwnProperty.call(donneesCompatibles, "hauteurBande")) {
     reglages.hauteurBande = 0;
@@ -4609,7 +4693,9 @@ function appliquerPaletteTeinte(reglages, palette) {
   const couleurTitreFaceB = couleurTexteTeintee(reglages.couleurTitreFaceB, palette.titre, fondBas);
   const couleurArtisteSource = estCouleurClaire(ruban) ? palette.cadre : palette.artiste;
   const couleurArtiste = couleurTexteTeintee(reglages.couleurArtiste, couleurArtisteSource, ruban);
-  const couleurMarques = couleurFondTeintee(reglages.couleurMarques, palette.marques);
+  const couleurMarques = reglages.couleurMarquesManuelle
+    ? reglages.couleurMarques
+    : couleurFondTeintee(reglages.couleurMarques, palette.marques);
   const couleurMarqueGauche = couleurFondTeintee(reglages.couleurMarqueGauche, couleurMarques);
   const couleurMarqueDroite = couleurFondTeintee(reglages.couleurMarqueDroite, couleurMarques);
   return {
