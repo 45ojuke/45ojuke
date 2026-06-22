@@ -217,8 +217,8 @@ function ajouterMarquesActives(exportNettoye, reglages) {
     }
   }
 
-  if (reglages.modele === "JEAN" && reglages.marquesVerticalesJEAN) {
-    exportNettoye.marquesVerticalesJEAN = true;
+  if (reglages.marquesVerticales || reglages.marquesVerticalesJEAN) {
+    exportNettoye.marquesVerticales = true;
   }
   if (reglages.limiterMarquesBandeSurprise) {
     exportNettoye.limiterMarquesBandeSurprise = true;
@@ -281,6 +281,7 @@ export function initialiserOptionsAbsentesPourImport(reglages, donnees) {
     afficherMarques: false,
     afficherEtoiles: false,
     synchroniserMarques: true,
+    marquesVerticales: false,
     marquesVerticalesJEAN: false,
     limiterMarquesBandeSurprise: false,
     deplacementTextesManuel: false,

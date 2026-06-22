@@ -237,7 +237,7 @@ const elements = {
   marqueGauche: document.querySelector("#marqueGauche"),
   marqueDroite: document.querySelector("#marqueDroite"),
   policeMarques: document.querySelector("#policeMarques"),
-  marquesVerticalesJEAN: document.querySelector("#marquesVerticalesJEAN"),
+  marquesVerticales: document.querySelector("#marquesVerticales"),
   synchroniserMarques: document.querySelector("#synchroniserMarques"),
   reglagesMarquesCommuns: document.querySelectorAll("[data-marque-commun]"),
   reglagesMarquesSepares: document.querySelectorAll("[data-marque-separe]"),
@@ -2840,7 +2840,9 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.afficherMarques = capacitesModeles[reglagesNormalises.modele]?.marques === true
     && [true, 1, "true", "1"].includes(reglagesNormalises.afficherMarques);
   reglagesNormalises.synchroniserMarques = ![false, 0, "false", "0"].includes(reglagesNormalises.synchroniserMarques);
-  reglagesNormalises.marquesVerticalesJEAN = [true, 1, "true", "1"].includes(reglagesNormalises.marquesVerticalesJEAN);
+  reglagesNormalises.marquesVerticales = [true, 1, "true", "1"].includes(
+    reglagesNormalises.marquesVerticales ?? reglagesNormalises.marquesVerticalesJEAN,
+  );
   reglagesNormalises.marqueGaucheTexte = reglagesNormalises.marqueGaucheTexte ?? reglagesNormalises.marqueGauche ?? "";
   reglagesNormalises.marqueDroiteTexte = reglagesNormalises.marqueDroiteTexte ?? reglagesNormalises.marqueDroite ?? "";
   reglagesNormalises.couleurMarqueGauche = reglagesNormalises.couleurMarqueGauche || reglagesNormalises.couleurMarques;
@@ -3476,7 +3478,7 @@ function lireReglagesFormulaire() {
     marqueGauche: elements.marqueGauche.value.trim(),
     marqueDroite: elements.marqueDroite.value.trim(),
     policeMarques: elements.policeMarques.value,
-    marquesVerticalesJEAN: elements.marquesVerticalesJEAN.checked,
+    marquesVerticales: elements.marquesVerticales.checked,
     marqueGaucheTexte: elements.marqueGaucheTexte.value.trim(),
     marqueDroiteTexte: elements.marqueDroiteTexte.value.trim(),
     couleurMarqueGauche: elements.couleurMarqueGauche.value,

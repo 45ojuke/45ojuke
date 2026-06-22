@@ -937,11 +937,9 @@ function dessinerMarquesModernes(ctx, reglages, largeur, hauteur) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   appliquerStyleMarque(ctx, reglages, "gauche", tailleGauche);
-  appliquerContrasteMarqueSurFondBlanc(ctx, reglages, xGauche, yGauche);
-  dessinerTexteTourne(ctx, textes[0], xGauche, yGauche, angleMarque(reglages, "gauche"));
+  dessinerTexteMarque(ctx, reglages, textes[0], xGauche, yGauche, tailleGauche, angleMarque(reglages, "gauche"));
   appliquerStyleMarque(ctx, reglages, "droite", tailleDroite);
-  appliquerContrasteMarqueSurFondBlanc(ctx, reglages, largeur - xDroite, yDroite);
-  dessinerTexteTourne(ctx, textes[1], largeur - xDroite, yDroite, angleMarque(reglages, "droite"));
+  dessinerTexteMarque(ctx, reglages, textes[1], largeur - xDroite, yDroite, tailleDroite, angleMarque(reglages, "droite"));
   ctx.restore();
 }
 
@@ -990,7 +988,11 @@ function dessinerPastilleManu(ctx, reglages, cote, texte, x, y, diametre, taille
   ctx.fillStyle = couleurEstBlanche(couleurPastille)
     ? couleurLateraleSurFondBlanc(reglages)
     : couleurTexteContraste(couleurPastille);
-  dessinerTexteTourneRespectantCasse(ctx, texte, x, y, angle);
+  if (marquesVerticalesActives(reglages)) {
+    dessinerTexteVerticalDroit(ctx, texte, x, y, tailleAjustee);
+  } else {
+    dessinerTexteTourneRespectantCasse(ctx, texte, x, y, angle);
+  }
   ctx.restore();
 }
 
@@ -1313,19 +1315,25 @@ function dessinerMarques(ctx, reglages, largeur, hauteur, rubanY, rubanH, bandeH
   const yGauche = hauteur * hauteurMarque(reglages, "gauche") / 100;
   const yDroite = hauteur * hauteurMarque(reglages, "droite") / 100;
   appliquerStyleMarque(ctx, reglages, "gauche", tailleGauche);
-  appliquerContrasteMarqueSurFondBlanc(ctx, reglages, xGauche, yGauche);
-  if (reglages.modele === "JEAN" && reglages.marquesVerticalesJEAN) {
-    dessinerTexteVerticalDroit(ctx, texteGauche, xGauche, yGauche, tailleGauche);
-  } else {
-    dessinerTexteTourne(ctx, texteGauche, xGauche, yGauche, angleMarque(reglages, "gauche"));
-  }
+  dessinerTexteMarque(
+    ctx,
+    reglages,
+    texteGauche,
+    xGauche,
+    yGauche,
+    tailleGauche,
+    angleMarque(reglages, "gauche"),
+  );
   appliquerStyleMarque(ctx, reglages, "droite", tailleDroite);
-  appliquerContrasteMarqueSurFondBlanc(ctx, reglages, largeur - xDroite, yDroite);
-  if (reglages.modele === "JEAN" && reglages.marquesVerticalesJEAN) {
-    dessinerTexteVerticalDroit(ctx, texteDroite, largeur - xDroite, yDroite, tailleDroite);
-  } else {
-    dessinerTexteTourne(ctx, texteDroite, largeur - xDroite, yDroite, angleMarque(reglages, "droite"));
-  }
+  dessinerTexteMarque(
+    ctx,
+    reglages,
+    texteDroite,
+    largeur - xDroite,
+    yDroite,
+    tailleDroite,
+    angleMarque(reglages, "droite"),
+  );
 }
 
 function tailleMarque(reglages, cote, largeur, facteur) {
@@ -1375,23 +1383,6 @@ function appliquerStyleMarque(ctx, reglages, cote, taille) {
   ctx.fillStyle = couleur;
 }
 
-function appliquerContrasteMarqueSurFondBlanc(ctx, reglages, x, y) {
-  if (pixelEstBlanc(ctx, x, y)) {
-    ctx.fillStyle = couleurLateraleSurFondBlanc(reglages);
-  }
-}
-
-function pixelEstBlanc(ctx, x, y) {
-  const px = Math.max(0, Math.min(ctx.canvas.width - 1, Math.round(x)));
-  const py = Math.max(0, Math.min(ctx.canvas.height - 1, Math.round(y)));
-  try {
-    const [rouge, vert, bleu, alpha] = ctx.getImageData(px, py, 1, 1).data;
-    return alpha > 0 && rouge >= 245 && vert >= 245 && bleu >= 245;
-  } catch {
-    return false;
-  }
-}
-
 function couleurEstBlanche(couleur) {
   const { rouge, vert, bleu } = lireCouleurRgb(couleur);
   return rouge >= 245 && vert >= 245 && bleu >= 245;
@@ -1429,6 +1420,18 @@ function dessinerTexteTourne(ctx, texte, x, y, angle) {
   ctx.rotate((angle * Math.PI) / 180);
   dessinerEmpreinteTexte(ctx, String(texte || "").toLocaleUpperCase("fr-FR"), 0, 0);
   ctx.restore();
+}
+
+function marquesVerticalesActives(reglages) {
+  return reglages.marquesVerticales === true || reglages.marquesVerticalesJEAN === true;
+}
+
+function dessinerTexteMarque(ctx, reglages, texte, x, y, taille, angle) {
+  if (marquesVerticalesActives(reglages)) {
+    dessinerTexteVerticalDroit(ctx, texte, x, y, taille);
+  } else {
+    dessinerTexteTourne(ctx, texte, x, y, angle);
+  }
 }
 
 function dessinerTexteVerticalDroit(ctx, texte, x, y, taille) {
