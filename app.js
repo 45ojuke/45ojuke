@@ -3656,9 +3656,10 @@ function enregistrerReglagesActifs() {
     return;
   }
   if (modeModificationEtiquettes === "toutes") {
-    reglagesParEtiquette[1] = clonerReglages(reglages);
     if (deuxiemeEtiquetteActive()) {
-      reglagesParEtiquette[2] = clonerReglages(reglages);
+      reglagesParEtiquette[etiquetteActive] = clonerReglages(reglages);
+    } else if (etiquetteActive === "1") {
+      reglagesParEtiquette[1] = clonerReglages(reglages);
     }
   } else {
     reglagesParEtiquette[etiquetteActive] = reglages;
