@@ -197,14 +197,21 @@ function normaliserStyleEtiquette(style, index) {
   const idSource = String(style.id || `${modele}-${index + 1}`).trim() || `${modele}-${index + 1}`;
   const id = idSource;
   const libelleModele = modelesParTheme.tout.find(([valeur]) => valeur === modele)?.[1] || modele;
+  const reglagesNormalises = {
+    ...reglages,
+    modele,
+  };
+  if (
+    !Object.prototype.hasOwnProperty.call(reglagesNormalises, "couleurMarquesManuelle")
+    && Object.prototype.hasOwnProperty.call(reglagesNormalises, "couleurMarques")
+  ) {
+    reglagesNormalises.couleurMarquesManuelle = true;
+  }
   return {
     id,
     nom: id === modele ? libelleModele : String(style.nom || style.label || libelleModele),
     theme: String(style.theme || reglages.theme || "tout"),
-    reglages: {
-      ...reglages,
-      modele,
-    },
+    reglages: reglagesNormalises,
   };
 }
 
