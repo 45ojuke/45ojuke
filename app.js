@@ -67,11 +67,13 @@ const elements = {
   menuMobileActions: document.querySelector("#menuMobileActions"),
   fermerAPropos: document.querySelector("#fermerAPropos"),
   aboutModal: document.querySelector("#aboutModal"),
+  ouvrirLicenceComplete: document.querySelector("#ouvrirLicenceComplete"),
+  fermerLicenceComplete: document.querySelector("#fermerLicenceComplete"),
+  licenceCompleteModal: document.querySelector("#licenceCompleteModal"),
   ouvrirConfidentialite: document.querySelector("#ouvrirConfidentialite"),
   ouvrirConfidentialiteMenu: document.querySelector("#ouvrirConfidentialiteMenu"),
   fermerConfidentialite: document.querySelector("#fermerConfidentialite"),
   confidentialiteModal: document.querySelector("#confidentialiteModal"),
-  controleZoomApercu: document.querySelector("#controleZoomApercu"),
   zoomApercu: document.querySelector("#zoomApercu"),
   diminuerZoomApercu: document.querySelector("#diminuerZoomApercu"),
   augmenterZoomApercu: document.querySelector("#augmenterZoomApercu"),
@@ -872,6 +874,8 @@ function brancherAccueilIntro() {
   elements.ouvrirConfidentialite.addEventListener("click", ouvrirConfidentialite);
   elements.ouvrirConfidentialiteMenu.addEventListener("click", ouvrirConfidentialite);
   elements.fermerAPropos.addEventListener("click", fermerAPropos);
+  elements.ouvrirLicenceComplete.addEventListener("click", ouvrirLicenceComplete);
+  elements.fermerLicenceComplete.addEventListener("click", fermerLicenceComplete);
   elements.fermerConfidentialite.addEventListener("click", fermerConfidentialite);
   elements.aboutModal.addEventListener("click", (evenement) => {
     if (evenement.target === elements.aboutModal) {
@@ -883,6 +887,11 @@ function brancherAccueilIntro() {
       fermerConfidentialite();
     }
   });
+  elements.licenceCompleteModal.addEventListener("click", (evenement) => {
+    if (evenement.target === elements.licenceCompleteModal) {
+      fermerLicenceComplete();
+    }
+  });
   elements.aboutModal.addEventListener("cancel", (evenement) => {
     evenement.preventDefault();
     fermerAPropos();
@@ -891,12 +900,19 @@ function brancherAccueilIntro() {
     evenement.preventDefault();
     fermerConfidentialite();
   });
+  elements.licenceCompleteModal.addEventListener("cancel", (evenement) => {
+    evenement.preventDefault();
+    fermerLicenceComplete();
+  });
   document.addEventListener("keydown", (evenement) => {
     if (evenement.key === "Escape") {
       fermerMenuActionsMobile();
     }
-    if (evenement.key === "Escape" && elements.aboutModal.open) {
+    if (evenement.key === "Escape" && elements.aboutModal.open && !elements.licenceCompleteModal.open) {
       fermerAPropos();
+    }
+    if (evenement.key === "Escape" && elements.licenceCompleteModal.open) {
+      fermerLicenceComplete();
     }
     if (evenement.key === "Escape" && elements.confidentialiteModal.open) {
       fermerConfidentialite();
@@ -1409,6 +1425,16 @@ function synchroniserBoutonsLangue() {
 function fermerAPropos() {
   if (elements.aboutModal.open) {
     elements.aboutModal.close();
+  }
+}
+
+function ouvrirLicenceComplete() {
+  elements.licenceCompleteModal.showModal();
+}
+
+function fermerLicenceComplete() {
+  if (elements.licenceCompleteModal.open) {
+    elements.licenceCompleteModal.close();
   }
 }
 
@@ -3381,7 +3407,7 @@ function gererActionFavori(evenement) {
 
   if (bouton.dataset.action === "renommer") {
     const nomActuel = favori.nomPersonnalise || "";
-    const nouveauNom = window.prompt("Nom du favori", nomActuel);
+    const nouveauNom = window.prompt(traduirePhrase("Nom du favori"), nomActuel);
     if (nouveauNom === null) {
       return;
     }

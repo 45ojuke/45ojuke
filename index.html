@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="robots" content="index, follow" />
     <meta name="description" content="Créez vos étiquettes jukebox personnalisées dans un style rétro, prêtes à imprimer et à glisser dans votre machine." />
-    <meta name="keywords" content="étiquette jukebox, étiquettes jukebox, etiquette jukebox, étiquette 45 tours, etiquette 45 tours, étiquette vinyle, etiquette vinyle, étiquettes personnalisées jukebox, créer étiquette jukebox, imprimer étiquette jukebox, modèle étiquette jukebox, planche étiquettes jukebox, jukebox label, jukebox labels, jukebox title strip, jukebox title strips, title strip jukebox, jukebox title strip maker, custom jukebox labels, printable jukebox title strips, jukebox title strip template, 45 rpm jukebox labels, vinyl jukebox labels, record title strips, retro jukebox labels, juke box title cards, jukebox etiketten, jukebox titelstreifen, jukebox labels maken, jukebox titelkaartjes, etiquetas jukebox, etiquetas para jukebox, tiras de titulo jukebox, etichette jukebox, strisce titolo jukebox" />
     <meta name="author" content="Arnaud" />
     <meta name="theme-color" content="#f4efe5" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -147,8 +146,14 @@
           <button class="close-about" type="button" id="fermerAPropos" aria-label="Fermer">×</button>
         </div>
         <div class="about-content">
-          <p class="about-lead">Créez vos étiquettes de jukebox personnalisées, du choix du modèle à l'impression, dans un esprit vinyle et rétro.</p>
-          <p class="about-signature">Créé par Arnaud.</p>
+          <section class="about-presentation" aria-labelledby="aboutPresentationTitle">
+            <h3 id="aboutPresentationTitle">À propos de 45’O’Juke</h3>
+            <p>45’O’Juke est un outil créé pour les passionnés de jukebox, de vinyles et de restauration vintage.</p>
+            <p>L’idée est simple : permettre de créer facilement des étiquettes de jukebox personnalisées (title strips), sans logiciel compliqué, avec des styles rétro, des couleurs modifiables et une impression prête à l’emploi.</p>
+            <p>Que ce soit pour un Seeburg, un Rock-Ola, un Wurlitzer, un AMI, un Rowe ou simplement pour donner un style plus personnel à votre machine, 45’O’Juke vous aide à préparer vos étiquettes en quelques minutes.</p>
+            <p class="about-compatibility">Compatible avec les étiquettes de nombreux jukebox Seeburg, Rock-Ola, Wurlitzer, AMI et Rowe.</p>
+            <p class="about-signature">📻 Un projet créé et maintenu par Arnaud pour la communauté des passionnés de jukebox.</p>
+          </section>
 
           <div class="about-actions" aria-label="Contact 45'O'Juke">
             <a class="about-action about-action--facebook" href="https://www.facebook.com/45.O.Juke/" target="_blank" rel="noopener noreferrer">Facebook</a>
@@ -157,29 +162,39 @@
 
           <section class="about-license" aria-labelledby="aboutLicenseTitle">
             <h3 id="aboutLicenseTitle">Licence & usages</h3>
-            <p>45'O'Juke est réservé à un usage personnel, familial ou associatif non commercial, depuis le site officiel du projet.</p>
-            <p>Le code, l'interface, les réglages, les textes propres au projet et les éléments graphiques originaux ne peuvent pas être copiés, redistribués, hébergés séparément ou exploités commercialement sans autorisation écrite.</p>
-            <p>Les noms d'artistes, titres musicaux, marques, modèles, logos éventuels et références commerciales restent la propriété de leurs ayants droit respectifs.</p>
-            <div class="about-license-full" id="aboutLicenseFull">
-              <h4>Licence propriétaire 45’O’Juke</h4>
-              <p>Copyright (c) 2026 Arnaud-D. Tous droits réservés.</p>
-              <p>45’O’Juke est mis à disposition pour un usage personnel, familial ou associatif non commercial, uniquement depuis le site officiel du projet.</p>
-              <p>Le code source, l’interface, l’organisation du site, les fonctionnalités, les réglages, les textes propres au projet ainsi que les éléments graphiques originaux créés spécifiquement pour 45’O’Juke sont protégés.</p>
-              <p>Sans autorisation écrite préalable de l’auteur, il est interdit de :</p>
-              <ul>
-                <li>copier, reproduire ou republier tout ou partie du projet ;</li>
-                <li>aspirer, extraire ou réutiliser massivement le code, l’interface, les réglages ou la structure du site ;</li>
-                <li>modifier, redistribuer, vendre, louer ou intégrer le projet dans un produit ou service commercial ;</li>
-                <li>héberger une copie du site ou proposer une version séparée accessible au public ;</li>
-                <li>créer, publier ou exploiter un clone, une version dérivée ou un service concurrent basé sur ce projet ;</li>
-                <li>utiliser 45’O’Juke pour produire des étiquettes dans le cadre d’une activité commerciale.</li>
-              </ul>
-              <p>Certains styles d’étiquettes proposés peuvent s’inspirer de codes graphiques anciens, rétro ou génériques liés à l’univers du jukebox et du disque vinyle. 45’O’Juke ne revendique aucun droit sur les marques, logos, noms commerciaux, modèles historiques, œuvres musicales, noms d’artistes, images ou références appartenant à des tiers.</p>
-              <p>Les contenus musicaux, noms d’artistes, marques, images et références commerciales utilisés dans les étiquettes restent la propriété de leurs ayants droit respectifs. Chaque utilisateur est responsable des contenus qu’il importe, saisit, utilise ou imprime.</p>
-              <p>Cette licence ne vous accorde aucun droit sur les marques, logos, noms commerciaux, œuvres ou contenus appartenant à des tiers.</p>
-              <p>Pour toute demande d’autorisation, contactez l’auteur du projet.</p>
-            </div>
+            <p>45’O’Juke est réservé à un usage personnel, familial ou associatif non commercial.</p>
+            <p>Le projet, son interface, ses réglages, ses textes et ses éléments graphiques originaux sont protégés.</p>
+            <p>Les noms d’artistes, titres musicaux, marques, modèles et références commerciales restent la propriété de leurs ayants droit respectifs.</p>
+            <button class="about-license-link" id="ouvrirLicenceComplete" type="button">Consulter la licence complète</button>
           </section>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="about-modal licence-modal" id="licenceCompleteModal" aria-labelledby="licenceCompleteTitle">
+      <div class="about-box">
+        <div class="about-header">
+          <h2 id="licenceCompleteTitle">Licence complète</h2>
+          <button class="close-about" type="button" id="fermerLicenceComplete" aria-label="Fermer">×</button>
+        </div>
+        <div class="about-content licence-complete-content">
+          <h3>Licence propriétaire 45’O’Juke</h3>
+          <p>Copyright (c) 2026 Arnaud-D. Tous droits réservés.</p>
+          <p>45’O’Juke est mis à disposition pour un usage personnel, familial ou associatif non commercial, uniquement depuis le site officiel du projet.</p>
+          <p>Le code source, l’interface, l’organisation du site, les fonctionnalités, les réglages, les textes propres au projet ainsi que les éléments graphiques originaux créés spécifiquement pour 45’O’Juke sont protégés.</p>
+          <p>Sans autorisation écrite préalable de l’auteur, il est interdit de :</p>
+          <ul>
+            <li>copier, reproduire ou republier tout ou partie du projet ;</li>
+            <li>aspirer, extraire ou réutiliser massivement le code, l’interface, les réglages ou la structure du site ;</li>
+            <li>modifier, redistribuer, vendre, louer ou intégrer le projet dans un produit ou service commercial ;</li>
+            <li>héberger une copie du site ou proposer une version séparée accessible au public ;</li>
+            <li>créer, publier ou exploiter un clone, une version dérivée ou un service concurrent basé sur ce projet ;</li>
+            <li>utiliser 45’O’Juke pour produire des étiquettes dans le cadre d’une activité commerciale.</li>
+          </ul>
+          <p>Certains styles d’étiquettes proposés peuvent s’inspirer de codes graphiques anciens, rétro ou génériques liés à l’univers du jukebox et du disque vinyle. 45’O’Juke ne revendique aucun droit sur les marques, logos, noms commerciaux, modèles historiques, œuvres musicales, noms d’artistes, images ou références appartenant à des tiers.</p>
+          <p>Les contenus musicaux, noms d’artistes, marques, images et références commerciales utilisés dans les étiquettes restent la propriété de leurs ayants droit respectifs. Chaque utilisateur est responsable des contenus qu’il importe, saisit, utilise ou imprime.</p>
+          <p>Cette licence ne vous accorde aucun droit sur les marques, logos, noms commerciaux, œuvres ou contenus appartenant à des tiers.</p>
+          <p>Pour toute demande d’autorisation, contactez l’auteur du projet.</p>
         </div>
       </div>
     </dialog>
@@ -768,6 +783,17 @@
           </section>
         </section>
       </div>
+
+      <section class="seo-accueil" aria-labelledby="seoAccueilTitre">
+        <div class="seo-accueil__contenu">
+          <h2 id="seoAccueilTitre">Créer des étiquettes de jukebox personnalisées</h2>
+          <p>45’O’Juke permet de créer facilement des étiquettes de jukebox personnalisées, également appelées title strips.</p>
+          <p>Choisissez un modèle, personnalisez les couleurs, les polices, les dimensions et imprimez vos étiquettes directement depuis votre navigateur.</p>
+          <p>L’outil est adapté aux passionnés de restauration, de vinyles et de jukebox anciens. Il peut être utilisé pour préparer des étiquettes compatibles avec de nombreux modèles Seeburg, Rock-Ola, Wurlitzer, AMI, Rowe et autres jukebox à 45 tours.</p>
+          <p>Que vous souhaitiez reproduire un style classique ou créer un design entièrement personnalisé, 45’O’Juke vous accompagne de la création à l’impression.</p>
+          <a class="seo-accueil__lien" href="./guide-etiquettes-jukebox.html">En savoir plus sur les étiquettes de jukebox</a>
+        </div>
+      </section>
     </main>
 
     <footer class="pied-site">

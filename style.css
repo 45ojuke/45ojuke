@@ -359,6 +359,51 @@ body:not(.is-intro-active) .top-actions__menu .facebook-text {
   color: #fff7df;
 }
 
+.about-presentation {
+  margin-bottom: 18px;
+  padding: clamp(18px, 3vw, 24px);
+  border: 1px solid rgba(74, 43, 24, 0.14);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(255, 250, 238, 0.96), rgba(248, 232, 198, 0.58));
+  box-shadow: 0 10px 24px rgba(50, 28, 15, 0.08);
+}
+
+.about-presentation h3 {
+  margin: 0 0 14px;
+  color: var(--accent-2);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.15rem, 2.5vw, 1.35rem);
+  line-height: 1.2;
+}
+
+.about-presentation p {
+  margin: 0 0 12px;
+  color: var(--texte);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.about-presentation p:last-child {
+  margin-bottom: 0;
+}
+
+.about-presentation .about-signature {
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.about-presentation .about-compatibility {
+  padding-left: 12px;
+  border-left: 3px solid rgba(138, 85, 53, 0.38);
+  color: #624530;
+  font-weight: 700;
+}
+
   .facebook-btn {
     border: 0;
     background: #1877f2;
@@ -481,11 +526,6 @@ body:not(.is-intro-active) .top-actions__menu .facebook-text {
   line-height: 1.48;
 }
 
-.about-lead {
-  font-size: 16px !important;
-  font-weight: 750;
-}
-
 .about-signature {
   margin-bottom: 16px !important;
   color: #7a563a !important;
@@ -539,26 +579,42 @@ body:not(.is-intro-active) .top-actions__menu .facebook-text {
   margin-bottom: 12px;
 }
 
-.about-license-full {
-  max-height: min(34vh, 330px);
-  margin: 14px 0 0;
-  padding: 14px 16px;
-  overflow-y: auto;
-  border: 1px solid rgba(90, 50, 20, 0.12);
-  border-radius: 12px;
-  background: rgba(255, 250, 240, 0.84);
-  -webkit-overflow-scrolling: touch;
+.about-license-link {
+  min-height: 34px;
+  border: 1px solid rgba(90, 50, 20, 0.2);
+  border-radius: 999px;
+  padding: 7px 13px;
+  background: rgba(255, 250, 240, 0.82);
+  color: var(--accent-2);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.about-license-full ul {
-  margin: 0 0 10px;
+.about-license-link:hover,
+.about-license-link:focus-visible {
+  border-color: rgba(122, 47, 29, 0.42);
+  background: #fffaf0;
+}
+
+.licence-modal .about-box {
+  width: min(720px, 100%);
+}
+
+.licence-complete-content {
+  color: #624530;
+}
+
+.licence-complete-content ul {
+  margin: 0 0 14px;
   padding-left: 18px;
   color: #624530;
-  font-size: 13px;
-  line-height: 1.48;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
-.about-license-full li {
+.licence-complete-content li {
   margin: 0 0 6px;
 }
 
@@ -642,6 +698,384 @@ body:not(.is-intro-active) .hero-site__contenu {
 .section-site {
   scroll-margin-top: 96px;
   padding: 0 0 clamp(10px, 1.5vw, 20px);
+}
+
+.seo-accueil {
+  width: min(1220px, 96%);
+  display: none;
+  margin: clamp(8px, 1.4vw, 18px) auto clamp(12px, 2vw, 26px);
+  border: 1px solid var(--bordure-legere);
+  border-radius: 12px;
+  padding: clamp(20px, 3vw, 34px);
+  background: rgba(255, 247, 223, 0.58);
+  color: var(--texte-doux);
+}
+
+body.is-accueil-selection .seo-accueil {
+  display: block;
+}
+
+.seo-accueil__contenu {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.seo-accueil h2 {
+  margin: 0 0 14px;
+  color: var(--accent-2);
+  font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  line-height: 1.15;
+}
+
+.seo-accueil p {
+  margin: 0 0 10px;
+  font-size: clamp(0.86rem, 1.2vw, 0.96rem);
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.seo-accueil__lien {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+
+.seo-accueil__lien:hover,
+.seo-accueil__lien:focus-visible {
+  color: var(--accent-2);
+}
+
+.page-guide {
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(255, 247, 223, 0.88), rgba(255, 243, 216, 0.94)),
+    url("Images/fond-45ojuke.jpeg") center top / cover no-repeat;
+}
+
+.guide-retour-fixe {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top, 0px));
+  left: max(14px, env(safe-area-inset-left, 0px));
+  z-index: 5;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--bordure);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(255, 250, 238, 0.94);
+  color: var(--accent-2);
+  font-size: 0.76rem;
+  font-weight: 850;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(37, 27, 20, 0.14);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.guide-retour-fixe svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.guide-retour-fixe:hover,
+.guide-retour-fixe:focus-visible {
+  border-color: rgba(122, 47, 29, 0.3);
+  background: var(--surface);
+}
+
+.guide-entete {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: clamp(16px, 3vw, 34px) 18px 10px;
+}
+
+.guide-langues {
+  position: absolute;
+  top: clamp(16px, 3vw, 34px);
+  right: max(14px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.guide-langues .drapeau {
+  width: 32px;
+  height: 32px;
+  border-color: var(--bordure);
+  background: rgba(255, 250, 238, 0.9);
+  color: var(--texte);
+  font-size: 19px;
+  box-shadow: 0 5px 14px rgba(37, 27, 20, 0.12);
+}
+
+.guide-entete__logo {
+  width: min(620px, 88vw);
+  display: block;
+}
+
+.guide-entete__logo img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 20px rgba(37, 27, 20, 0.12));
+}
+
+.guide-conteneur {
+  width: min(980px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: clamp(12px, 2vw, 24px) 0 30px;
+}
+
+.guide-article {
+  border: 1px solid var(--bordure);
+  border-radius: 16px;
+  padding: clamp(24px, 5vw, 58px);
+  background: rgba(255, 250, 238, 0.94);
+  box-shadow: var(--ombre);
+}
+
+.guide-introduction {
+  max-width: 790px;
+  margin: 0 auto clamp(24px, 4vw, 38px);
+  text-align: center;
+}
+
+.guide-introduction__surtitre {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.guide-introduction h1 {
+  margin: 0;
+  color: var(--accent-2);
+  font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.02;
+}
+
+.guide-introduction__texte {
+  margin: 18px auto 0;
+  color: var(--texte-doux);
+  font-size: clamp(0.96rem, 1.7vw, 1.08rem);
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+.guide-sommaire {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 18px;
+  margin-bottom: clamp(30px, 5vw, 50px);
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+  padding: 18px 20px;
+  background: rgba(255, 247, 223, 0.72);
+}
+
+.guide-sommaire strong {
+  grid-column: 1 / -1;
+  margin-bottom: 3px;
+  color: var(--accent-2);
+}
+
+.guide-sommaire a,
+.guide-signature a {
+  color: var(--accent);
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+
+.guide-article > section {
+  scroll-margin-top: 18px;
+  margin: 0 auto;
+  padding: clamp(26px, 4vw, 42px) 0;
+  border-top: 1px solid var(--bordure-legere);
+}
+
+.guide-article > section h2 {
+  margin: 0 0 16px;
+  color: var(--accent-2);
+  font-family: Baskerville, "Palatino Linotype", "Book Antiqua", serif;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.15;
+}
+
+.guide-article > section p,
+.guide-etapes {
+  color: var(--texte-doux);
+  font-size: clamp(0.94rem, 1.5vw, 1.02rem);
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.guide-article > section p {
+  margin: 0 0 14px;
+}
+
+.guide-conseil {
+  margin: 22px 0;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  padding: 16px 18px;
+  background: rgba(138, 85, 53, 0.08);
+  color: var(--accent-2);
+}
+
+.guide-conseil p {
+  margin: 6px 0 0 !important;
+}
+
+.guide-etapes {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 24px;
+  padding-left: 24px;
+}
+
+.guide-action {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 11px 20px;
+  background: var(--accent-2);
+  color: #fff;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(122, 47, 29, 0.18);
+}
+
+.guide-action:hover,
+.guide-action:focus-visible {
+  background: var(--accent);
+}
+
+.guide-faq {
+  display: grid;
+  gap: 10px;
+}
+
+.guide-faq details {
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  background: rgba(255, 247, 223, 0.52);
+}
+
+.guide-faq summary {
+  padding: 14px 16px;
+  color: var(--texte);
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.guide-faq details p {
+  margin: 0 !important;
+  padding: 0 16px 16px;
+}
+
+.guide-signature {
+  margin-top: 18px;
+  border-top: 1px solid var(--bordure-legere);
+  padding-top: 24px;
+  color: var(--texte-doux);
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.guide-signature p {
+  margin: 0 0 8px;
+}
+
+.guide-pied {
+  padding: 0 18px 26px;
+  color: var(--texte-doux);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.guide-pied p {
+  margin: 0;
+}
+
+@media screen and (max-width: 620px) {
+  .guide-retour-fixe {
+    top: max(10px, env(safe-area-inset-top, 0px));
+    left: max(10px, env(safe-area-inset-left, 0px));
+    width: 40px;
+    min-height: 40px;
+    justify-content: center;
+    padding: 9px;
+  }
+
+  .guide-retour-fixe span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .guide-entete {
+    padding: 58px 12px 8px;
+  }
+
+  .guide-langues {
+    top: 12px;
+    right: 10px;
+    left: 58px;
+  }
+
+  .guide-langues .drapeau {
+    width: 29px;
+    height: 29px;
+    font-size: 17px;
+  }
+
+  .guide-conteneur {
+    width: min(100% - 16px, 980px);
+  }
+
+  .guide-article {
+    border-radius: 12px;
+    padding: 24px 19px;
+  }
+
+  .guide-sommaire {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .guide-sommaire strong {
+    grid-column: 1;
+  }
+
+  .guide-action {
+    width: 100%;
+  }
 }
 
 .bouton {
