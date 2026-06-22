@@ -396,7 +396,6 @@ async function initialiser() {
   brancherEvenements();
   installerAidesOptions();
   mettreAJourBoutonsInstallation(true);
-  proposerRestaurationReglagesAutomatiques();
   await chargerBibliotheque();
   elements.nombreEtiquettes.value = String(Math.max(1, vinyles.length));
   mettreAJourGalerieModeles();
@@ -1121,6 +1120,9 @@ function quitterIntro() {
   fermerMenuActionsMobile();
   placerMenuActionsMobile();
   ajusterHauteurPanneauOptionsMobile();
+  if (!modeleChoisi) {
+    proposerRestaurationReglagesAutomatiques();
+  }
 }
 
 function traductionCourante() {
@@ -1835,6 +1837,7 @@ function revenirSelectionAccueil() {
   });
   mettreAJourEditeurTexte(null);
   mettreAJourGalerieModeles();
+  proposerRestaurationReglagesAutomatiques();
 }
 
 function naviguerAssistantSuivant() {
@@ -3620,6 +3623,7 @@ function changerActivationDeuxiemeEtiquette() {
 
 function afficherApercuApresChoixModele() {
   modeleChoisi = true;
+  masquerBandeauRestauration();
   document.body.classList.remove("is-accueil-selection");
   window.scrollTo({ top: 0, left: 0 });
   elements.formulaire?.scrollTo?.({ top: 0, left: 0 });
