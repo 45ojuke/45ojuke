@@ -11,7 +11,7 @@ import {
   presets,
   presetsMarques,
   themesModeles,
-} from "./modeles.js?v=20260622-1";
+} from "./modeles.js";
 import {
   CLE_CSV_LOCAL,
   CLE_FAVORIS,
