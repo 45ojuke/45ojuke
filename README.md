@@ -1,6 +1,6 @@
 # 45'O'Juke
 
-Créez vos étiquettes jukebox personnalisées dans un style rétro, prêtes à imprimer et à glisser dans votre machine.
+Créez gratuitement et imprimez vos étiquettes de jukebox personnalisées (title strips). Compatible Seeburg, Rock-Ola, Wurlitzer, AMI et autres marques de jukebox.
 
 ## Usage
 

@@ -1,7 +1,7 @@
 {
   "name": "45'O'Juke - Étiquettes jukebox",
   "short_name": "45'O'Juke",
-  "description": "Créez vos étiquettes jukebox personnalisées dans un style rétro, prêtes à imprimer et à glisser dans votre machine.",
+  "description": "Créez gratuitement et imprimez vos étiquettes de jukebox personnalisées (title strips). Compatible Seeburg, Rock-Ola, Wurlitzer, AMI et autres marques de jukebox.",
   "id": "https://45ojuke.fr/",
   "start_url": "https://45ojuke.fr/",
   "scope": "https://45ojuke.fr/",

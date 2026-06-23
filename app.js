@@ -1387,8 +1387,8 @@ function appliquerLangueSite(langue, options = {}) {
   const [titre, sousTitre, bouton] = t.intro || traductions.fr.intro;
   document.documentElement.lang = langueActive === "us" ? "en" : langueActive;
   document.title = langueActive === "fr"
-    ? "45'O'Juke - Étiquettes jukebox personnalisées"
-    : phrasesInterface["45'O'Juke - Étiquettes jukebox personnalisées"][langueActive];
+    ? "Étiquettes de Jukebox Personnalisées | 45'O'Juke"
+    : phrasesInterface["Étiquettes de Jukebox Personnalisées | 45'O'Juke"][langueActive];
   elements.titreIntro.textContent = titre;
   elements.sousTitreIntro.textContent = sousTitre;
   elements.boutonCommencer.textContent = bouton;
