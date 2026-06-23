@@ -1474,7 +1474,8 @@ function calculerZoomApercuAutomatique() {
 
 function obtenirZoomApercuCourant() {
   zoomApercuMaximum = calculerZoomApercuAutomatique();
-  return Math.min(zoomApercuMaximum, zoomApercuPourcentage ?? zoomApercuMaximum);
+  const zoomDefaut = deuxiemeEtiquetteActive() ? Math.min(zoomApercuMaximum, 180) : zoomApercuMaximum;
+  return Math.min(zoomApercuMaximum, zoomApercuPourcentage ?? zoomDefaut);
 }
 
 function definirZoomApercu(valeur) {
