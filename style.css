@@ -3994,7 +3994,7 @@ body.is-favoris-ouverts .scene {
   .apercus {
     order: 2;
     gap: 10px;
-    touch-action: pan-x;
+    touch-action: pan-y;
   }
 
   .apercus--duo .aide-selection-etiquette {
@@ -4096,6 +4096,7 @@ body.is-favoris-ouverts .scene {
     width: 100%;
     gap: 10px;
     padding: 12px;
+    touch-action: pan-y;
   }
 
   .edition-texte__entete {

@@ -617,9 +617,11 @@ function brancherEvenements() {
   elements.changerEtiquetteMobile.addEventListener("click", () => {
     selectionnerEtiquetteDepuisApercu(etiquetteActive === "1" ? "2" : "1", { ouvrirEditeur: false });
   });
-  elements.apercus.addEventListener("pointerdown", demarrerGesteApercu);
-  elements.apercus.addEventListener("pointerup", terminerGesteApercu);
-  elements.apercus.addEventListener("pointercancel", annulerGesteApercu);
+  [elements.apercus, elements.editionTexte].forEach((zone) => {
+    zone.addEventListener("pointerdown", demarrerGesteApercu);
+    zone.addEventListener("pointerup", terminerGesteApercu);
+    zone.addEventListener("pointercancel", annulerGesteApercu);
+  });
   elements.apercus.addEventListener("dragstart", (evenement) => evenement.preventDefault());
   [elements.apercu, elements.apercuSecondaire].forEach((image) => {
     image.draggable = false;
