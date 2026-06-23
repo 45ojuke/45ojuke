@@ -1,3 +1,5 @@
+import { DIMENSIONS_ETIQUETTE_DEFAUT } from "./reglages.js";
+
 export const presets = {};
 
 export const combosSurprise = [
@@ -200,6 +202,8 @@ function normaliserStyleEtiquette(style, index) {
   const reglagesNormalises = {
     ...reglages,
     modele,
+    largeurEtiquette: DIMENSIONS_ETIQUETTE_DEFAUT.largeur,
+    hauteurEtiquette: DIMENSIONS_ETIQUETTE_DEFAUT.hauteur,
   };
   if (
     !Object.prototype.hasOwnProperty.call(reglagesNormalises, "couleurMarquesManuelle")

@@ -1,6 +1,6 @@
 export const DIMENSIONS_ETIQUETTE_DEFAUT = {
-  largeur: 75,
-  hauteur: 25,
+  largeur: 77,
+  hauteur: 26,
 };
 export const LARGEUR_PAGE_MM = 210;
 export const HAUTEUR_PAGE_MM = 297;
