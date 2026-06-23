@@ -4004,59 +4004,69 @@ body.is-favoris-ouverts .scene {
   .apercus {
     order: 2;
     gap: 10px;
+    padding-bottom: 16px;
     touch-action: pan-y;
   }
 
   .indicateur-swipe:not([hidden]) {
     position: absolute;
-    top: 50%;
+    bottom: 0;
     z-index: 4;
-    width: 28px;
-    height: min(26vw, 180px);
+    width: 18px;
+    height: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 0;
     padding: 0;
     background: transparent;
-    color: transparent;
+    color: rgba(122, 47, 29, 0.42);
     font-size: 0;
-    line-height: 0;
-    transform: translateY(-50%);
+    line-height: 1;
     cursor: pointer;
     touch-action: manipulation;
   }
 
   .indicateur-swipe::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(122, 47, 29, 0.78);
-    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.9));
+    font-size: 0.9rem;
+    font-weight: 700;
   }
 
   .indicateur-swipe--precedent {
-    left: -2px;
+    left: calc(50% - 34px);
   }
 
   .indicateur-swipe--precedent::before {
-    clip-path: polygon(100% 0, 0 50%, 100% 100%);
+    content: "‹";
+  }
+
+  .indicateur-swipe--precedent::after {
+    content: "";
+    position: absolute;
+    left: 22px;
+    width: 28px;
+    height: 1px;
+    border-radius: 999px;
+    background: rgba(122, 47, 29, 0.22);
   }
 
   .indicateur-swipe--suivant {
-    right: -2px;
+    right: calc(50% - 34px);
   }
 
   .indicateur-swipe--suivant::before {
-    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    content: "›";
   }
 
   .indicateur-swipe:active {
-    transform: translateY(-50%) scale(0.94);
+    color: var(--accent-2);
+    transform: scale(0.9);
   }
 
-  .indicateur-swipe:active::before {
-    background: var(--accent-2);
+  .indicateur-swipe:focus-visible {
+    outline: 1px solid rgba(122, 47, 29, 0.45);
+    outline-offset: 2px;
+    border-radius: 999px;
   }
 
   .apercus--duo .aide-selection-etiquette {
