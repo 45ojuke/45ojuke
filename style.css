@@ -3725,7 +3725,7 @@ body.is-favoris-ouverts .scene {
 
   .intro-fond img {
     position: absolute;
-    left: var(--intro-bg-x);
+    left: 0;
     top: var(--intro-bg-y);
     width: auto;
     height: 100%;
@@ -3735,9 +3735,15 @@ body.is-favoris-ouverts .scene {
     opacity: 0.76;
     filter: brightness(1.06) contrast(1.03) saturate(1.04);
     pointer-events: none;
+    transform: translateY(-50%) scale(var(--intro-bg-scale));
+    transform-origin: left center;
+    will-change: transform, left, top;
+  }
+
+  .intro.is-fond-positionne .intro-fond img {
+    left: var(--intro-bg-x);
     transform: translate(-50%, -50%) scale(var(--intro-bg-scale));
     transform-origin: center center;
-    will-change: transform, left, top;
   }
 
   .intro::after {
@@ -4003,39 +4009,54 @@ body.is-favoris-ouverts .scene {
 
   .indicateur-swipe:not([hidden]) {
     position: absolute;
-    inset-block: 0;
+    top: 50%;
     z-index: 4;
-    width: 20px;
+    width: 28px;
+    height: min(26vw, 180px);
     display: flex;
     align-items: center;
     justify-content: center;
     border: 0;
     padding: 0;
     background: transparent;
-    color: rgba(122, 47, 29, 0.78);
-    font-size: 1.35rem;
-    font-weight: 700;
-    line-height: 1;
-    text-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.95),
-      0 0 7px rgba(255, 247, 223, 0.95);
+    color: transparent;
+    font-size: 0;
+    line-height: 0;
+    transform: translateY(-50%);
     cursor: pointer;
     touch-action: manipulation;
   }
 
+  .indicateur-swipe::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(122, 47, 29, 0.78);
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.9));
+  }
+
   .indicateur-swipe--precedent {
-    left: -10px;
-    justify-content: flex-start;
+    left: -2px;
+  }
+
+  .indicateur-swipe--precedent::before {
+    clip-path: polygon(100% 0, 0 50%, 100% 100%);
   }
 
   .indicateur-swipe--suivant {
-    right: -10px;
-    justify-content: flex-end;
+    right: -2px;
+  }
+
+  .indicateur-swipe--suivant::before {
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
   }
 
   .indicateur-swipe:active {
-    color: var(--accent-2);
-    transform: scale(0.9);
+    transform: translateY(-50%) scale(0.94);
+  }
+
+  .indicateur-swipe:active::before {
+    background: var(--accent-2);
   }
 
   .apercus--duo .aide-selection-etiquette {

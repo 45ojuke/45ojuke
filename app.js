@@ -393,6 +393,7 @@ initialiser();
 
 async function initialiser() {
   desactiverServiceWorkerEtCaches();
+  installerFondIntroMobile();
   appliquerLangueSite(langueActive, { memoriser: false });
   document.body.classList.add("is-accueil-selection");
   appliquerDimensionsEtiquetteDefaut();
@@ -859,7 +860,6 @@ function memoriserLangueChoisie(langue) {
 }
 
 function brancherAccueilIntro() {
-  installerFondIntroMobile();
   elements.boutonsLangue.forEach((drapeau) => {
     drapeau.addEventListener("click", () => {
       const langue = drapeau.dataset.lang || "fr";
@@ -1051,6 +1051,7 @@ function appliquerPositionFondIntro(position) {
   elements.intro.style.setProperty("--intro-bg-x", `${position.x}%`);
   elements.intro.style.setProperty("--intro-bg-y", `${position.y}%`);
   elements.intro.style.setProperty("--intro-bg-scale", String(position.scale));
+  elements.intro.classList.add("is-fond-positionne");
 }
 
 function installerFondIntroMobile() {
@@ -1138,9 +1139,9 @@ function installerFondIntroMobile() {
 
 function quitterIntro() {
   elements.intro.classList.add("disparait");
-  elements.heroSiteContenu.append(elements.topActions);
   document.body.classList.remove("is-intro-active");
   fermerMenuActionsMobile();
+  placerMenuActionsMobile();
   ajusterHauteurPanneauOptionsMobile();
   if (!modeleChoisi) {
     proposerRestaurationReglagesAutomatiques();
