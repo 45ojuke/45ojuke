@@ -117,6 +117,8 @@ const elements = {
   apercu: document.querySelector("#apercu"),
   apercuSecondaire: document.querySelector("#apercuSecondaire"),
   apercus: document.querySelector(".apercus"),
+  indicateurSwipePrecedent: document.querySelector("#indicateurSwipePrecedent"),
+  indicateurSwipeSuivant: document.querySelector("#indicateurSwipeSuivant"),
   navigationApercu: document.querySelector("#navigationApercu"),
   editionTexte: document.querySelector("#editionTexte"),
   editionTexteEtat: document.querySelector("#editionTexteEtat"),
@@ -599,6 +601,8 @@ function brancherEvenements() {
   elements.listeFavoris.addEventListener("click", gererActionFavori);
   elements.precedent.addEventListener("click", () => changerApercu(-1));
   elements.suivant.addEventListener("click", () => changerApercu(1));
+  elements.indicateurSwipePrecedent.addEventListener("click", () => changerApercu(-1));
+  elements.indicateurSwipeSuivant.addEventListener("click", () => changerApercu(1));
   elements.editionTextePrecedent.addEventListener("click", () => changerApercu(-1));
   elements.editionTexteSuivant.addEventListener("click", () => changerApercu(1));
   elements.aideSwipeMobile.addEventListener("click", () => afficherBulleAide(elements.aideSwipeMobile));
@@ -1134,9 +1138,9 @@ function installerFondIntroMobile() {
 
 function quitterIntro() {
   elements.intro.classList.add("disparait");
+  elements.heroSiteContenu.append(elements.topActions);
   document.body.classList.remove("is-intro-active");
   fermerMenuActionsMobile();
-  placerMenuActionsMobile();
   ajusterHauteurPanneauOptionsMobile();
   if (!modeleChoisi) {
     proposerRestaurationReglagesAutomatiques();
@@ -5699,6 +5703,9 @@ function annulerGesteApercu() {
 function mettreAJour() {
   mettreAJourBoutonsHistorique();
   const lignes = obtenirLignes();
+  const afficherIndicateursSwipe = modeleChoisi && lignes.length > 1;
+  elements.indicateurSwipePrecedent.hidden = !afficherIndicateursSwipe;
+  elements.indicateurSwipeSuivant.hidden = !afficherIndicateursSwipe;
   const deuxiemeActive = deuxiemeEtiquetteActive();
   mettreAJourVisibiliteApercu();
   if (!modeleChoisi) {
