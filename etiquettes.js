@@ -878,7 +878,7 @@ function dessinerMotifSecondaireContenu(ctx, reglages, largeur, hauteur) {
 }
 
 function motifSecondaireValide(reglages) {
-  const motifs = ["grille", "rayures", "points", "diagonales", "chevrons", "croisillons", "vagues", "soleil"];
+  const motifs = ["grille", "carres-points", "rayures", "points", "diagonales", "chevrons", "croisillons", "vagues", "soleil"];
   const motifPrincipal = reglages.motifType || "aucun";
   if (motifs.includes(reglages.motifTraitsModernes) && reglages.motifTraitsModernes !== motifPrincipal) {
     return reglages.motifTraitsModernes;
@@ -1539,6 +1539,27 @@ function dessinerMotifLibre(ctx, type, couleurMotif, opacite, largeur, hauteur, 
       ctx.moveTo(0, y);
       ctx.lineTo(largeurMotif, y);
       ctx.stroke();
+    }
+  } else if (type === "carres-points") {
+    const pasX = 8;
+    const pasY = 7;
+    const tailleCarre = Math.max(1.1, Math.min(2.2, largeurMotif * 0.0028));
+    const rayonPoint = Math.max(0.55, Math.min(1.15, largeurMotif * 0.00145));
+    ctx.fillStyle = convertirHexEnRgba(couleurMotif, opacite * 0.95);
+    for (let y = -pasY; y <= hauteurMotif + pasY; y += pasY) {
+      const decalage = Math.round(y / pasY) % 2 === 0 ? 0 : pasX * 0.5;
+      for (let x = -pasX; x <= largeurMotif + pasX; x += pasX) {
+        ctx.fillRect(x + decalage, y, tailleCarre, tailleCarre);
+      }
+    }
+    ctx.fillStyle = convertirHexEnRgba(couleurMotif, opacite * 0.52);
+    for (let y = -pasY * 0.5; y <= hauteurMotif + pasY; y += pasY) {
+      const decalage = Math.round(y / pasY) % 2 === 0 ? pasX * 0.5 : 0;
+      for (let x = -pasX; x <= largeurMotif + pasX; x += pasX) {
+        ctx.beginPath();
+        ctx.arc(x + decalage + pasX * 0.5, y + pasY * 0.5, rayonPoint, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   } else if (type === "rayures") {
     ctx.lineWidth = Math.max(2, largeurMotif * 0.003);

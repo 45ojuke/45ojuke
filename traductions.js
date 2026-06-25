@@ -1,5 +1,6 @@
 export const OPTIONS_MOTIFS_SECONDAIRES = [
   ["grille", "Grille fine"],
+  ["carres-points", "Carrés pointillés"],
   ["rayures", "Rayures"],
   ["points", "Points"],
   ["diagonales", "Diagonales"],
@@ -448,6 +449,7 @@ Object.assign(phrasesInterface, {
   "Carré": phrase("Square", "Vierkant", "Quadratisch", "Cuadrado", "Quadrato"),
   "Losange": phrase("Diamond", "Ruit", "Raute", "Rombo", "Rombo"),
   "Grille fine": phrase("Fine grid", "Fijn raster", "Feines Raster", "Cuadrícula fina", "Griglia fine"),
+  "Carrés pointillés": phrase("Dotted squares", "Gestippelde vierkantjes", "Punktierte Quadrate", "Cuadros punteados", "Quadratini puntinati"),
   "Rayures": phrase("Stripes", "Strepen", "Streifen", "Rayas", "Righe"),
   "Points": phrase("Dots", "Punten", "Punkte", "Puntos", "Punti"),
   "Diagonales": phrase("Diagonals", "Diagonalen", "Diagonalen", "Diagonales", "Diagonali"),

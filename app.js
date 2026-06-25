@@ -44,7 +44,7 @@ import { chargerPolicesLocales, normaliserIdPolice, normaliserStylePolice, rempl
 const EMAIL_CONTACT = "contact@45ojuke.fr";
 const EPAISSEUR_BORDURE_MIN = 0;
 const LIEN_FACEBOOK_CONTACT = "https://www.facebook.com/45.O.Juke/";
-const MOTIFS_DECOR_VARIANTES = ["grille", "rayures", "points", "diagonales", "chevrons", "croisillons", "vagues"];
+const MOTIFS_DECOR_VARIANTES = ["grille", "carres-points", "rayures", "points", "diagonales", "chevrons", "croisillons", "vagues"];
 const REPARTITION_DECOR_VARIANTES = ["aucun", "aucun", "aucun", "aucun", "aucun", "aucun", "ruban", "ruban", "fond", "fond", "deux"];
 const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
 const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
@@ -3909,7 +3909,7 @@ function creerSurpriseLeon(base) {
     { cadre: "#252733", haut: "#e9e1d1", artiste: "#bdb8a8", bas: "#d1c9bd", titre: "#141620", artisteTexte: "#202230", motif: "#545766", vignette: "#3b3e4c" },
   ];
   const palette = choisirAleatoire(palettesAnciennes);
-  const motifType = choisirAleatoire(["aucun", "grille", "rayures", "diagonales"]);
+  const motifType = choisirAleatoire(["aucun", "grille", "carres-points", "rayures", "diagonales"]);
   return {
     ...base,
     couleur1: palette.cadre,
@@ -3929,7 +3929,7 @@ function creerSurpriseLeon(base) {
     motif: motifType === "aucun" ? 0 : nombreAleatoire(6, 22, 1),
     angleMotif: nombreAleatoire(-10, 10, 1),
     afficherTraitsModernes: Math.random() > 0.78,
-    motifTraitsModernes: choisirAleatoire(["grille", "rayures", "points"]),
+    motifTraitsModernes: choisirAleatoire(["grille", "carres-points", "rayures", "points"]),
     opaciteTraitsModernes: nombreAleatoire(4, 14, 1),
     angleTraitsModernes: nombreAleatoire(-8, 8, 1),
     modeVignette: choisirAleatoire(["fond", "global"]),
@@ -4024,8 +4024,8 @@ function creerSurpriseManu(base) {
   const fondHaut = paletteSobre ? palette.fond : palette.haut;
   const fondBas = paletteSobre ? palette.fond : palette.bas;
   const motifType = paletteSobre
-    ? choisirAleatoire(["aucun", "aucun", "diagonales", "rayures"])
-    : choisirAleatoire(["diagonales", "rayures", "points", "grille"]);
+    ? choisirAleatoire(["aucun", "aucun", "diagonales", "rayures", "carres-points"])
+    : choisirAleatoire(["diagonales", "rayures", "points", "grille", "carres-points"]);
   const formePastille = choisirAleatoire(["rond", "rond", "carre", "losange"]);
   const diametrePastille = nombreAleatoire(profil.diametre[0], profil.diametre[1], 1);
   const hauteurBande = nombreAleatoire(profil.hauteurBande[0], profil.hauteurBande[1], 1);
