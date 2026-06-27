@@ -179,6 +179,8 @@ const elements = {
   reglageArrondiBordure: document.querySelector("[data-reglage-arrondi-bordure]"),
   largeurRuban: document.querySelector("#largeurRuban"),
   hauteurRuban: document.querySelector("#hauteurRuban"),
+  pointeRubanAlice: document.querySelector("#pointeRubanAlice"),
+  pointeRubanMartin: document.querySelector("#pointeRubanMartin"),
   afficherEtoiles: document.querySelector("#afficherEtoiles"),
   nombreEtoiles: document.querySelector("#nombreEtoiles"),
   dispositionEtoiles: document.querySelector("#dispositionEtoiles"),
@@ -2868,6 +2870,8 @@ function appliquerReglagesAuFormulaire(reglages) {
     ? false
     : reglagesNormalises.bordureVerticale ?? true;
   reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.arrondiInterieurBordure ?? false;
+  reglagesNormalises.pointeRubanAlice = Math.max(0, Math.min(100, Number(reglagesNormalises.pointeRubanAlice ?? 50)));
+  reglagesNormalises.pointeRubanMartin = Math.max(0, Math.min(100, Number(reglagesNormalises.pointeRubanMartin ?? 50)));
   if (!capacitesModeles[reglagesNormalises.modele]?.bandeCentrale) {
     reglagesNormalises.hauteurBande = 0;
   }
@@ -3492,6 +3496,8 @@ function lireReglagesFormulaire() {
     arrondiInterieurBordure: elements.arrondiInterieurBordure.checked,
     largeurRuban: Number(elements.largeurRuban.value),
     hauteurRuban: Number(elements.hauteurRuban.value),
+    pointeRubanAlice: Number(elements.pointeRubanAlice.value),
+    pointeRubanMartin: Number(elements.pointeRubanMartin.value),
     afficherEtoiles: elements.afficherEtoiles.checked,
     nombreEtoiles: Number(elements.nombreEtoiles.value),
     dispositionEtoiles: elements.dispositionEtoiles.value,
@@ -4125,6 +4131,8 @@ function signatureStyleEnregistre(reglages) {
     normaliserTailleTrianglesPourSignature(reglages),
     reglages.largeurRuban,
     reglages.hauteurRuban,
+    reglages.pointeRubanAlice,
+    reglages.pointeRubanMartin,
     reglages.hauteurBande,
     reglages.policeTitres,
     reglages.policeArtiste,

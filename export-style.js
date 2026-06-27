@@ -23,6 +23,8 @@ const CHAMPS_COMMUNS = [
 
 const CHAMPS_FONDS_CLASSIQUES = ["couleur2", "couleur3"];
 const CHAMPS_RUBAN = ["largeurRuban", "hauteurRuban"];
+const CHAMPS_ALICE = ["pointeRubanAlice"];
+const CHAMPS_MARTIN = ["pointeRubanMartin"];
 const CHAMPS_STELLA = [
   "afficherEtoiles",
   "nombreEtoiles",
@@ -240,6 +242,12 @@ export function preparerReglagesPourExport(reglages) {
 
   if (!["LEON", "JEAN"].includes(modele)) {
     copierChamps(exportNettoye, reglages, CHAMPS_RUBAN);
+  }
+  if (modele === "ALICE") {
+    copierChamps(exportNettoye, reglages, CHAMPS_ALICE);
+  }
+  if (modele === "MARTIN") {
+    copierChamps(exportNettoye, reglages, CHAMPS_MARTIN);
   }
   if (modele === "STELLA") {
     copierChamps(exportNettoye, reglages, CHAMPS_STELLA);

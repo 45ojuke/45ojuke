@@ -1115,7 +1115,8 @@ function dessinerBordureInterieureArrondie(ctx, x, y, largeur, hauteur, epaisseu
 }
 
 function dessinerFlechesAlice(ctx, reglages, largeur, rubanX, rubanY, rubanW, rubanH) {
-  const flecheW = largeur * 0.086;
+  const profondeur = limiterNombre(Number(reglages.pointeRubanAlice ?? 50), 0, 100) / 100;
+  const flecheW = largeur * (0.035 + profondeur * 0.102);
   const recouvrement = Math.max(1, largeur * 0.0012);
   ctx.fillStyle = reglages.couleur1;
   ctx.beginPath();
@@ -1256,7 +1257,8 @@ function tracerRubanSimple(ctx, rubanX, rubanY, rubanW, rubanH, pointe) {
 }
 
 function dessinerRubanMartin(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
-  const cran = rubanW * 0.085;
+  const profondeur = limiterNombre(Number(reglages.pointeRubanMartin ?? 50), 0, 100) / 100;
+  const cran = rubanW * (0.035 + profondeur * 0.1);
   const insetY = Math.max(3, rubanH * 0.14);
   const centreX = rubanX + cran * 1.08;
   const centreW = rubanW - cran * 2.16;
