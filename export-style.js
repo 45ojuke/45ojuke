@@ -22,7 +22,19 @@ const CHAMPS_COMMUNS = [
 ];
 
 const CHAMPS_FONDS_CLASSIQUES = ["couleur2", "couleur3"];
-const CHAMPS_RUBAN = ["largeurRuban", "hauteurRuban"];
+const CHAMPS_COMMUNS_RUBAN = [
+  "largeurRuban",
+  "hauteurRuban",
+  "formeRuban",
+  "inclinaisonRuban",
+];
+const CHAMPS_LUCIEN = [
+  "nombreBandesRuban",
+  "largeurInterieureBandesRuban",
+  "largeurExterieureBandesRuban",
+  "inclinaisonBandesRuban",
+  "contourRubanCentral",
+];
 const CHAMPS_ALICE = ["pointeRubanAlice"];
 const CHAMPS_MARTIN = ["pointeRubanMartin"];
 const CHAMPS_STELLA = [
@@ -46,7 +58,11 @@ const CHAMPS_CELESTE = [
   "tailleBandeDroite",
   "angleBandeDroite",
 ];
-const CHAMPS_TRAITS_LEON = ["epaisseurTraitsLEON", "positionTraitsLEON", "ecartTraitsLEON"];
+const CHAMPS_TRAITS_SEPARATEURS = [
+  "epaisseurTraitsSeparateurs",
+  "positionTraitsSeparateurs",
+  "ecartTraitsSeparateurs",
+];
 
 function copierChamps(cible, source, champs) {
   champs.forEach((champ) => {
@@ -241,7 +257,10 @@ export function preparerReglagesPourExport(reglages) {
   }
 
   if (!["LEON", "JEAN"].includes(modele)) {
-    copierChamps(exportNettoye, reglages, CHAMPS_RUBAN);
+    copierChamps(exportNettoye, reglages, CHAMPS_COMMUNS_RUBAN);
+  }
+  if (modele === "LUCIEN") {
+    copierChamps(exportNettoye, reglages, CHAMPS_LUCIEN);
   }
   if (modele === "ALICE") {
     copierChamps(exportNettoye, reglages, CHAMPS_ALICE);
@@ -255,11 +274,14 @@ export function preparerReglagesPourExport(reglages) {
   if (["ALICE", "MARTIN", "JUJU", "MANU"].includes(modele)) {
     copierChamps(exportNettoye, reglages, CHAMPS_BANDE_CENTRALE);
   }
-  if (modele !== "JEAN") {
+  if (!["JEAN", "LUCIEN"].includes(modele)) {
     copierChamps(exportNettoye, reglages, ["bordureVerticale", "arrondiInterieurBordure"]);
   }
+  if (modele === "LUCIEN") {
+    copierChamps(exportNettoye, reglages, ["bordureVerticale"]);
+  }
   if (["LEON", "JEAN"].includes(modele)) {
-    copierChamps(exportNettoye, reglages, CHAMPS_TRAITS_LEON);
+    copierChamps(exportNettoye, reglages, CHAMPS_TRAITS_SEPARATEURS);
   }
   if (modele === "JEAN") {
     copierChamps(exportNettoye, reglages, ["tailleTrianglesJEAN"]);

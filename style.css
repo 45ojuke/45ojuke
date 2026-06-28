@@ -1479,6 +1479,13 @@ body.is-accueil-selection .seo-accueil {
   grid-column: 1 / -1;
 }
 
+.separateur-reglages {
+  grid-column: 1 / -1;
+  height: 1px;
+  margin: 6px 0 3px;
+  background: linear-gradient(90deg, transparent, rgba(138, 85, 53, 0.28), transparent);
+}
+
 .couleurs-textes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

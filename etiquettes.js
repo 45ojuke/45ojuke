@@ -60,6 +60,12 @@ export function dessinerEtiquette(ligne, reglages) {
     return canvas;
   }
 
+  if (reglages.modele === "LUCIEN") {
+    dessinerEtiquetteRubanCones(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH);
+    finaliserEtiquette(ctx, reglages, largeur, hauteur);
+    return canvas;
+  }
+
   ctx.fillStyle = reglages.couleur2;
   ctx.fillRect(0, 0, largeur, hauteur / 2);
   ctx.fillStyle = reglages.couleur3;
@@ -381,6 +387,78 @@ function largeurTexteModerne(reglages, largeur, hauteur, y, largeurMax) {
   return Math.min(largeurMax, disponible);
 }
 
+function rubanDeformableActif(reglages) {
+  return ["CELESTE", "STELLA", "MANU", "LUCIEN"].includes(reglages.modele)
+    && ["concave", "convexe"].includes(reglages.formeRuban);
+}
+
+function rubanAvecFormeDediee(reglages) {
+  return rubanDeformableActif(reglages) || reglages.formeRuban === "rectangle-arrondi";
+}
+
+function rayonRubanArrondiDefaut(largeur, hauteur) {
+  return Math.min(hauteur * 0.34, largeur * 0.04);
+}
+
+function tracerFormeRuban(ctx, reglages, x, y, largeur, hauteur, rayon = 0) {
+  const forme = rubanAvecFormeDediee(reglages) ? reglages.formeRuban : "rectangle";
+  if (forme === "rectangle-arrondi") {
+    tracerRectangleArrondi(ctx, x, y, largeur, hauteur, rayon > 0 ? rayon : rayonRubanArrondiDefaut(largeur, hauteur));
+    return;
+  }
+  if (forme === "rectangle") {
+    tracerRectangleArrondi(ctx, x, y, largeur, hauteur, 0);
+    return;
+  }
+  const intensite = limiterNombre(Number(reglages.inclinaisonRuban ?? 50), 1, 100) / 100;
+  const amplitude = Math.min(largeur * 0.08, hauteur * 0.52) * intensite;
+  const direction = forme === "concave" ? 1 : -1;
+  const gaucheMilieu = x + amplitude * direction;
+  const droiteMilieu = x + largeur - amplitude * direction;
+  ctx.moveTo(x, y);
+  ctx.quadraticCurveTo(gaucheMilieu, y + hauteur / 2, x, y + hauteur);
+  ctx.lineTo(x + largeur, y + hauteur);
+  ctx.quadraticCurveTo(droiteMilieu, y + hauteur / 2, x + largeur, y);
+  ctx.closePath();
+}
+
+function decalageBordFormeRubanAuY(reglages, largeur, hauteur, y, positionY) {
+  if (!rubanDeformableActif(reglages) || hauteur <= 0) {
+    return 0;
+  }
+  const intensite = limiterNombre(Number(reglages.inclinaisonRuban ?? 50), 1, 100) / 100;
+  const amplitude = Math.min(largeur * 0.08, hauteur * 0.52) * intensite;
+  const progression = limiterNombre((positionY - y) / hauteur, 0, 1);
+  const direction = reglages.formeRuban === "concave" ? 1 : -1;
+  return 2 * (1 - progression) * progression * amplitude * direction;
+}
+
+function positionBordFormeRubanAuY(reglages, cote, x, y, largeur, hauteur, positionY) {
+  const decalage = decalageBordFormeRubanAuY(reglages, largeur, hauteur, y, positionY);
+  return cote === "gauche" ? x + decalage : x + largeur - decalage;
+}
+
+function remplirFormeRuban(ctx, reglages, x, y, largeur, hauteur, couleur, rayon = 0) {
+  ctx.fillStyle = couleur;
+  ctx.beginPath();
+  tracerFormeRuban(ctx, reglages, x, y, largeur, hauteur, rayon);
+  ctx.fill();
+}
+
+function dessinerMotifsFormeRuban(ctx, reglages, x, y, largeur, hauteur, rayon = 0) {
+  const tracer = rubanAvecFormeDediee(reglages)
+    ? (contexte) => tracerFormeRuban(contexte, reglages, x, y, largeur, hauteur, rayon)
+    : undefined;
+  dessinerMotifRuban(ctx, reglages, x, y, largeur, hauteur, rayon, tracer);
+  dessinerMotifSecondaireRuban(ctx, reglages, x, y, largeur, hauteur, rayon, tracer);
+}
+
+function contourFormeRuban(ctx, reglages, x, y, largeur, hauteur, rayon = 0) {
+  ctx.beginPath();
+  tracerFormeRuban(ctx, reglages, x, y, largeur, hauteur, rayon);
+  ctx.stroke();
+}
+
 function limiteBandeModerneAuY(cote, taillePourcent, angleDegres, largeur, hauteur, y) {
   const taille = limiterNombre(Number(taillePourcent) || 0, 0, 60) / 100;
   if (taille <= 0) {
@@ -442,18 +520,14 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
     ctx.shadowColor = convertirHexEnRgba(reglages.couleur1, 0.16);
     ctx.shadowBlur = Math.max(6, hauteur * 0.045);
     ctx.shadowOffsetY = Math.max(2, hauteur * 0.012);
-    ctx.fillStyle = convertirHexEnRgba(reglages.couleurRuban, 0.82);
-    tracerRectangleArrondi(ctx, rubanX, rubanY, rubanW, rubanH, rayon);
-    ctx.fill();
+    remplirFormeRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, convertirHexEnRgba(reglages.couleurRuban, 0.82), rayon);
     ctx.restore();
-    dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
-    dessinerMotifSecondaireRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
+    dessinerMotifsFormeRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
 
     ctx.strokeStyle = convertirHexEnRgba(reglages.couleur1, 0.78);
     traitRuban = Math.max(2, hauteur * 0.012);
     ctx.lineWidth = traitRuban;
-    tracerRectangleArrondi(ctx, rubanX, rubanY, rubanW, rubanH, rayon);
-    ctx.stroke();
+    contourFormeRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
 
     ctx.fillStyle = convertirHexEnRgba(reglages.couleur1, 0.86);
     ctx.fillRect(rubanX + rubanW * 0.08, rubanY + rubanH * 0.18, Math.max(4, rubanW * 0.018), rubanH * 0.64);
@@ -525,21 +599,21 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
   if (rubanWManu > 0.5 && rubanH > 0.5) {
     const rayon = reglages.arrondiInterieurBordure ? Math.min(rubanH * 0.25, largeur * 0.02) : 0;
     ctx.fillStyle = reglages.couleurRuban;
-    tracerRectangleArrondi(ctx, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
+    ctx.beginPath();
+    tracerFormeRuban(ctx, reglages, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
     ctx.fill();
-    dessinerMotifRuban(ctx, reglages, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
-    dessinerMotifSecondaireRuban(ctx, reglages, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
+    dessinerMotifsFormeRuban(ctx, reglages, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
     ctx.strokeStyle = reglages.couleur1;
     ctx.lineWidth = traitRuban;
-    tracerRectangleArrondi(
+    contourFormeRuban(
       ctx,
+      reglages,
       rubanXManu + traitRuban / 2,
       rubanY + traitRuban / 2,
       Math.max(0, rubanWManu - traitRuban),
       Math.max(0, rubanH - traitRuban),
       rayon,
     );
-    ctx.stroke();
   }
 
   if (reglages.modeVignette === "fond" || reglages.modeVignette === "global") {
@@ -583,14 +657,195 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
 
 }
 
+function dessinerEtiquetteRubanCones(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH) {
+  const noir = reglages.couleur1 || "#000000";
+  const jauneHaut = reglages.couleur2 || "#ffd20a";
+  const jauneBas = reglages.couleur3 || jauneHaut;
+  const blanc = reglages.couleurRuban || "#ffffff";
+  const largeurInterieureCurseur = limiterNombre(Number(reglages.largeurInterieureBandesRuban ?? 7), 0, 100);
+  const largeurExterieureCurseur = limiterNombre(Number(reglages.largeurExterieureBandesRuban ?? 29), 0, 100);
+  const inclinaisonCurseur = limiterNombre(Number(reglages.inclinaisonBandesRuban ?? 50), 0, 100);
+  const contourRubanReglage = 25 + limiterNombre(Number(reglages.contourRubanCentral ?? 50), 0, 100) * 0.5;
+  const largeurInterieureReglage = largeurInterieureCurseur * 0.0028;
+  const largeurExterieureReglage = 0.08 + largeurExterieureCurseur * 0.0065;
+  const inclinaisonReglage = (inclinaisonCurseur - 50) / 50;
+  const traitBordure = bordure > 0 ? Math.max(1, bordure) : 0;
+  const cartoucheH = rubanH > 0.5 ? rubanH : hauteur * 0.26;
+  const cartoucheW = rubanW > 0.5 ? Math.min(rubanW, largeur * 0.76) : largeur * 0.72;
+  const traitCartouche = Math.max(1.5, rubanH * contourRubanReglage / 500, hauteur * 0.008);
+  const margeX = reglages.bordureVerticale === false ? 0 : traitBordure;
+  const margeY = reglages.bordureHorizontale === false ? 0 : traitBordure;
+  const gauche = margeX;
+  const droite = largeur - margeX;
+  const haut = margeY;
+  const bas = hauteur - margeY;
+  const cartoucheX = (largeur - cartoucheW) / 2;
+  const cartoucheY = hauteur / 2 - cartoucheH / 2;
+  const centreRubanY = cartoucheY + cartoucheH / 2;
+  const recouvrementRuban = Math.max(traitCartouche * 0.85, largeur * 0.003);
+  const nombreBandes = [0, 2, 3].includes(Number(reglages.nombreBandesRuban))
+    ? Number(reglages.nombreBandesRuban)
+    : 3;
+  const hauteurInterieure = Math.max(1, bas - haut);
+  const distanceHautCentre = Math.max(1, centreRubanY - haut);
+  const distanceCentreBas = Math.max(1, bas - centreRubanY);
+  const distanceVerticaleMin = Math.min(distanceHautCentre, distanceCentreBas);
+  const hauteurMaxBande = Math.max(traitCartouche * 1.4, distanceVerticaleMin * 0.66);
+  const hauteurExterieureBande = Math.max(
+    traitCartouche * 1.4,
+    Math.min(hauteurInterieure * largeurExterieureReglage, hauteurMaxBande),
+  );
+  const hauteurInterieureBande = Math.min(
+    cartoucheH * 0.96,
+    hauteurExterieureBande * 0.45,
+    Math.max(traitCartouche * 0.4, hauteurInterieure * largeurInterieureReglage),
+  );
+  const deplacementInclinaisonMax = Math.max(0, hauteurInterieureBande * 0.45);
+  const deplacementInclinaison = deplacementInclinaisonMax * inclinaisonReglage;
+  const hautRubanY = cartoucheY;
+  const basRubanY = cartoucheY + cartoucheH;
+  const definirBandes = () => {
+    const bandeHaute = {
+      innerY: limiterNombre(hautRubanY + hauteurInterieureBande / 2 + deplacementInclinaison, hautRubanY + hauteurInterieureBande / 2, basRubanY - hauteurInterieureBande / 2),
+      outerY: haut + hauteurExterieureBande / 2,
+    };
+    const bandeMilieu = {
+      innerY: centreRubanY,
+      outerY: limiterNombre(centreRubanY + hauteurInterieure * 0.08 * inclinaisonReglage, haut + hauteurExterieureBande / 2, bas - hauteurExterieureBande / 2),
+    };
+    const bandeBasse = {
+      innerY: limiterNombre(basRubanY - hauteurInterieureBande / 2 + deplacementInclinaison, hautRubanY + hauteurInterieureBande / 2, basRubanY - hauteurInterieureBande / 2),
+      outerY: bas - hauteurExterieureBande / 2,
+    };
+    if (nombreBandes === 0) {
+      return [];
+    }
+    return nombreBandes === 2 ? [bandeHaute, bandeBasse] : [bandeHaute, bandeMilieu, bandeBasse];
+  };
+  const bandesLaterales = definirBandes();
+  const pointeCentraleW = Math.max(largeur * 0.095, (cartoucheX - margeX) * 0.78);
+  const tracerZoneInterieure = (contexte) => {
+    contexte.rect(gauche, haut, Math.max(0, droite - gauche), Math.max(0, bas - haut));
+  };
+  const tracerBandeNoire = (cote, bande) => (contexte) => {
+    const innerH = hauteurInterieureBande;
+    const outerH = hauteurExterieureBande;
+    const innerTopY = bande.innerY - innerH / 2;
+    const innerBottomY = bande.innerY + innerH / 2;
+    if (cote === "gauche") {
+      const innerTopX = positionBordFormeRubanAuY(reglages, "gauche", cartoucheX, cartoucheY, cartoucheW, cartoucheH, innerTopY) + recouvrementRuban;
+      const innerMiddleX = positionBordFormeRubanAuY(reglages, "gauche", cartoucheX, cartoucheY, cartoucheW, cartoucheH, bande.innerY) + recouvrementRuban;
+      const innerBottomX = positionBordFormeRubanAuY(reglages, "gauche", cartoucheX, cartoucheY, cartoucheW, cartoucheH, innerBottomY) + recouvrementRuban;
+      const outerX = gauche;
+      contexte.moveTo(innerTopX, innerTopY);
+      contexte.lineTo(outerX, bande.outerY - outerH / 2);
+      contexte.lineTo(outerX, bande.outerY + outerH / 2);
+      contexte.lineTo(innerBottomX, innerBottomY);
+      contexte.quadraticCurveTo(innerMiddleX, bande.innerY, innerTopX, innerTopY);
+      contexte.closePath();
+      return;
+    }
+    const innerTopX = positionBordFormeRubanAuY(reglages, "droite", cartoucheX, cartoucheY, cartoucheW, cartoucheH, innerTopY) - recouvrementRuban;
+    const innerMiddleX = positionBordFormeRubanAuY(reglages, "droite", cartoucheX, cartoucheY, cartoucheW, cartoucheH, bande.innerY) - recouvrementRuban;
+    const innerBottomX = positionBordFormeRubanAuY(reglages, "droite", cartoucheX, cartoucheY, cartoucheW, cartoucheH, innerBottomY) - recouvrementRuban;
+    const outerX = droite;
+    contexte.moveTo(innerTopX, innerTopY);
+    contexte.lineTo(outerX, bande.outerY - outerH / 2);
+    contexte.lineTo(outerX, bande.outerY + outerH / 2);
+    contexte.lineTo(innerBottomX, innerBottomY);
+    contexte.quadraticCurveTo(innerMiddleX, bande.innerY, innerTopX, innerTopY);
+    contexte.closePath();
+  };
+  const remplirZone = (tracer) => {
+    ctx.save();
+    ctx.beginPath();
+    tracer(ctx);
+    ctx.clip();
+    ctx.fillStyle = jauneHaut;
+    ctx.fillRect(0, 0, largeur, centreRubanY);
+    ctx.fillStyle = jauneBas;
+    ctx.fillRect(0, centreRubanY, largeur, hauteur - centreRubanY);
+    dessinerMotif(ctx, reglages, largeur, hauteur);
+    dessinerTraitsModernes(ctx, reglages, largeur, hauteur);
+    ctx.restore();
+  };
+  const dessinerVignetteFondRuban = () => {
+    ctx.save();
+    ctx.beginPath();
+    tracerZoneInterieure(ctx);
+    ctx.clip();
+    dessinerVignette(ctx, reglages, largeur, hauteur);
+    ctx.restore();
+  };
+  const remplirBandeNoire = (tracer) => {
+    ctx.save();
+    ctx.beginPath();
+    tracer(ctx);
+    ctx.fillStyle = noir;
+    ctx.fill();
+    ctx.restore();
+  };
+
+  ctx.fillStyle = noir;
+  ctx.fillRect(0, 0, largeur, hauteur);
+
+  remplirZone(tracerZoneInterieure);
+  if (reglages.modeVignette === "fond") {
+    dessinerVignetteFondRuban();
+  }
+  bandesLaterales.forEach((bande) => {
+    remplirBandeNoire(tracerBandeNoire("gauche", bande));
+    remplirBandeNoire(tracerBandeNoire("droite", bande));
+  });
+
+  if (reglages.modeVignette === "global") {
+    dessinerVignette(ctx, reglages, largeur, hauteur);
+  }
+
+  remplirFormeRuban(ctx, reglages, cartoucheX, cartoucheY, cartoucheW, cartoucheH, blanc);
+  dessinerMotifsFormeRuban(ctx, reglages, cartoucheX, cartoucheY, cartoucheW, cartoucheH);
+  ctx.strokeStyle = noir;
+  ctx.lineWidth = traitCartouche;
+  contourFormeRuban(
+    ctx,
+    reglages,
+    cartoucheX + traitCartouche / 2,
+    cartoucheY + traitCartouche / 2,
+    Math.max(0, cartoucheW - traitCartouche),
+    Math.max(0, cartoucheH - traitCartouche),
+  );
+
+  if (reglages.afficherMarques) {
+    dessinerMarques(ctx, reglages, largeur, hauteur, cartoucheY, cartoucheH, cartoucheH);
+  }
+
+  dessinerTitresCentres(ctx, ligne, reglages, largeur, hauteur, {
+    bordure: Math.max(traitCartouche, bordure),
+    rubanY: cartoucheY,
+    rubanH: cartoucheH,
+    traitRuban: traitCartouche,
+    largeurTitreHaut: cartoucheW + pointeCentraleW,
+    largeurTitreBas: cartoucheW + pointeCentraleW,
+  });
+  dessinerArtiste(
+    ctx,
+    ligne.artiste,
+    largeur / 2,
+    centreRubanY,
+    cartoucheW * 0.88,
+    reglages,
+    blanc,
+  );
+}
+
 function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) {
   const traitBordure = bordure > 0 ? Math.max(1, bordure) : 0;
   const fondHaut = reglages.couleur2 || "#efe3c3";
   const fondBas = reglages.couleur3 || fondHaut;
   const fondArtiste = reglages.couleurRuban || fondHaut;
-  const centreTraits = hauteur * limiterNombre(Number(reglages.positionTraitsLEON) || 50, 25, 75) / 100;
-  const ecartTraits = hauteur * limiterNombre(Number(reglages.ecartTraitsLEON) || 24, 10, 42) / 100;
-  const epaisseurTraits = Math.max(1, Number(reglages.epaisseurTraitsLEON) || 3);
+  const centreTraits = hauteur * limiterNombre(Number(reglages.positionTraitsSeparateurs) || 50, 25, 75) / 100;
+  const ecartTraits = hauteur * limiterNombre(Number(reglages.ecartTraitsSeparateurs) || 24, 10, 42) / 100;
+  const epaisseurTraits = Math.max(1, Number(reglages.epaisseurTraitsSeparateurs) || 3);
   const yHaut = limiterNombre(centreTraits - ecartTraits / 2, traitBordure + epaisseurTraits, hauteur - traitBordure - epaisseurTraits);
   const yBas = limiterNombre(centreTraits + ecartTraits / 2, traitBordure + epaisseurTraits, hauteur - traitBordure - epaisseurTraits);
 
@@ -675,9 +930,9 @@ function dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure) 
   const fondHaut = reglages.couleur2 || "#ffffff";
   const fondBas = reglages.couleur3 || fondHaut;
   const fondArtiste = reglages.couleurRuban || fondHaut;
-  const centreTraits = hauteur * limiterNombre(Number(reglages.positionTraitsLEON) || 50, 25, 75) / 100;
-  const ecartTraits = hauteur * limiterNombre(Number(reglages.ecartTraitsLEON) || 24, 10, 42) / 100;
-  const epaisseurTraits = Math.max(1, Number(reglages.epaisseurTraitsLEON) || 3);
+  const centreTraits = hauteur * limiterNombre(Number(reglages.positionTraitsSeparateurs) || 50, 25, 75) / 100;
+  const ecartTraits = hauteur * limiterNombre(Number(reglages.ecartTraitsSeparateurs) || 24, 10, 42) / 100;
+  const epaisseurTraits = Math.max(1, Number(reglages.epaisseurTraitsSeparateurs) || 3);
   const yHaut = limiterNombre(centreTraits - ecartTraits / 2, traitBordure + epaisseurTraits, hauteur - traitBordure - epaisseurTraits);
   const yBas = limiterNombre(centreTraits + ecartTraits / 2, traitBordure + epaisseurTraits, hauteur - traitBordure - epaisseurTraits);
   const triangleW = largeur * limiterNombre(Number(reglages.tailleTrianglesJEAN) || 11, 6, 24) / 100;
@@ -1156,13 +1411,15 @@ function dessinerRubanSimple(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
 
 function dessinerRubanArrondi(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
   const trait = Math.max(2, rubanH * 0.06);
-  const rayon = Math.min(rubanH * 0.34, rubanW * 0.04);
+  const rayon = rayonRubanArrondiDefaut(rubanW, rubanH);
   ctx.save();
   ctx.fillStyle = reglages.couleurRuban;
   ctx.strokeStyle = reglages.couleur1;
   ctx.lineWidth = trait;
-  tracerRectangleArrondi(
+  ctx.beginPath();
+  tracerFormeRuban(
     ctx,
+    reglages,
     rubanX + trait / 2,
     rubanY + trait / 2,
     Math.max(0, rubanW - trait),
@@ -1171,13 +1428,14 @@ function dessinerRubanArrondi(ctx, reglages, rubanX, rubanY, rubanW, rubanH) {
   );
   ctx.fill();
   ctx.restore();
-  dessinerMotifRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
-  dessinerMotifSecondaireRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
+  dessinerMotifsFormeRuban(ctx, reglages, rubanX, rubanY, rubanW, rubanH, rayon);
   ctx.save();
   ctx.strokeStyle = reglages.couleur1;
   ctx.lineWidth = trait;
-  tracerRectangleArrondi(
+  ctx.beginPath();
+  tracerFormeRuban(
     ctx,
+    reglages,
     rubanX + trait / 2,
     rubanY + trait / 2,
     Math.max(0, rubanW - trait),
@@ -2305,6 +2563,16 @@ function lireCouleurRgb(couleur) {
     vert: parseInt(valeur.slice(2, 4), 16) || 0,
     bleu: parseInt(valeur.slice(4, 6), 16) || 0,
   };
+}
+
+function melangerCouleurs(couleurA, couleurB, poidsB = 0.5) {
+  const a = lireCouleurRgb(couleurA);
+  const b = lireCouleurRgb(couleurB);
+  const poids = Math.max(0, Math.min(1, poidsB));
+  const canal = (nom) => Math.round(a[nom] * (1 - poids) + b[nom] * poids)
+    .toString(16)
+    .padStart(2, "0");
+  return `#${canal("rouge")}${canal("vert")}${canal("bleu")}`;
 }
 
 function luminanceCouleur(couleur) {

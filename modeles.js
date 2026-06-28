@@ -152,6 +152,7 @@ export const modelesParTheme = {
     ["JUJU", "JUJU"],
     ["MANU", "MANU"],
     ["CELESTE", "CELESTE"],
+    ["LUCIEN", "LUCIEN"],
     ["STELLA", "STELLA"],
     ["LEON", "LEON"],
     ["JEAN", "JEAN"],
@@ -162,6 +163,7 @@ export const modelesParTheme = {
     ["JUJU", "JUJU"],
     ["MANU", "MANU"],
     ["STELLA", "STELLA"],
+    ["LUCIEN", "LUCIEN"],
     ["LEON", "LEON"],
     ["JEAN", "JEAN"],
   ],
@@ -301,6 +303,11 @@ export const capacitesModeles = {
   STELLA: {
     // Les mentions restent désactivées par défaut, mais l'utilisateur peut
     // les activer explicitement depuis l'étape « Côtés ».
+    marques: true,
+    ruban: true,
+    bandeCentrale: false,
+  },
+  LUCIEN: {
     marques: true,
     ruban: true,
     bandeCentrale: false,

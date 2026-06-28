@@ -179,6 +179,13 @@ const elements = {
   reglageArrondiBordure: document.querySelector("[data-reglage-arrondi-bordure]"),
   largeurRuban: document.querySelector("#largeurRuban"),
   hauteurRuban: document.querySelector("#hauteurRuban"),
+  formeRuban: document.querySelector("#formeRuban"),
+  inclinaisonRuban: document.querySelector("#inclinaisonRuban"),
+  nombreBandesRuban: document.querySelector("#nombreBandesRuban"),
+  largeurInterieureBandesRuban: document.querySelector("#largeurInterieureBandesRuban"),
+  largeurExterieureBandesRuban: document.querySelector("#largeurExterieureBandesRuban"),
+  inclinaisonBandesRuban: document.querySelector("#inclinaisonBandesRuban"),
+  contourRubanCentral: document.querySelector("#contourRubanCentral"),
   pointeRubanAlice: document.querySelector("#pointeRubanAlice"),
   pointeRubanMartin: document.querySelector("#pointeRubanMartin"),
   afficherEtoiles: document.querySelector("#afficherEtoiles"),
@@ -191,9 +198,9 @@ const elements = {
   tailleEtoiles: document.querySelector("#tailleEtoiles"),
   couleurFondEtoiles: document.querySelector("#couleurFondEtoiles"),
   hauteurBande: document.querySelector("#hauteurBande"),
-  epaisseurTraitsLEON: document.querySelector("#epaisseurTraitsLEON"),
-  positionTraitsLEON: document.querySelector("#positionTraitsLEON"),
-  ecartTraitsLEON: document.querySelector("#ecartTraitsLEON"),
+  epaisseurTraitsSeparateurs: document.querySelector("#epaisseurTraitsSeparateurs"),
+  positionTraitsSeparateurs: document.querySelector("#positionTraitsSeparateurs"),
+  ecartTraitsSeparateurs: document.querySelector("#ecartTraitsSeparateurs"),
   tailleTrianglesJEAN: document.querySelector("#tailleTrianglesJEAN"),
   modifierTextesMiseEnPage: document.querySelector("#modifierTextesMiseEnPage"),
   reglagesTextePrincipaux: document.querySelector("#reglagesTextePrincipaux"),
@@ -275,7 +282,6 @@ const elements = {
   largeurEtiquette: document.querySelector("#largeurEtiquette"),
   hauteurEtiquette: document.querySelector("#hauteurEtiquette"),
   messageDimensions: document.querySelector("#messageDimensions"),
-  statutCsv: document.querySelector("#statutCsv"),
   importStyleFile: document.querySelector("#importStyleFile"),
   importSauvegardeFile: document.querySelector("#importSauvegardeFile"),
   exporterSauvegardeDonnees: document.querySelector("#exporterSauvegardeDonnees"),
@@ -1411,9 +1417,6 @@ function appliquerLangueSite(langue, options = {}) {
   if (!elements.restaurationAccueil.hidden) {
     mettreAJourTexteRestauration();
   }
-  if (elements.statutCsv?.dataset.cleStatut) {
-    mettreAJourStatutCsv(elements.statutCsv.dataset.cleStatut);
-  }
   definirEditionTexteMobile(document.body.classList.contains("is-edition-texte-mobile"));
   synchroniserOptionsMotifSecondaire();
   traduireAidesOptions();
@@ -1974,31 +1977,20 @@ async function chargerBibliotheque() {
     vinyles = parserCsvVinyles(csvLocal);
     synchroniserReferenceOrganisation();
     memoriserOrdreOriginal();
-    mettreAJourStatutCsv("CSV local restaure");
     return;
   }
 
   vinyles = vinylesReferenceOrganisation.map((vinyle) => ({ ...vinyle }));
   memoriserOrdreOriginal();
-  mettreAJourStatutCsv(vinyles.length ? "CSV exemple charge" : "Impossible de charger le CSV");
 }
 
 
 function sauvegarderCsvLocal() {
   try {
     localStorage.setItem(CLE_CSV_LOCAL, serialiserCsvVinyles(vinyles));
-    mettreAJourStatutCsv("CSV sauvegarde localement");
   } catch {
-    mettreAJourStatutCsv("Sauvegarde locale impossible");
+    // Le stockage local peut être indisponible en navigation privée.
   }
-}
-
-function mettreAJourStatutCsv(prefixe) {
-  if (!elements.statutCsv) {
-    return;
-  }
-  elements.statutCsv.dataset.cleStatut = prefixe;
-  elements.statutCsv.textContent = `${traduirePhrase(prefixe)} - ${vinyles.length} ${traduirePhrase(vinyles.length > 1 ? "entrées" : "entrée")}`;
 }
 
 async function importerCsvUtilisateur() {
@@ -2869,9 +2861,25 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.bordureVerticale = reglagesNormalises.modele === "JEAN"
     ? false
     : reglagesNormalises.bordureVerticale ?? true;
-  reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.arrondiInterieurBordure ?? false;
+  reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.modele === "LUCIEN"
+    ? false
+    : reglagesNormalises.arrondiInterieurBordure ?? false;
   reglagesNormalises.pointeRubanAlice = Math.max(0, Math.min(100, Number(reglagesNormalises.pointeRubanAlice ?? 50)));
   reglagesNormalises.pointeRubanMartin = Math.max(0, Math.min(100, Number(reglagesNormalises.pointeRubanMartin ?? 50)));
+  reglagesNormalises.formeRuban = ["rectangle", "rectangle-arrondi", "concave", "convexe"].includes(reglagesNormalises.formeRuban)
+    ? reglagesNormalises.formeRuban
+    : (reglagesNormalises.modele === "STELLA" ? "rectangle-arrondi" : "rectangle");
+  reglagesNormalises.inclinaisonRuban = Math.max(1, Math.min(100, Number(reglagesNormalises.inclinaisonRuban ?? 50)));
+  reglagesNormalises.nombreBandesRuban = [0, 2, 3].includes(Number(reglagesNormalises.nombreBandesRuban))
+    ? Number(reglagesNormalises.nombreBandesRuban)
+    : 3;
+  reglagesNormalises.largeurInterieureBandesRuban = Math.max(0, Math.min(100, Number(reglagesNormalises.largeurInterieureBandesRuban ?? 7)));
+  reglagesNormalises.largeurExterieureBandesRuban = Math.max(0, Math.min(100, Number(reglagesNormalises.largeurExterieureBandesRuban ?? 29)));
+  reglagesNormalises.inclinaisonBandesRuban = Math.max(0, Math.min(100, Number(reglagesNormalises.inclinaisonBandesRuban ?? 50)));
+  reglagesNormalises.contourRubanCentral = Math.max(
+    0,
+    Math.min(100, Number(reglagesNormalises.contourRubanCentral ?? 50)),
+  );
   if (!capacitesModeles[reglagesNormalises.modele]?.bandeCentrale) {
     reglagesNormalises.hauteurBande = 0;
   }
@@ -2886,9 +2894,9 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.etendueEtoiles = Math.max(35, Math.min(78, Number(reglagesNormalises.etendueEtoiles) || 66));
   reglagesNormalises.tailleEtoiles = Math.max(70, Math.min(130, Number(reglagesNormalises.tailleEtoiles) || 100));
   reglagesNormalises.couleurFondEtoiles = reglagesNormalises.couleurFondEtoiles || reglagesNormalises.couleur2 || "#ffffff";
-  reglagesNormalises.epaisseurTraitsLEON = reglagesNormalises.epaisseurTraitsLEON ?? 3;
-  reglagesNormalises.positionTraitsLEON = reglagesNormalises.positionTraitsLEON ?? 50;
-  reglagesNormalises.ecartTraitsLEON = reglagesNormalises.ecartTraitsLEON ?? 24;
+  reglagesNormalises.epaisseurTraitsSeparateurs = reglagesNormalises.epaisseurTraitsSeparateurs ?? 3;
+  reglagesNormalises.positionTraitsSeparateurs = reglagesNormalises.positionTraitsSeparateurs ?? 50;
+  reglagesNormalises.ecartTraitsSeparateurs = reglagesNormalises.ecartTraitsSeparateurs ?? 24;
   reglagesNormalises.tailleTrianglesJEAN = reglagesNormalises.tailleTrianglesJEAN ?? 11;
   reglagesNormalises.tailleTrianglesJEAN = convertirTailleTrianglesEnCurseur(reglagesNormalises.tailleTrianglesJEAN);
   reglagesNormalises.afficherMarques = capacitesModeles[reglagesNormalises.modele]?.marques === true
@@ -3496,6 +3504,13 @@ function lireReglagesFormulaire() {
     arrondiInterieurBordure: elements.arrondiInterieurBordure.checked,
     largeurRuban: Number(elements.largeurRuban.value),
     hauteurRuban: Number(elements.hauteurRuban.value),
+    formeRuban: elements.formeRuban.value,
+    inclinaisonRuban: Number(elements.inclinaisonRuban.value),
+    nombreBandesRuban: Number(elements.nombreBandesRuban.value),
+    largeurInterieureBandesRuban: Number(elements.largeurInterieureBandesRuban.value),
+    largeurExterieureBandesRuban: Number(elements.largeurExterieureBandesRuban.value),
+    inclinaisonBandesRuban: Number(elements.inclinaisonBandesRuban.value),
+    contourRubanCentral: Number(elements.contourRubanCentral.value),
     pointeRubanAlice: Number(elements.pointeRubanAlice.value),
     pointeRubanMartin: Number(elements.pointeRubanMartin.value),
     afficherEtoiles: elements.afficherEtoiles.checked,
@@ -3508,9 +3523,9 @@ function lireReglagesFormulaire() {
     tailleEtoiles: Number(elements.tailleEtoiles.value),
     couleurFondEtoiles: elements.couleurFondEtoiles.value,
     hauteurBande: Number(elements.hauteurBande.value),
-    epaisseurTraitsLEON: Number(elements.epaisseurTraitsLEON.value),
-    positionTraitsLEON: Number(elements.positionTraitsLEON.value),
-    ecartTraitsLEON: Number(elements.ecartTraitsLEON.value),
+    epaisseurTraitsSeparateurs: Number(elements.epaisseurTraitsSeparateurs.value),
+    positionTraitsSeparateurs: Number(elements.positionTraitsSeparateurs.value),
+    ecartTraitsSeparateurs: Number(elements.ecartTraitsSeparateurs.value),
     tailleTrianglesJEAN: convertirCurseurEnTailleTriangles(elements.tailleTrianglesJEAN.value),
     tailleBandeGauche: Number(elements.tailleBandeGauche.value),
     angleBandeGauche: Number(elements.angleBandeGauche.value),
@@ -3833,7 +3848,7 @@ function nombreAleatoire(minimum, maximum, pas = 1) {
 
 function creerMarquesSurprise(combo, reglagesBase) {
   const modele = reglagesBase.modele;
-  if (modele === "STELLA" || modele === "JUJU" || modele === "MARTIN" || combo.marques === "aucun") {
+  if (modele === "STELLA" || modele === "LUCIEN" || modele === "JUJU" || modele === "MARTIN" || combo.marques === "aucun") {
     return {
       afficherMarques: false,
       presetMarques: "custom",
@@ -3944,9 +3959,9 @@ function creerSurpriseLeon(base) {
     angle: choisirAleatoire([0, 45, 90, 135, 180]),
     bordure: nombreAleatoire(42, 88, 2),
     arrondiInterieurBordure: Math.random() > 0.58,
-    epaisseurTraitsLEON: nombreAleatoire(1.5, 5.5, 0.5),
-    positionTraitsLEON: nombreAleatoire(45, 55, 1),
-    ecartTraitsLEON: nombreAleatoire(18, 34, 1),
+    epaisseurTraitsSeparateurs: nombreAleatoire(1.5, 5.5, 0.5),
+    positionTraitsSeparateurs: nombreAleatoire(45, 55, 1),
+    ecartTraitsSeparateurs: nombreAleatoire(18, 34, 1),
     tailleTitres: nombreAleatoire(82, 112, 2),
     tailleArtiste: nombreAleatoire(82, 110, 2),
     styleTitres: Math.random() > 0.35 ? "gras" : "normal",
@@ -4131,6 +4146,8 @@ function signatureStyleEnregistre(reglages) {
     normaliserTailleTrianglesPourSignature(reglages),
     reglages.largeurRuban,
     reglages.hauteurRuban,
+    reglages.formeRuban,
+    reglages.inclinaisonRuban,
     reglages.pointeRubanAlice,
     reglages.pointeRubanMartin,
     reglages.hauteurBande,
@@ -5805,7 +5822,6 @@ function mettreAJour() {
     : `${traduirePhrase("Étiquette")} ${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau} ${traduirePhrase("sur")} ${lignes.length}`;
   elements.editionTexteEtat.textContent = `${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau}/${lignes.length}`;
   mettreAJourEditeurTexte(ligneEdition);
-  mettreAJourStatutCsv("CSV actif");
   const disposition = calculerDispositionImpression(lireReglages(etiquetteActive));
   const pages = disposition.etiquettesParPage ? Math.max(1, Math.ceil(lignes.length / disposition.etiquettesParPage)) : 0;
   elements.statutPlanche.textContent = `${pages} ${traduirePhrase(pages > 1 ? "pages" : "page")} A4`;
@@ -5856,7 +5872,8 @@ function mettreAJourInterfaceConditionnelle(reglages) {
   });
   appliquerVisibiliteModele();
   elements.champsMasquesModele.forEach((champ) => {
-    champ.classList.toggle("champ-masque", champ.dataset.modeleMasque === modele);
+    const modelesMasques = String(champ.dataset.modeleMasque || "").split(/\s+/);
+    champ.classList.toggle("champ-masque", modelesMasques.includes(modele));
   });
   elements.champsCapaciteModele.forEach((champ) => {
     const capacite = champ.dataset.capaciteModele;
