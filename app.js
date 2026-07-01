@@ -381,7 +381,7 @@ let pageAccueilModeles = 0;
 let rendreTableauCsvActif = null;
 let ordreOriginalVinyles = [];
 let vinylesReferenceOrganisation = [];
-let langueActive = lireLangueMemorisee() || document.documentElement.lang || "fr";
+let langueActive = lireLangueMemorisee() || detecterLangueNavigateur() || document.documentElement.lang || "fr";
 let bulleAideActive = null;
 let favorisOuverts = false;
 let invitationInstallation = null;
@@ -857,6 +857,31 @@ function lireLangueMemorisee() {
   } catch {
     return null;
   }
+}
+
+function detecterLangueNavigateur() {
+  const languesNavigateur = Array.isArray(navigator.languages) && navigator.languages.length
+    ? navigator.languages
+    : [navigator.language || ""];
+  for (const langueNavigateur of languesNavigateur) {
+    const langue = normaliserLangueNavigateur(langueNavigateur);
+    if (langue) {
+      return langue;
+    }
+  }
+  return null;
+}
+
+function normaliserLangueNavigateur(langueNavigateur) {
+  const locale = String(langueNavigateur || "").toLowerCase();
+  if (!locale) {
+    return null;
+  }
+  if (locale === "en-us" || locale.startsWith("en-us-")) {
+    return "us";
+  }
+  const langue = locale.split("-")[0];
+  return traductions[langue] && langue !== "us" ? langue : null;
 }
 
 function memoriserLangueChoisie(langue) {

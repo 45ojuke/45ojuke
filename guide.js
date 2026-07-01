@@ -84,10 +84,37 @@ boutonsLangue.forEach((bouton) => {
   bouton.addEventListener("click", () => appliquerLangue(bouton.dataset.lang || "fr"));
 });
 
-let langueMemorisee = "fr";
+let langueMemorisee = null;
 try {
-  langueMemorisee = localStorage.getItem(CLE_LANGUE) || "fr";
+  const langue = localStorage.getItem(CLE_LANGUE);
+  langueMemorisee = languesDisponibles.has(langue) ? langue : null;
 } catch {
   // Le stockage local peut être indisponible.
 }
-appliquerLangue(langueMemorisee, { memoriser: false });
+
+function detecterLangueNavigateur() {
+  const languesNavigateur = Array.isArray(navigator.languages) && navigator.languages.length
+    ? navigator.languages
+    : [navigator.language || ""];
+  for (const langueNavigateur of languesNavigateur) {
+    const langue = normaliserLangueNavigateur(langueNavigateur);
+    if (langue) {
+      return langue;
+    }
+  }
+  return null;
+}
+
+function normaliserLangueNavigateur(langueNavigateur) {
+  const locale = String(langueNavigateur || "").toLowerCase();
+  if (!locale) {
+    return null;
+  }
+  if (locale === "en-us" || locale.startsWith("en-us-")) {
+    return "us";
+  }
+  const langue = locale.split("-")[0];
+  return languesDisponibles.has(langue) && langue !== "us" ? langue : null;
+}
+
+appliquerLangue(langueMemorisee || detecterLangueNavigateur() || "fr", { memoriser: false });
