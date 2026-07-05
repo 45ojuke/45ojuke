@@ -3528,24 +3528,40 @@ function mettreAJourEtatBoutonReset(verrouille = styleActifVerrouille()) {
   elements.reinitialiserReglage.disabled = verrouille || styleCourantEstStyleDefaut();
 }
 
-const { obtenirFavoris, enregistrerFavoris, signatureReglages } = creerGestionFavoris({
+const { obtenirFavoris, enregistrerFavoris, normaliserFavori, signatureReglages } = creerGestionFavoris({
   cleFavoris: CLE_FAVORIS,
   normaliserReglagesImportes,
 });
+
+function creerFavoriDepuisReglages(reglages, donnees = {}) {
+  return normaliserFavori({
+    creeLe: donnees.creeLe || new Date().toISOString(),
+    nomPersonnalise: donnees.nomPersonnalise || "",
+    reglages,
+  });
+}
+
+function signatureFavoriDepuisReglages(reglages) {
+  return creerFavoriDepuisReglages(reglages)?.id || signatureReglages(reglages);
+}
 
 function basculerFavori() {
   const reglages = lireReglagesFormulaire();
   if (!styleActifVerrouille()) {
     reglagesParEtiquette[etiquetteActive] = reglages;
   }
-  const id = signatureReglages(reglages);
+  const favoriCourant = creerFavoriDepuisReglages(reglages);
+  if (!favoriCourant) {
+    return;
+  }
+  const id = favoriCourant.id;
   const favoris = obtenirFavoris();
   const dejaPresent = favoris.some((favori) => favori.id === id);
 
   if (dejaPresent) {
     enregistrerFavoris(favoris.filter((favori) => favori.id !== id));
   } else {
-    enregistrerFavoris([{ id, creeLe: new Date().toISOString(), nomPersonnalise: "", reglages }, ...favoris].slice(0, 24));
+    enregistrerFavoris([favoriCourant, ...favoris].slice(0, 24));
     envoyerJsonStyle("favorite_added", creerPayloadFavori(reglages));
   }
 
@@ -3554,7 +3570,7 @@ function basculerFavori() {
 
 function afficherFavoris() {
   const favoris = obtenirFavoris();
-  const idCourant = signatureReglages(lireReglagesFormulaire());
+  const idCourant = signatureFavoriDepuisReglages(lireReglagesFormulaire());
   const estFavori = favoris.some((favori) => favori.id === idCourant);
   if (!favoris.length && !favorisOuverts) {
     favorisOuverts = false;
