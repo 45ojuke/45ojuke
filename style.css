@@ -1146,22 +1146,18 @@ body.is-accueil-selection .seo-accueil {
   }
 
   body.is-grille-jukebox-disponible:not(.is-accueil-selection) .controles {
-    position: sticky;
-    top: 12px;
     grid-column: 1;
     grid-row: 1 / -1;
-    max-height: calc(100vh - 24px);
-    overflow: auto;
   }
 
   body.is-grille-jukebox-disponible:not(.is-accueil-selection) .scene {
     grid-column: 3;
     grid-row: 1;
-    position: relative;
-    top: auto;
+    position: sticky;
+    top: clamp(12px, 1.5vw, 24px);
     min-height: 0;
     height: var(--hauteur-apercu, fit-content);
-    overflow: hidden;
+    overflow: visible;
     padding-block: 10px 6px;
   }
 
@@ -2472,8 +2468,25 @@ body.is-accueil-selection .seo-accueil {
 }
 
 .edition-texte__actions {
+  grid-column: 1 / -1;
   display: grid;
   gap: 8px;
+}
+
+.edition-texte__reglages {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.edition-texte__reglages:empty {
+  display: none;
+}
+
+.edition-texte__reglages #reglagesTextePrincipaux {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 2px;
 }
 
 .edition-texte__entete {
@@ -2563,6 +2576,10 @@ body.is-edition-texte-mobile .controles > .edition-texte .champ input {
   min-height: 38px;
   padding: 7px 10px;
   font-size: 0.92rem;
+}
+
+body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__reglages #reglagesTextePrincipaux {
+  grid-template-columns: 1fr;
 }
 
 .bouton-editer-textes-mobile {
@@ -4897,12 +4914,7 @@ body.is-edition-texte-mobile .controles > .edition-texte .champ input {
   body:not(.is-accueil-selection) .controles {
     order: 2;
     width: calc(100% - 10px);
-    min-height: var(--hauteur-controles-mobile, auto);
-    max-height: var(--hauteur-controles-mobile, none);
-    overflow-y: auto;
     overflow-anchor: none;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
     border-radius: 10px;
     margin-inline: 5px;
@@ -5184,6 +5196,10 @@ body.is-edition-texte-mobile .controles > .edition-texte .champ input {
     min-height: 38px;
     padding: 7px 10px;
     font-size: 0.92rem;
+  }
+
+  .edition-texte__reglages #reglagesTextePrincipaux {
+    grid-template-columns: 1fr;
   }
 
   body.is-edition-texte-mobile .assistant-reglages,

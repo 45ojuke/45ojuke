@@ -124,6 +124,7 @@ const elements = {
   indicateurSwipeSuivant: document.querySelector("#indicateurSwipeSuivant"),
   navigationApercu: document.querySelector("#navigationApercu"),
   editionTexte: document.querySelector("#editionTexte"),
+  editionTexteReglages: document.querySelector("#editionTexteReglages"),
   editionTexteEtat: document.querySelector("#editionTexteEtat"),
   editionTextePrecedent: document.querySelector("#editionTextePrecedent"),
   editionTexteSuivant: document.querySelector("#editionTexteSuivant"),
@@ -1918,6 +1919,7 @@ function ajusterHauteurPanneauOptionsMobile() {
 function definirEditionTexteMobile(ouverte) {
   placerEditeurTexteMobile(ouverte);
   document.body.classList.toggle("is-edition-texte-mobile", ouverte);
+  mettreAJourReglagesTexteMiseEnPage();
   elements.basculerEditionTexteMobile.textContent = ouverte ? traduirePhrase("Retour aux options") : traduirePhrase("Modifier les textes");
   elements.basculerEditionTexteMobile.setAttribute("aria-expanded", String(ouverte));
   if (!ouverte) {
@@ -4911,8 +4913,14 @@ function synchroniserPatineDepuisIntensite() {
 
 function mettreAJourReglagesTexteMiseEnPage() {
   const afficherDansMiseEnPage = etapeReglageActive === "ruban" && elements.modifierTextesMiseEnPage.checked;
-  elements.reglagesTexteMiseEnPage.hidden = !afficherDansMiseEnPage;
-  const cible = afficherDansMiseEnPage ? elements.reglagesTexteMiseEnPage : document.querySelector('[data-tab-panel="texte"]');
+  const afficherDansEditionTexte = editionTexteDemandee && elements.editionTexteReglages;
+  elements.reglagesTexteMiseEnPage.hidden = !afficherDansMiseEnPage || Boolean(afficherDansEditionTexte);
+  elements.editionTexteReglages.hidden = !afficherDansEditionTexte;
+  const cible = afficherDansEditionTexte
+    ? elements.editionTexteReglages
+    : afficherDansMiseEnPage
+      ? elements.reglagesTexteMiseEnPage
+      : document.querySelector('[data-tab-panel="texte"]');
   if (cible && !cible.contains(elements.reglagesTextePrincipaux)) {
     cible.append(elements.reglagesTextePrincipaux);
   }
