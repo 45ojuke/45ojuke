@@ -1,7 +1,7 @@
-export function creerGestionFavoris({ cleFavoris, cleFavorisAncienneVersion, normaliserReglagesImportes }) {
+export function creerGestionFavoris({ cleFavoris, normaliserReglagesImportes }) {
   function obtenirFavoris() {
     try {
-      const donneesStockees = localStorage.getItem(cleFavoris) || localStorage.getItem(cleFavorisAncienneVersion) || "[]";
+      const donneesStockees = localStorage.getItem(cleFavoris) || "[]";
       const donnees = JSON.parse(donneesStockees);
       if (!Array.isArray(donnees)) {
         return [];
@@ -24,7 +24,10 @@ export function creerGestionFavoris({ cleFavoris, cleFavorisAncienneVersion, nor
     }
 
     try {
-      const reglages = normaliserReglagesImportes(favori.reglages || favori);
+      if (!favori.reglages || typeof favori.reglages !== "object") {
+        return null;
+      }
+      const reglages = normaliserReglagesImportes(favori.reglages);
       return {
         id: signatureReglages(reglages),
         creeLe: favori.creeLe || new Date().toISOString(),

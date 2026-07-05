@@ -15,7 +15,6 @@ import {
 import {
   CLE_CSV_LOCAL,
   CLE_FAVORIS,
-  CLE_FAVORIS_ANCIENNE_VERSION,
   CLE_LANGUE,
   CLE_REGLAGES_AUTOMATIQUES,
   DIMENSIONS_ETIQUETTE_DEFAUT,
@@ -114,8 +113,12 @@ const elements = {
   sceneEntete: document.querySelector("#sceneEntete"),
   actionsApercu: document.querySelector("#actionsApercu"),
   verrouillerStyle: document.querySelector("#verrouillerStyle"),
+  carrouselEtiquettes: document.querySelector("#carrouselEtiquettes"),
   apercu: document.querySelector("#apercu"),
+  apercuPrecedent: document.querySelector("#apercuPrecedent"),
+  apercuSuivant: document.querySelector("#apercuSuivant"),
   apercuSecondaire: document.querySelector("#apercuSecondaire"),
+  zonesApercu: document.querySelector("#zonesApercu"),
   apercus: document.querySelector(".apercus"),
   indicateurSwipePrecedent: document.querySelector("#indicateurSwipePrecedent"),
   indicateurSwipeSuivant: document.querySelector("#indicateurSwipeSuivant"),
@@ -126,6 +129,7 @@ const elements = {
   editionTexteSuivant: document.querySelector("#editionTexteSuivant"),
   aideSwipeMobile: document.querySelector("#aideSwipeMobile"),
   basculerEditionTexteMobile: document.querySelector("#basculerEditionTexteMobile"),
+  retourOptionsEditionTexte: document.querySelector("#retourOptionsEditionTexte"),
   aideSelectionEtiquette: document.querySelector("#aideSelectionEtiquette"),
   changerEtiquetteMobile: document.querySelector("#changerEtiquetteMobile"),
   selecteurEtiquette: document.querySelector("#selecteurEtiquette"),
@@ -295,6 +299,7 @@ const elements = {
   choisirCsvSauvegarde: document.querySelector("#choisirCsvSauvegarde"),
   ouvrirTableauCsv: document.querySelector("#ouvrirTableauCsv"),
   ouvrirTableauCsvApercu: document.querySelector("#ouvrirTableauCsvApercu"),
+  ouvrirJukebox: document.querySelector("#ouvrirJukebox"),
   exporterCsv: document.querySelector("#exporterCsv"),
   exporterCsvSauvegarde: document.querySelector("#exporterCsvSauvegarde"),
   texteFaceA: document.querySelector("#texteFaceA"),
@@ -379,6 +384,15 @@ const MAX_MODELES_ACCUEIL_AVEC_TEASERS = Math.max(1, MAX_MODELES_ACCUEIL - 2);
 let pageModelesSecondaires = 0;
 let pageAccueilModeles = 0;
 let rendreTableauCsvActif = null;
+let grilleJukeboxInlineOuverte = false;
+let panneauGrilleJukeboxInline = null;
+let elementsGrilleJukeboxInline = null;
+let selectionGrilleJukeboxInlineActive = false;
+let varianteGrillePretePourAlternance = null;
+let separateurVerticalAtelier = null;
+let separateurHorizontalAtelier = null;
+let editionTexteMasqueeParGrille = false;
+let editionTexteDemandee = false;
 let ordreOriginalVinyles = [];
 let vinylesReferenceOrganisation = [];
 let langueActive = lireLangueMemorisee() || detecterLangueNavigateur() || document.documentElement.lang || "fr";
@@ -388,6 +402,7 @@ let invitationInstallation = null;
 let dernierToucherZoom = 0;
 let zoomApercuPourcentage = null;
 let zoomApercuMaximum = 200;
+const FACTEUR_ZOOM_APERCU_VOISIN = 0.76;
 const LIMITE_HISTORIQUE_REGLAGES = 40;
 const historiqueReglages = {
   annulations: [],
@@ -444,6 +459,7 @@ function brancherEvenements() {
     if (!evenement.target.closest("#topActions")) {
       fermerMenuActionsMobile();
     }
+    fermerEditionTexteSiClicExterieur(evenement);
   });
   window.addEventListener("resize", fermerBulleAide);
   window.addEventListener("scroll", fermerBulleAide, true);
@@ -454,6 +470,9 @@ function brancherEvenements() {
   elements.panneauxReglages.forEach((panneau) => {
     panneau.addEventListener("pointerdown", (evenement) => {
       if (!panneau.classList.contains("is-verrouille")) {
+        return;
+      }
+      if (evenement.target.closest(".bouton-message-verrouillage")) {
         return;
       }
       evenement.preventDefault();
@@ -577,8 +596,8 @@ function brancherEvenements() {
   elements.editionEtiquette.forEach((radio) => {
     radio.addEventListener("change", changerEtiquetteActive);
   });
-  elements.inverser.addEventListener("click", inverserStyle);
-  elements.teinte.addEventListener("click", applyNextTint);
+  elements.inverser?.addEventListener("click", inverserStyle);
+  elements.teinte?.addEventListener("click", applyNextTint);
   elements.annulerReglage.addEventListener("click", annulerDerniereModification);
   elements.retablirReglage.addEventListener("click", retablirModification);
   elements.reinitialiserReglage.addEventListener("click", reinitialiserStyleDefaut);
@@ -601,6 +620,7 @@ function brancherEvenements() {
   elements.exporterCsvSauvegarde.addEventListener("click", exporterCsv);
   elements.ouvrirTableauCsv.addEventListener("click", ouvrirTableauCsv);
   elements.ouvrirTableauCsvApercu.addEventListener("click", ouvrirTableauCsv);
+  elements.ouvrirJukebox.addEventListener("click", basculerGrilleJukebox);
   [elements.texteFaceA, elements.texteArtiste, elements.texteFaceB].forEach((champ) => {
     champ.addEventListener("input", modifierTexteApercu);
   });
@@ -616,6 +636,7 @@ function brancherEvenements() {
   elements.editionTexteSuivant.addEventListener("click", () => changerApercu(1));
   elements.aideSwipeMobile.addEventListener("click", () => afficherBulleAide(elements.aideSwipeMobile));
   elements.basculerEditionTexteMobile.addEventListener("click", basculerEditionTexteMobile);
+  elements.retourOptionsEditionTexte.addEventListener("click", fermerEditionTexteDepuisApercu);
   elements.imprimer.addEventListener("click", imprimer);
   elements.zoomApercu.addEventListener("input", () => definirZoomApercu(elements.zoomApercu.value));
   elements.diminuerZoomApercu.addEventListener("click", () => modifierZoomApercu(-10));
@@ -625,8 +646,11 @@ function brancherEvenements() {
   elements.ouvrirSoutienMenu.addEventListener("click", ouvrirSoutien);
   elements.installerApp.addEventListener("click", installerApplication);
   elements.installerAppMenu.addEventListener("click", installerApplication);
-  elements.apercu.addEventListener("click", () => selectionnerEtiquetteDepuisApercu("1"));
-  elements.apercuSecondaire.addEventListener("click", () => selectionnerEtiquetteDepuisApercu("2"));
+  elements.zonesApercu.addEventListener("click", gererClicApercuIntelligent);
+  elements.apercu.addEventListener("click", gererClicApercuIntelligent);
+  elements.apercuSecondaire.addEventListener("click", gererClicApercuIntelligent);
+  elements.apercuPrecedent.addEventListener("click", () => changerApercu(-1));
+  elements.apercuSuivant.addEventListener("click", () => changerApercu(1));
   elements.changerEtiquetteMobile.addEventListener("click", () => {
     selectionnerEtiquetteDepuisApercu(etiquetteActive === "1" ? "2" : "1", { ouvrirEditeur: false });
   });
@@ -636,14 +660,19 @@ function brancherEvenements() {
     zone.addEventListener("pointercancel", annulerGesteApercu);
   });
   elements.apercus.addEventListener("dragstart", (evenement) => evenement.preventDefault());
-  [elements.apercu, elements.apercuSecondaire].forEach((image) => {
+  [elements.apercu, elements.apercuSecondaire, elements.apercuPrecedent, elements.apercuSuivant].forEach((image) => {
     image.draggable = false;
     image.addEventListener("keydown", (evenement) => {
       if (evenement.key !== "Enter" && evenement.key !== " ") {
         return;
       }
       evenement.preventDefault();
-      selectionnerEtiquetteDepuisApercu(image.dataset.apercuEtiquette);
+      const directionCarrousel = Number(image.dataset.directionCarrousel);
+      if (directionCarrousel) {
+        changerApercu(directionCarrousel);
+        return;
+      }
+      selectionnerEtiquetteDepuisApercu(image.dataset.apercuEtiquette, { ouvrirEditeur: false });
     });
   });
   window.addEventListener("resize", () => {
@@ -655,6 +684,7 @@ function brancherEvenements() {
         placerEditeurTexteMobile(document.body.classList.contains("is-edition-texte-mobile"));
       }
       ajusterHauteurPanneauOptionsMobile();
+      ajusterHauteurGrilleJukeboxInline();
       if (!editionTexteActive) {
         mettreAJour();
       }
@@ -762,7 +792,7 @@ function restaurerReglagesAutomatiques() {
 
     reglagesParEtiquette[1] = reglagesPrincipaux;
     reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
-    modeModificationEtiquettes = sauvegarde.modeModificationEtiquettes === "individuel" ? "individuel" : "toutes";
+    modeModificationEtiquettes = validerModeModificationEtiquettes(sauvegarde.modeModificationEtiquettes);
     elements.modeModificationEtiquettes.forEach((radio) => {
       radio.checked = radio.value === modeModificationEtiquettes;
     });
@@ -1181,6 +1211,17 @@ function quitterIntro() {
   }
 }
 
+function afficherIntroInitiale() {
+  fermerMenuActionsMobile();
+  document.body.classList.add("is-intro-active");
+  elements.intro.classList.remove("disparait");
+  placerMenuActionsMobile();
+  requestAnimationFrame(() => {
+    window.scrollTo(0, 0);
+    elements.boutonCommencer.focus({ preventScroll: true });
+  });
+}
+
 function traductionCourante() {
   return traductions[langueActive] || traductions.fr;
 }
@@ -1428,12 +1469,17 @@ function appliquerLangueSite(langue, options = {}) {
   definirTexteElement(".accueil-apercu__surtitre", `${traduire("step")} 1`);
   definirTexteElement(".accueil-apercu h2", traduire("styleTitle"));
   definirTexteElement(".accueil-apercu__description", traductionCourante().styleDescription || traductions.fr.styleDescription);
-  elements.inverser.textContent = traduire("variant");
-  elements.teinte.textContent = traduirePhrase("Teinte");
+  if (elements.inverser) {
+    elements.inverser.textContent = traduire("variant");
+  }
+  if (elements.teinte) {
+    elements.teinte.textContent = traduirePhrase("Teinte");
+  }
   elements.reinitialiserReglage.textContent = traduirePhrase("Reset");
   elements.reinitialiserReglage.setAttribute("aria-label", traduirePhrase("Revenir au style par défaut"));
   elements.reinitialiserReglage.title = traduirePhrase("Style par défaut");
   elements.ouvrirTableauCsvApercu.textContent = traduire("data");
+  elements.retourOptionsEditionTexte.textContent = traduirePhrase("Retour aux options");
   elements.imprimer.textContent = traduire("print");
   elements.ouvrirFavoris.textContent = traduirePhrase("Favoris");
   traduireTextesVisibles();
@@ -1523,10 +1569,14 @@ function appliquerZoomApercuCourant() {
   }
   const zoom = obtenirZoomApercuCourant();
   appliquerTailleApercu(elements.apercu, lireReglages("1"), zoom);
+  const lignes = obtenirLignes();
+  mettreAJourApercuVoisin(elements.apercuPrecedent, lignes, -1, zoom);
+  mettreAJourApercuVoisin(elements.apercuSuivant, lignes, 1, zoom);
   if (deuxiemeEtiquetteActive() && !elements.apercuSecondaire.hidden) {
     appliquerTailleApercu(elements.apercuSecondaire, lireReglages("2"), zoom);
   }
   synchroniserControleZoomApercu(zoom);
+  synchroniserGeometrieCarrouselApercu(zoom);
 }
 
 function synchroniserControleZoomApercu(zoom = obtenirZoomApercuCourant()) {
@@ -1570,6 +1620,55 @@ function synchroniserRegleApercu(zoom) {
       return nombre;
     }),
   );
+}
+
+function synchroniserGeometrieCarrouselApercu(zoom = obtenirZoomApercuCourant()) {
+  if (!modeleChoisi || !elements.apercus) {
+    return;
+  }
+  recentrerDefilementCarrouselApercu();
+  const reglages = lireReglages(etiquetteActive);
+  const largeurMm = Number(reglages.largeurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.largeur;
+  const hauteurMm = Number(reglages.hauteurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.hauteur;
+  const pixelsParMm = PIXELS_CSS_PAR_MM * zoom / 100;
+  const largeurApercu = largeurMm * pixelsParMm;
+  const hauteurApercu = hauteurMm * pixelsParMm;
+  const decalageVoisin = Math.max(
+    160,
+    Math.min(largeurApercu * 0.68, (window.visualViewport?.width || window.innerWidth) * 0.28),
+  );
+  elements.apercus.style.setProperty("--hauteur-carrousel", `${Math.ceil(hauteurApercu + 18)}px`);
+  elements.apercus.style.setProperty("--decalage-voisin", `${Math.round(decalageVoisin)}px`);
+  elements.apercus.style.setProperty("--decalage-voisin-transition", `${Math.round(decalageVoisin * 0.32)}px`);
+  elements.carrouselEtiquettes?.style.setProperty("--decalage-voisin", `${Math.round(decalageVoisin)}px`);
+  elements.carrouselEtiquettes?.style.setProperty("--decalage-voisin-transition", `${Math.round(decalageVoisin * 0.32)}px`);
+  requestAnimationFrame(() => {
+    if (!elements.carrouselEtiquettes || elements.apercu.hidden) {
+      return;
+    }
+    const rectCarrousel = elements.carrouselEtiquettes.getBoundingClientRect();
+    const rectApercu = elements.apercu.getBoundingClientRect();
+    const centreApercu = rectApercu.left + rectApercu.width / 2 - rectCarrousel.left;
+    elements.carrouselEtiquettes.style.setProperty("--centre-carrousel-x", `${Math.round(centreApercu)}px`);
+  });
+  const atelier = obtenirAtelier();
+  if (atelier && !MEDIA_MOBILE.matches && document.body.classList.contains("is-grille-jukebox-disponible")) {
+    const hauteurScene = Math.min(
+      Math.max(Math.ceil(hauteurApercu + 215), 315),
+      Math.max(315, (window.visualViewport?.height || window.innerHeight) * 0.68),
+    );
+    atelier.style.setProperty("--hauteur-apercu", `${hauteurScene}px`);
+    actualiserEtatApercuRedimensionne(hauteurScene);
+  }
+}
+
+function recentrerDefilementCarrouselApercu() {
+  if (elements.apercus) {
+    elements.apercus.scrollLeft = 0;
+  }
+  if (elements.carrouselEtiquettes) {
+    elements.carrouselEtiquettes.scrollLeft = 0;
+  }
 }
 
 function remplirMenusPolices() {
@@ -1762,6 +1861,9 @@ function activerEtapeReglage(nomEtape, options = {}) {
   if (!panneauActif || panneauActif.dataset.tabDisabled === "true") {
     return;
   }
+  if (nomEtape !== "texte" && !options.conserverEditionTexte) {
+    editionTexteDemandee = false;
+  }
   etapeReglageActive = nomEtape;
   elements.panneauxReglages.forEach((panneau) => {
     panneau.hidden = panneau.dataset.tabPanel !== nomEtape || panneau.dataset.tabDisabled === "true";
@@ -1818,7 +1920,7 @@ function definirEditionTexteMobile(ouverte) {
 }
 
 function placerEditeurTexteMobile(ouverte) {
-  if (ouverte && MEDIA_MOBILE.matches) {
+  if (ouverte) {
     if (elements.editionTexte.parentElement !== elements.formulaire
       || elements.editionTexte.nextElementSibling !== elements.assistantNavigation) {
       elements.formulaire.insertBefore(elements.editionTexte, elements.assistantNavigation);
@@ -1839,15 +1941,14 @@ function fermerEditionTexteMobile() {
 }
 
 function basculerEditionTexteMobile() {
-  definirEditionTexteMobile(!document.body.classList.contains("is-edition-texte-mobile"));
+  editionTexteDemandee = !document.body.classList.contains("is-edition-texte-mobile");
+  definirEditionTexteMobile(editionTexteDemandee);
+  mettreAJourVisibiliteApercu();
 }
 
 function ouvrirEditionTexteDepuisApercu() {
-  if (!MEDIA_MOBILE.matches) {
-    activerEtapeReglage("texte");
-    return;
-  }
-  activerEtapeReglage("texte", { conserverEditionTexteMobile: true });
+  editionTexteDemandee = true;
+  activerEtapeReglage("texte", { conserverEditionTexte: true, conserverEditionTexteMobile: true });
   definirEditionTexteMobile(true);
   requestAnimationFrame(() => {
     const champsTexte = [elements.texteFaceA, elements.texteArtiste, elements.texteFaceB];
@@ -1855,6 +1956,28 @@ function ouvrirEditionTexteDepuisApercu() {
       document.activeElement.blur();
     }
   });
+}
+
+function fermerEditionTexteDepuisApercu() {
+  if (!editionTexteDemandee && !document.body.classList.contains("is-edition-texte-mobile")) {
+    return;
+  }
+  editionTexteDemandee = false;
+  fermerEditionTexteMobile();
+  mettreAJourVisibiliteApercu();
+}
+
+function fermerEditionTexteSiClicExterieur(evenement) {
+  if (!editionTexteDemandee || elements.editionTexte.hidden) {
+    return;
+  }
+  if (evenement.target.closest("#editionTexte")) {
+    return;
+  }
+  if (evenement.target.closest(".zone-apercu")) {
+    return;
+  }
+  fermerEditionTexteDepuisApercu();
 }
 
 function etapesAssistantDisponibles() {
@@ -1885,6 +2008,19 @@ function naviguerAssistant(delta) {
 
 function revenirSelectionAccueil() {
   modeleChoisi = false;
+  editionTexteDemandee = false;
+  if (grilleJukeboxInlineOuverte) {
+    fermerGrilleJukeboxInline();
+  }
+  if (panneauGrilleJukeboxInline) {
+    panneauGrilleJukeboxInline.hidden = true;
+    panneauGrilleJukeboxInline.classList.add("is-replie");
+  }
+  definirSeparateursAtelierVisibles(false);
+  document.body.classList.remove(
+    "is-grille-jukebox-disponible",
+    "is-grille-jukebox-ouverte",
+  );
   fermerEditionTexteMobile();
   document.body.classList.add("is-accueil-selection");
   elements.assistantReglages.hidden = true;
@@ -1894,6 +2030,7 @@ function revenirSelectionAccueil() {
   elements.navigationApercu.hidden = true;
   elements.basculerEditionTexteMobile.hidden = true;
   elements.editionTexte.hidden = true;
+  elements.zonesApercu.replaceChildren();
   elements.actionsApercu.hidden = true;
   elements.sceneEntete.hidden = true;
   elements.panneauxReglages.forEach((panneau) => {
@@ -1902,6 +2039,7 @@ function revenirSelectionAccueil() {
   mettreAJourEditeurTexte(null);
   mettreAJourGalerieModeles();
   proposerRestaurationReglagesAutomatiques();
+  afficherIntroInitiale();
 }
 
 function naviguerAssistantSuivant() {
@@ -1919,6 +2057,13 @@ function naviguerAssistantSuivant() {
 
 function obtenirModeModificationEtiquettes() {
   return [...elements.modeModificationEtiquettes].find((radio) => radio.checked)?.value || "toutes";
+}
+
+function validerModeModificationEtiquettes(valeur) {
+  if (valeur === "toutes" || valeur === "individuel") {
+    return valeur;
+  }
+  throw new Error(traduirePhrase("Format de sauvegarde invalide."));
 }
 
 function appliquerOrganisationEtiquettes() {
@@ -2708,23 +2853,101 @@ function styleActifVerrouille() {
 }
 
 function basculerVerrouillageStyle() {
+  ouvrirChoixVerrouillageStyle();
+}
+
+function obtenirLibellePariteEtiquettes(parite) {
+  return parite === 0 ? traduirePhrase("paires") : traduirePhrase("impaires");
+}
+
+function definirVerrouillageLigne(cle, verrouiller, reglages = null) {
+  if (verrouiller) {
+    stylesVerrouillesParLigne[cle] = true;
+    reglagesParLigne[cle] = clonerReglages(reglages || reglagesParLigne[cle]) || lireReglagesFormulaire();
+    return;
+  }
+  delete stylesVerrouillesParLigne[cle];
+  delete reglagesParLigne[cle];
+}
+
+function appliquerChoixVerrouillageStyle(action) {
   enregistrerHistoriqueAvantAction();
   const cle = obtenirCleLigneApercu();
   if (cle === null) {
     return;
   }
-  const verrouiller = !stylesVerrouillesParLigne[cle];
-  stylesVerrouillesParLigne[cle] = verrouiller;
-  if (verrouiller) {
-    reglagesParLigne[cle] = lireReglagesFormulaire();
-  } else {
+  if (action === "unique") {
+    const verrouiller = !stylesVerrouillesParLigne[cle];
+    if (verrouiller) {
+      definirVerrouillageLigne(cle, true);
+    } else {
+      const reglagesConserves = clonerReglages(reglagesParLigne[cle]) || lireReglagesFormulaire();
+      definirVerrouillageLigne(cle, false);
+      reglagesParEtiquette[etiquetteActive] = reglagesConserves;
+      appliquerReglagesAuFormulaire(reglagesConserves);
+    }
+  } else if (action === "paires" || action === "impaires") {
+    const parite = action === "paires" ? 0 : 1;
+    obtenirLignes().forEach((ligne, index) => {
+      if ((index + 1) % 2 === parite) {
+        definirVerrouillageLigne(String(index), true, lireReglages("1", ligne));
+      }
+    });
+  }
+  if (!stylesVerrouillesParLigne[cle]) {
     const reglagesConserves = clonerReglages(reglagesParLigne[cle]) || lireReglagesFormulaire();
     reglagesParEtiquette[etiquetteActive] = reglagesConserves;
-    delete reglagesParLigne[cle];
     appliquerReglagesAuFormulaire(reglagesConserves);
   }
   sauvegarderReglagesAutomatiques();
   mettreAJour();
+}
+
+function ouvrirChoixVerrouillageStyle() {
+  const cle = obtenirCleLigneApercu();
+  const ligne = obtenirLigneApercu(obtenirLignes());
+  if (cle === null || !ligne) {
+    return;
+  }
+  const pariteActive = ligne.numeroTableau % 2;
+  const optionsParite = [pariteActive, pariteActive === 0 ? 1 : 0];
+  const dialogue = document.createElement("dialog");
+  dialogue.className = "fenetre-import fenetre-verrouillage";
+  const contenu = document.createElement("div");
+  contenu.className = "fenetre-import__contenu";
+  const titre = document.createElement("h2");
+  titre.className = "fenetre-import__titre";
+  titre.textContent = traduirePhrase("Verrouillage");
+  const actions = document.createElement("div");
+  actions.className = "fenetre-import__actions";
+  const boutonUnique = creerBoutonActionGrille(
+    stylesVerrouillesParLigne[cle]
+      ? traduirePhrase("Déverrouiller uniquement cette étiquette")
+      : traduirePhrase("Verrouiller uniquement cette étiquette"),
+    "principal",
+  );
+  boutonUnique.addEventListener("click", () => {
+    appliquerChoixVerrouillageStyle("unique");
+    dialogue.close();
+  });
+  actions.append(boutonUnique);
+  optionsParite.forEach((parite) => {
+    const action = parite === 0 ? "paires" : "impaires";
+    const bouton = creerBoutonActionGrille(`${traduirePhrase("Verrouiller toutes les étiquettes")} ${obtenirLibellePariteEtiquettes(parite)}`);
+    bouton.addEventListener("click", () => {
+      appliquerChoixVerrouillageStyle(action);
+      dialogue.close();
+    });
+    actions.append(bouton);
+  });
+  const fermer = creerBoutonActionGrille(traduirePhrase("Annuler"));
+  fermer.addEventListener("click", () => dialogue.close());
+  actions.append(fermer);
+  contenu.append(titre, actions);
+  dialogue.append(contenu);
+  document.body.append(dialogue);
+  dialogue.addEventListener("close", () => dialogue.remove(), { once: true });
+  dialogue.showModal();
 }
 
 function mettreAJourVerrouillageStyle() {
@@ -2740,6 +2963,7 @@ function mettreAJourVerrouillageStyle() {
     const verrouillable = !["organisation", "style", "reglages", "donnees", "favoris"].includes(panneau.dataset.tabPanel);
     const panneauVerrouille = verrouille && verrouillable;
     const message = obtenirMessagePanneauVerrouille(panneau);
+    mettreAJourBoutonMessageVerrouillage(message, verrouille, libelle);
     Array.from(panneau.children).forEach((enfant) => {
       if (enfant !== message) {
         enfant.inert = panneauVerrouille;
@@ -2751,9 +2975,12 @@ function mettreAJourVerrouillageStyle() {
     if (panneauVerrouille) {
       panneau.tabIndex = 0;
       panneau.setAttribute("role", "button");
-      panneau.setAttribute("aria-label", traduirePhrase("Déverrouillez l’étiquette avec le cadenas pour la modifier."));
+      message.hidden = false;
+      message.classList.add("is-visible");
+      panneau.setAttribute("aria-label", traduirePhrase("Style verrouillé : les options sont désactivées pour éviter les modifications. Déverrouillez avec le cadenas, réglez le style, puis reverrouillez-le."));
     } else {
       panneau.removeAttribute("aria-label");
+      message.classList.remove("is-visible");
       message.hidden = true;
     }
   });
@@ -2769,7 +2996,7 @@ function mettreAJourVerrouillageStyle() {
     elements.teinte,
     elements.importerStyleDonnees,
     elements.importerReglagesFavoris,
-  ].forEach((bouton) => {
+  ].filter(Boolean).forEach((bouton) => {
     bouton.disabled = verrouille;
   });
   mettreAJourEtatBoutonReset(verrouille);
@@ -2783,14 +3010,47 @@ function mettreAJourVerrouillageStyle() {
 function obtenirMessagePanneauVerrouille(panneau) {
   let message = panneau.querySelector(":scope > .message-panneau-verrouille");
   if (!message) {
-    message = document.createElement("p");
+    message = document.createElement("div");
     message.className = "message-panneau-verrouille";
     message.setAttribute("aria-live", "polite");
     message.hidden = true;
-    panneau.append(message);
+
+    const texte = document.createElement("p");
+    texte.className = "message-panneau-verrouille__texte";
+    message.append(texte);
+
+    const bouton = document.createElement("button");
+    bouton.className = "bouton bouton-secondaire bouton-message-verrouillage";
+    bouton.type = "button";
+    bouton.addEventListener("click", (evenement) => {
+      evenement.stopPropagation();
+      basculerVerrouillageStyle();
+    });
+    const icone = document.createElement("span");
+    icone.setAttribute("aria-hidden", "true");
+    icone.textContent = "🔒";
+    bouton.append(icone);
+    message.append(bouton);
   }
-  message.textContent = traduirePhrase("Déverrouillez l’étiquette avec le cadenas pour la modifier.");
+  panneau.prepend(message);
+  const texte = message.querySelector(".message-panneau-verrouille__texte");
+  const bouton = message.querySelector(".bouton-message-verrouillage");
+  texte.textContent = traduirePhrase("Style verrouillé : les options sont désactivées pour éviter les modifications. Déverrouillez avec le cadenas, réglez le style, puis reverrouillez-le.");
+  mettreAJourBoutonMessageVerrouillage(message, styleActifVerrouille());
   return message;
+}
+
+function mettreAJourBoutonMessageVerrouillage(message, verrouille, libelle = traduirePhrase(verrouille ? "Déverrouiller le style" : "Verrouiller le style")) {
+  const bouton = message.querySelector(".bouton-message-verrouillage");
+  const icone = bouton?.querySelector("span");
+  if (!bouton || !icone) {
+    return;
+  }
+  icone.textContent = verrouille ? "🔒" : "🔓";
+  bouton.setAttribute("aria-pressed", String(verrouille));
+  bouton.setAttribute("aria-label", libelle);
+  bouton.title = libelle;
+  bouton.classList.toggle("is-verrouille", verrouille);
 }
 
 function afficherMessagePanneauVerrouille(panneau) {
@@ -2803,6 +3063,10 @@ function afficherMessagePanneauVerrouille(panneau) {
   message.classList.remove("is-visible");
   requestAnimationFrame(() => message.classList.add("is-visible"));
   const minuterie = window.setTimeout(() => {
+    if (panneau.classList.contains("is-verrouille")) {
+      minuteriesMessageVerrouillage.delete(panneau);
+      return;
+    }
     message.classList.remove("is-visible");
     window.setTimeout(() => {
       message.hidden = true;
@@ -3220,6 +3484,9 @@ function restaurerInstantaneReglages(instantane) {
   sauvegarderReglagesAutomatiques();
   mettreAJourGalerieModeles();
   mettreAJour();
+  if (!modeleChoisi) {
+    afficherIntroInitiale();
+  }
 }
 
 function annulerDerniereModification() {
@@ -3247,6 +3514,7 @@ function mettreAJourBoutonsHistorique() {
   const retablirDisponible = historiqueReglages.retablissements.length > 0;
   elements.retablirReglage.disabled = !retablirDisponible;
   elements.retablirReglage.hidden = !retablirDisponible;
+  mettreAJourActionsGrilleJukeboxInline();
   mettreAJourEtatBoutonReset();
 }
 
@@ -3256,7 +3524,6 @@ function mettreAJourEtatBoutonReset(verrouille = styleActifVerrouille()) {
 
 const { obtenirFavoris, enregistrerFavoris, signatureReglages } = creerGestionFavoris({
   cleFavoris: CLE_FAVORIS,
-  cleFavorisAncienneVersion: CLE_FAVORIS_ANCIENNE_VERSION,
   normaliserReglagesImportes,
 });
 
@@ -3766,6 +4033,288 @@ function changerEtiquetteActive() {
   mettreAJour();
 }
 
+function dansZoneApercu(point, zone, marge = 0) {
+  return point.x >= zone.x - marge
+    && point.x <= zone.x + zone.w + marge
+    && point.y >= zone.y - marge
+    && point.y <= zone.y + zone.h + marge;
+}
+
+function pointDansTriangle(point, triangle) {
+  const aire = (a, b, c) => (
+    (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) / 2
+  );
+  const aireTotale = Math.abs(aire(triangle[0], triangle[1], triangle[2]));
+  const aireA = Math.abs(aire(point, triangle[1], triangle[2]));
+  const aireB = Math.abs(aire(triangle[0], point, triangle[2]));
+  const aireC = Math.abs(aire(triangle[0], triangle[1], point));
+  return Math.abs(aireTotale - (aireA + aireB + aireC)) < 0.18;
+}
+
+function obtenirActionTexteApercu(point) {
+  const zonesTexte = [
+    { action: "texte-face-a", x: 27, y: 13, w: 46, h: 16 },
+    { action: "texte-artiste", x: 27, y: 42, w: 46, h: 16 },
+    { action: "texte-face-b", x: 27, y: 72, w: 46, h: 17 },
+  ];
+  const zone = zonesTexte.find((item) => dansZoneApercu(point, item));
+  return zone?.action || null;
+}
+
+function obtenirActionMarqueTexteApercu(point, reglages) {
+  if (reglages.afficherMarques === false) {
+    return null;
+  }
+  const gaucheVisible = String(reglages.synchroniserMarques === false ? reglages.marqueGaucheTexte : reglages.marqueGauche || "").trim();
+  const droiteVisible = String(reglages.synchroniserMarques === false ? reglages.marqueDroiteTexte : reglages.marqueDroite || "").trim();
+  if (gaucheVisible && dansZoneApercu(point, { x: 0, y: 23, w: 8.7, h: 54 }, 1.2)) {
+    return "marque-gauche";
+  }
+  if (droiteVisible && dansZoneApercu(point, { x: 91.3, y: 23, w: 8.7, h: 54 }, 1.2)) {
+    return "marque-droite";
+  }
+  return null;
+}
+
+function obtenirActionEtoilesStellaApercu(point, reglages) {
+  if (reglages.modele !== "STELLA" || reglages.afficherEtoiles === false) {
+    return null;
+  }
+  const nombre = Math.max(3, Math.min(5, Math.round(Number(reglages.nombreEtoiles) || 5)));
+  const disposition = ["droite", "concave", "convexe"].includes(reglages.dispositionEtoiles)
+    ? reglages.dispositionEtoiles
+    : "droite";
+  const courbure = Math.max(0, Math.min(100, Number(reglages.courbureEtoiles) || 0)) / 100;
+  const positionX = Math.max(3, Math.min(18, Number(reglages.positionHorizontaleEtoiles) || 7));
+  const centreY = Math.max(35, Math.min(65, Number(reglages.positionVerticaleEtoiles) || 50)) / 100;
+  const etendue = Math.max(35, Math.min(78, Number(reglages.etendueEtoiles) || 66)) / 100;
+  const taille = Math.max(70, Math.min(130, Number(reglages.tailleEtoiles) || 100)) / 100;
+  const largeurRuban = Number(reglages.largeurRuban) || 0;
+  const rubanX = (100 - largeurRuban) / 2;
+  const rayonClic = Math.max(4.2, 5.8 * taille);
+  const amplitudeCourbe = Math.min(rubanX * 0.36, 3.5) * courbure;
+  const debutY = centreY - etendue / 2;
+  for (let index = 0; index < nombre; index += 1) {
+    const progression = nombre === 1 ? 0.5 : index / (nombre - 1);
+    const positionNormalisee = progression * 2 - 1;
+    const bombement = (1 - positionNormalisee * positionNormalisee) * amplitudeCourbe;
+    const direction = disposition === "concave" ? 1 : (disposition === "convexe" ? -1 : 0);
+    const y = Math.max(5, Math.min(95, (debutY + progression * etendue) * 100));
+    const centres = [
+      { x: positionX + bombement * direction, y },
+      { x: 100 - positionX - bombement * direction, y },
+    ];
+    if (centres.some((centre) => Math.hypot(point.x - centre.x, point.y - centre.y) <= rayonClic)) {
+      return "etoiles-stella";
+    }
+  }
+  return null;
+}
+
+function obtenirGeometrieApercu(reglages) {
+  const hauteurRuban = Number(reglages.hauteurRuban) || 0;
+  const largeurRuban = Number(reglages.largeurRuban) || 0;
+  const ruban = {
+    x: (100 - largeurRuban) / 2,
+    y: (100 - hauteurRuban) / 2,
+    w: largeurRuban,
+    h: hauteurRuban,
+  };
+  const bandeH = ["ALICE", "MARTIN", "JUJU", "MANU"].includes(reglages.modele)
+    ? Number(reglages.hauteurBande) || 0
+    : 0;
+  const bande = {
+    x: 0,
+    y: (100 - bandeH) / 2,
+    w: 100,
+    h: bandeH,
+  };
+  return { ruban, bande };
+}
+
+function obtenirActionCouleurApercu(point, reglages) {
+  const { ruban, bande } = obtenirGeometrieApercu(reglages);
+  const modele = reglages.modele || "ALICE";
+  const bordurePct = Math.max(1.25, Math.min(7, Number(reglages.bordure) / 18 || 2.4));
+
+  if (
+    Number(reglages.bordure) > 0
+    && (
+      (reglages.bordureHorizontale !== false && (point.y <= bordurePct || point.y >= 100 - bordurePct))
+      || (reglages.bordureVerticale !== false && modele !== "JEAN" && (point.x <= bordurePct || point.x >= 100 - bordurePct))
+    )
+  ) {
+    return "couleur-cadre";
+  }
+
+  if (modele === "ALICE" && ruban.w > 0 && ruban.h > 0) {
+    const profondeur = Math.max(3.5, Math.min(13.7, 3.5 + (Number(reglages.pointeRubanAlice ?? 50) / 100) * 10.2));
+    const pointeGauche = [
+      { x: ruban.x, y: ruban.y },
+      { x: ruban.x + profondeur, y: ruban.y + ruban.h / 2 },
+      { x: ruban.x, y: ruban.y + ruban.h },
+    ];
+    const pointeDroite = [
+      { x: ruban.x + ruban.w, y: ruban.y },
+      { x: ruban.x + ruban.w - profondeur, y: ruban.y + ruban.h / 2 },
+      { x: ruban.x + ruban.w, y: ruban.y + ruban.h },
+    ];
+    if (pointDansTriangle(point, pointeGauche) || pointDansTriangle(point, pointeDroite)) {
+      return "couleur-cadre";
+    }
+  }
+
+  if (ruban.w > 0 && ruban.h > 0 && dansZoneApercu(point, ruban)) {
+    return "couleur-ruban";
+  }
+
+  if (bande.h > 0 && dansZoneApercu(point, bande)) {
+    return "couleur-cadre";
+  }
+
+  return point.y < 50 ? "couleur-fond-haut" : "couleur-fond-bas";
+}
+
+function obtenirActionApercuDepuisPoint(point, reglages) {
+  return obtenirActionTexteApercu(point)
+    || obtenirActionMarqueTexteApercu(point, reglages)
+    || obtenirActionEtoilesStellaApercu(point, reglages)
+    || obtenirActionCouleurApercu(point, reglages);
+}
+
+function mettreAJourZonesApercu(reglages, deuxiemeActive) {
+  if (!elements.zonesApercu) {
+    return;
+  }
+  elements.zonesApercu.replaceChildren();
+  const imageReference = etiquetteActive === "2" && deuxiemeActive && !elements.apercuSecondaire.hidden
+    ? elements.apercuSecondaire
+    : elements.apercu;
+  if (!modeleChoisi || !imageReference?.src || imageReference.hidden) {
+    elements.zonesApercu.hidden = true;
+    return;
+  }
+  elements.zonesApercu.hidden = false;
+  elements.zonesApercu.dataset.apercuEtiquette = imageReference.dataset.apercuEtiquette || etiquetteActive;
+  elements.zonesApercu.style.display = imageReference.hidden ? "none" : "block";
+  requestAnimationFrame(() => {
+    if (elements.zonesApercu.hidden || imageReference.hidden) {
+      return;
+    }
+    const rectImage = imageReference.getBoundingClientRect();
+    const rectParent = elements.zonesApercu.parentElement.getBoundingClientRect();
+    elements.zonesApercu.style.left = `${rectImage.left - rectParent.left}px`;
+    elements.zonesApercu.style.top = `${rectImage.top - rectParent.top}px`;
+    elements.zonesApercu.style.width = `${rectImage.width}px`;
+    elements.zonesApercu.style.height = `${rectImage.height}px`;
+  });
+}
+
+function obtenirImageApercuDepuisClic(evenement) {
+  const imageDirecte = evenement.currentTarget?.matches?.(".apercu-image:not(.apercu-image--voisine)")
+    ? evenement.currentTarget
+    : null;
+  if (imageDirecte) {
+    return imageDirecte;
+  }
+  const numero = elements.zonesApercu.dataset.apercuEtiquette || etiquetteActive;
+  if (numero === "2" && !elements.apercuSecondaire.hidden) {
+    return elements.apercuSecondaire;
+  }
+  return elements.apercu;
+}
+
+function gererClicApercuIntelligent(evenement) {
+  if (ignorerProchainClicApercu) {
+    ignorerProchainClicApercu = false;
+    return;
+  }
+  evenement.preventDefault();
+  evenement.stopPropagation();
+  const image = obtenirImageApercuDepuisClic(evenement);
+  const numero = image?.dataset.apercuEtiquette || etiquetteActive;
+  if (numero !== etiquetteActive) {
+    selectionnerEtiquetteDepuisApercu(numero, { ouvrirEditeur: false });
+  }
+  const rect = image.getBoundingClientRect();
+  const point = {
+    x: ((evenement.clientX - rect.left) / rect.width) * 100,
+    y: ((evenement.clientY - rect.top) / rect.height) * 100,
+  };
+  const action = obtenirActionApercuDepuisPoint(point, lireReglages(numero));
+  revelerReglageDepuisApercu(action);
+}
+
+function focusReglageDepuisApercu(element) {
+  if (!element) {
+    return;
+  }
+  requestAnimationFrame(() => {
+    element.scrollIntoView({ block: "center", behavior: "smooth" });
+    element.focus?.({ preventScroll: true });
+    element.closest(".champ, .marques-section")?.classList.add("is-cible-apercu");
+    window.setTimeout(() => {
+      element.closest(".champ, .marques-section")?.classList.remove("is-cible-apercu");
+    }, 1400);
+  });
+}
+
+function revelerReglageDepuisApercu(action) {
+  const actionsTexte = {
+    "texte-face-a": elements.texteFaceA,
+    "texte-artiste": elements.texteArtiste,
+    "texte-face-b": elements.texteFaceB,
+  };
+  if (actionsTexte[action]) {
+    ouvrirEditionTexteDepuisApercu();
+    mettreAJourVisibiliteApercu();
+    focusReglageDepuisApercu(actionsTexte[action]);
+    return;
+  }
+
+  const actionsRuban = {
+    "couleur-cadre": elements.couleur1,
+    "couleur-fond-haut": elements.couleur2,
+    "couleur-fond-bas": elements.couleur3,
+    "couleur-ruban": elements.couleurRuban,
+  };
+  if (actionsRuban[action]) {
+    fermerEditionTexteDepuisApercu();
+    activerEtapeReglage("ruban");
+    mettreAJourVisibiliteApercu();
+    focusReglageDepuisApercu(actionsRuban[action]);
+    return;
+  }
+
+  if (action === "etoiles-stella") {
+    fermerEditionTexteDepuisApercu();
+    activerEtapeReglage("ruban");
+    mettreAJourVisibiliteApercu();
+    focusReglageDepuisApercu(elements.nombreEtoiles);
+    return;
+  }
+
+  if (action === "decor") {
+    fermerEditionTexteDepuisApercu();
+    elements.decorPanel.value = "motif";
+    mettreAJourInterfaceConditionnelle(lireReglagesFormulaire());
+    activerEtapeReglage("decor");
+    mettreAJourVisibiliteApercu();
+    focusReglageDepuisApercu(elements.motifType);
+    return;
+  }
+
+  if (action === "marque-gauche" || action === "marque-droite") {
+    fermerEditionTexteDepuisApercu();
+    activerEtapeReglage("cote");
+    mettreAJourVisibiliteApercu();
+    const champ = action === "marque-gauche"
+      ? (elements.synchroniserMarques.checked ? elements.marqueGauche : elements.marqueGaucheTexte)
+      : (elements.synchroniserMarques.checked ? elements.marqueDroite : elements.marqueDroiteTexte);
+    focusReglageDepuisApercu(champ);
+  }
+}
+
 function selectionnerEtiquetteDepuisApercu(numero, { ouvrirEditeur = true } = {}) {
   if (ignorerProchainClicApercu) {
     ignorerProchainClicApercu = false;
@@ -3777,6 +4326,8 @@ function selectionnerEtiquetteDepuisApercu(numero, { ouvrirEditeur = true } = {}
   if (numero === etiquetteActive) {
     if (ouvrirEditeur) {
       ouvrirEditionTexteDepuisApercu();
+    } else {
+      fermerEditionTexteDepuisApercu();
     }
     return;
   }
@@ -3790,6 +4341,8 @@ function selectionnerEtiquetteDepuisApercu(numero, { ouvrirEditeur = true } = {}
   mettreAJour();
   if (ouvrirEditeur) {
     ouvrirEditionTexteDepuisApercu();
+  } else {
+    fermerEditionTexteDepuisApercu();
   }
 }
 
@@ -3852,6 +4405,7 @@ function afficherApercuApresChoixModele() {
   modeleChoisi = true;
   masquerOptionRestauration();
   document.body.classList.remove("is-accueil-selection");
+  preparerGrilleJukeboxRepliee();
   window.scrollTo({ top: 0, left: 0 });
   elements.formulaire?.scrollTo?.({ top: 0, left: 0 });
   ajusterHauteurPanneauOptionsMobile();
@@ -4492,7 +5046,7 @@ function restaurerSauvegardeSession(donnees) {
 
   reglagesParEtiquette[1] = reglagesPrincipaux;
   reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
-  modeModificationEtiquettes = session.modeModificationEtiquettes === "individuel" ? "individuel" : "toutes";
+  modeModificationEtiquettes = validerModeModificationEtiquettes(session.modeModificationEtiquettes);
   elements.modeModificationEtiquettes.forEach((radio) => {
     radio.checked = radio.value === modeModificationEtiquettes;
   });
@@ -4540,16 +5094,65 @@ function creerPayloadJsonStyle() {
   const deuxiemeActive = deuxiemeEtiquetteActive();
   const reglagesPrincipaux = lireReglages("1");
   const reglagesSecondaires = deuxiemeActive ? lireReglages("2") : null;
+  const stylesGrille = creerStylesGrillePourEmail();
   return {
     styles: {
       primary: preparerReglagesPourExport(reglagesPrincipaux),
       secondary: reglagesSecondaires ? preparerReglagesPourExport(reglagesSecondaires) : null,
+      grid: stylesGrille.map((style) => style.export),
     },
     previewImages: {
       primary: creerApercuStylePourEmail(reglagesPrincipaux, "principal"),
       secondary: reglagesSecondaires ? creerApercuStylePourEmail(reglagesSecondaires, "secondaire") : null,
+      grid: stylesGrille.map((style) => ({
+        index: style.index,
+        name: style.previewName,
+        dataUrl: style.previewDataUrl,
+      })).filter((image) => image.dataUrl),
     },
   };
+}
+
+function creerStylesGrillePourEmail() {
+  const lignes = obtenirLignes();
+  const signaturesDejaEnvoyees = new Set();
+  return lignes
+    .map((ligne, index) => {
+      const cle = String(index);
+      const reglages = stylesVerrouillesParLigne[cle] && reglagesParLigne[cle]
+        ? reglagesParLigne[cle]
+        : null;
+      if (!reglages) {
+        return null;
+      }
+      const signature = signatureStyleEnregistre(reglages);
+      if (signaturesDejaEnvoyees.has(signature)) {
+        return null;
+      }
+      signaturesDejaEnvoyees.add(signature);
+      const exportStyle = preparerReglagesPourExport(reglages);
+      exportStyle.indexGrille = index + 1;
+      exportStyle.indicesGrille = lignes
+        .map((_, autreIndex) => {
+          const autreCle = String(autreIndex);
+          const autreReglages = stylesVerrouillesParLigne[autreCle] && reglagesParLigne[autreCle]
+            ? reglagesParLigne[autreCle]
+            : null;
+          return autreReglages && signatureStyleEnregistre(autreReglages) === signature
+            ? autreIndex + 1
+            : null;
+        })
+        .filter((valeur) => valeur !== null);
+      const nomApercu = `grille-${String(index + 1).padStart(2, "0")}`;
+      const apercu = creerApercuStylePourEmail(reglages, nomApercu);
+      return {
+        index: index + 1,
+        export: exportStyle,
+        previewName: apercu?.name || `45ojuke-apercu-${nomApercu}.jpg`,
+        previewDataUrl: apercu?.dataUrl || null,
+      };
+    })
+    .filter(Boolean);
 }
 
 function creerPayloadFavori(reglages) {
@@ -5172,7 +5775,8 @@ function mettreAJourEditeurTexte(ligne) {
   elements.texteFaceB.value = vinyles[ligne.index]?.titre_face_b || "";
 }
 
-function ouvrirTableauCsv() {
+function ouvrirTableauCsv(options = {}) {
+  const apresFermeture = typeof options?.onClose === "function" ? options.onClose : null;
   const dialogue = document.createElement("dialog");
   dialogue.className = "fenetre-csv";
 
@@ -5355,6 +5959,7 @@ function ouvrirTableauCsv() {
   fermer.addEventListener("click", () => dialogue.close());
   dialogue.addEventListener("close", () => {
     rendreTableauCsvActif = null;
+    apresFermeture?.();
     dialogue.remove();
   }, { once: true });
   dialogue.addEventListener("click", (evenement) => {
@@ -5457,6 +6062,899 @@ function ouvrirTableauCsv() {
 
   rendre();
   dialogue.showModal();
+}
+
+function creerInputJukebox(libelle, type, valeur) {
+  const label = document.createElement("label");
+  label.className = "jukebox-outils__champ";
+  label.textContent = libelle;
+  const input = document.createElement("input");
+  input.type = type;
+  input.value = valeur;
+  label.append(input);
+  return { label, input };
+}
+
+function obtenirAtelier() {
+  return elements.scene.closest(".atelier");
+}
+
+function installerSeparateursAtelier() {
+  const atelier = obtenirAtelier();
+  if (!atelier || separateurVerticalAtelier) {
+    return;
+  }
+  separateurVerticalAtelier = document.createElement("div");
+  separateurVerticalAtelier.className = "atelier-separateur atelier-separateur--vertical";
+  separateurVerticalAtelier.hidden = true;
+  separateurVerticalAtelier.setAttribute("role", "separator");
+  separateurVerticalAtelier.setAttribute("aria-orientation", "vertical");
+  separateurVerticalAtelier.setAttribute("aria-label", traduirePhrase("Redimensionner les réglages"));
+
+  separateurHorizontalAtelier = document.createElement("div");
+  separateurHorizontalAtelier.className = "atelier-separateur atelier-separateur--horizontal";
+  separateurHorizontalAtelier.hidden = true;
+  separateurHorizontalAtelier.setAttribute("role", "separator");
+  separateurHorizontalAtelier.setAttribute("aria-orientation", "horizontal");
+  separateurHorizontalAtelier.setAttribute("aria-label", traduirePhrase("Redimensionner la prévisualisation"));
+
+  atelier.insertBefore(separateurVerticalAtelier, elements.scene);
+  atelier.insertBefore(separateurHorizontalAtelier, panneauGrilleJukeboxInline);
+  separateurVerticalAtelier.addEventListener("pointerdown", demarrerRedimensionnementReglages);
+  separateurHorizontalAtelier.addEventListener("pointerdown", demarrerRedimensionnementApercu);
+}
+
+function definirSeparateursAtelierVisibles(visible) {
+  if (!separateurVerticalAtelier || !separateurHorizontalAtelier) {
+    return;
+  }
+  separateurVerticalAtelier.hidden = !visible;
+  separateurHorizontalAtelier.hidden = !visible;
+}
+
+function demarrerRedimensionnementReglages(evenement) {
+  if (MEDIA_MOBILE.matches) {
+    return;
+  }
+  const atelier = obtenirAtelier();
+  if (!atelier) {
+    return;
+  }
+  evenement.preventDefault();
+  separateurVerticalAtelier.setPointerCapture(evenement.pointerId);
+  document.body.classList.add("is-redimensionnement-atelier");
+  const deplacer = (mouvement) => {
+    const rect = atelier.getBoundingClientRect();
+    const maximum = Math.min(560, rect.width * 0.48);
+    const largeur = Math.max(260, Math.min(maximum, mouvement.clientX - rect.left - 4));
+    atelier.style.setProperty("--largeur-reglages", `${Math.round(largeur)}px`);
+    appliquerZoomApercuCourant();
+  };
+  const terminer = () => {
+    document.body.classList.remove("is-redimensionnement-atelier");
+    separateurVerticalAtelier.removeEventListener("pointermove", deplacer);
+    separateurVerticalAtelier.removeEventListener("pointerup", terminer);
+    separateurVerticalAtelier.removeEventListener("pointercancel", terminer);
+  };
+  separateurVerticalAtelier.addEventListener("pointermove", deplacer);
+  separateurVerticalAtelier.addEventListener("pointerup", terminer);
+  separateurVerticalAtelier.addEventListener("pointercancel", terminer);
+}
+
+function demarrerRedimensionnementApercu(evenement) {
+  if (MEDIA_MOBILE.matches || !panneauGrilleJukeboxInline || !elements.scene) {
+    return;
+  }
+  evenement.preventDefault();
+  separateurHorizontalAtelier.setPointerCapture(evenement.pointerId);
+  document.body.classList.add("is-redimensionnement-atelier");
+  const atelier = obtenirAtelier();
+  const hauteurDepart = elements.scene.getBoundingClientRect().height;
+  const hauteurMinimum = 180;
+  const hauteurMaximum = Math.min(window.innerHeight * 0.82, Math.max(hauteurDepart + 180, 360));
+  const yDepart = evenement.clientY;
+  const deplacer = (mouvement) => {
+    const delta = mouvement.clientY - yDepart;
+    const hauteur = Math.max(hauteurMinimum, Math.min(hauteurMaximum, hauteurDepart + delta));
+    atelier?.style.setProperty("--hauteur-apercu", `${Math.round(hauteur)}px`);
+    actualiserEtatApercuRedimensionne(hauteur);
+  };
+  const terminer = () => {
+    document.body.classList.remove("is-redimensionnement-atelier");
+    separateurHorizontalAtelier.removeEventListener("pointermove", deplacer);
+    separateurHorizontalAtelier.removeEventListener("pointerup", terminer);
+    separateurHorizontalAtelier.removeEventListener("pointercancel", terminer);
+  };
+  separateurHorizontalAtelier.addEventListener("pointermove", deplacer);
+  separateurHorizontalAtelier.addEventListener("pointerup", terminer);
+  separateurHorizontalAtelier.addEventListener("pointercancel", terminer);
+}
+
+function actualiserEtatApercuRedimensionne(hauteur = elements.scene?.getBoundingClientRect().height || 0) {
+  if (!elements.scene) {
+    return;
+  }
+  elements.scene.classList.toggle("is-apercu-reduit", hauteur < 220);
+  elements.scene.classList.toggle("is-apercu-tres-reduit", hauteur < 190);
+}
+
+function basculerGrilleJukebox() {
+  if (MEDIA_MOBILE.matches) {
+    return;
+  }
+  if (grilleJukeboxInlineOuverte) {
+    fermerGrilleJukeboxInline();
+    return;
+  }
+  ouvrirGrilleJukeboxInline();
+}
+
+function preparerGrilleJukeboxRepliee() {
+  if (MEDIA_MOBILE.matches || !modeleChoisi) {
+    return;
+  }
+  if (!panneauGrilleJukeboxInline) {
+    creerPanneauGrilleJukeboxInline();
+  }
+  panneauGrilleJukeboxInline.hidden = false;
+  panneauGrilleJukeboxInline.classList.add("is-replie");
+  grilleJukeboxInlineOuverte = false;
+  document.body.classList.add("is-grille-jukebox-disponible");
+  document.body.classList.remove("is-grille-jukebox-ouverte");
+  definirSeparateursAtelierVisibles(true);
+  elements.ouvrirJukebox.classList.remove("is-actif");
+  elements.ouvrirJukebox.setAttribute("aria-expanded", "false");
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Déplier la grille"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Déplier la grille"));
+  if (elementsGrilleJukeboxInline?.boutonFermer) {
+    elementsGrilleJukeboxInline.boutonFermer.textContent = "⌄";
+  }
+}
+
+function ouvrirGrilleJukeboxInline() {
+  grilleJukeboxInlineOuverte = true;
+  editionTexteMasqueeParGrille = true;
+  selectionGrilleJukeboxInlineActive = false;
+  if (!panneauGrilleJukeboxInline) {
+    creerPanneauGrilleJukeboxInline();
+  }
+  panneauGrilleJukeboxInline.hidden = false;
+  panneauGrilleJukeboxInline.classList.remove("is-replie");
+  document.body.classList.add("is-grille-jukebox-disponible", "is-grille-jukebox-ouverte");
+  definirSeparateursAtelierVisibles(true);
+  elements.ouvrirJukebox.classList.add("is-actif");
+  elements.ouvrirJukebox.setAttribute("aria-expanded", "true");
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Replier la grille"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Replier la grille"));
+  if (elementsGrilleJukeboxInline?.boutonFermer) {
+    elementsGrilleJukeboxInline.boutonFermer.textContent = "⌃";
+  }
+  actualiserGrilleJukeboxInline();
+  mettreAJourVisibiliteApercu();
+  obtenirAtelier()?.scrollIntoView({ block: "start" });
+  window.requestAnimationFrame(() => appliquerZoomApercuCourant());
+}
+
+function fermerGrilleJukeboxInline() {
+  grilleJukeboxInlineOuverte = false;
+  editionTexteMasqueeParGrille = false;
+  selectionGrilleJukeboxInlineActive = false;
+  panneauGrilleJukeboxInline?.classList.add("is-replie");
+  document.body.classList.remove("is-grille-jukebox-ouverte");
+  document.body.classList.add("is-grille-jukebox-disponible");
+  definirSeparateursAtelierVisibles(true);
+  elements.ouvrirJukebox.classList.remove("is-actif");
+  elements.ouvrirJukebox.setAttribute("aria-expanded", "false");
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Déplier la grille"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Déplier la grille"));
+  if (elementsGrilleJukeboxInline?.boutonFermer) {
+    elementsGrilleJukeboxInline.boutonFermer.textContent = "⌄";
+  }
+  masquerApercuSurvolJukeboxInline();
+  mettreAJourVisibiliteApercu();
+  window.requestAnimationFrame(() => appliquerZoomApercuCourant());
+}
+
+function creerBoutonActionGrille(texte, variante = "secondaire") {
+  const bouton = document.createElement("button");
+  bouton.className = `bouton ${variante === "principal" ? "bouton-principal" : "bouton-secondaire"}`;
+  bouton.type = "button";
+  bouton.textContent = texte;
+  return bouton;
+}
+
+function modifierStyleDepuisGrilleJukeboxInline() {
+  fermerEditionTexteDepuisApercu();
+  activerEtapeReglage("ruban");
+  mettreAJourVisibiliteApercu();
+  elements.formulaire.scrollIntoView({ block: "start", behavior: "smooth" });
+}
+
+function appliquerVarianteDepuisGrilleJukeboxInline() {
+  const lignes = obtenirLignes();
+  if (!lignes[indexApercu]) {
+    return;
+  }
+  enregistrerHistoriqueAvantAction();
+  appliquerModeleJukebox(indexApercu, "variante");
+  selectionGrilleJukeboxInlineActive = true;
+  preparerAlternanceGrilleJukeboxInline(indexApercu, "variante");
+  actualiserGrilleJukeboxInline();
+}
+
+function preparerAlternanceGrilleJukeboxInline(index, type = "style") {
+  const ligne = obtenirLignes()[index] || null;
+  const reglages = ligne ? clonerReglages(lireReglages("1", ligne)) : null;
+  varianteGrillePretePourAlternance = ligne ? {
+    index,
+    type,
+    etat: "pret",
+    reglages,
+    signature: signatureStyleEnregistre(reglages),
+  } : null;
+  selectionGrilleJukeboxInlineActive = Boolean(ligne);
+}
+
+function appliquerVarianteEnAlternanceDepuisGrille() {
+  const lignes = obtenirLignes();
+  const ligne = lignes[indexApercu] || null;
+  if (!ligne || varianteGrillePretePourAlternance?.index !== indexApercu) {
+    return;
+  }
+  const reglages = clonerReglages(varianteGrillePretePourAlternance.reglages) || clonerReglages(lireReglages("1", ligne));
+  const parite = (indexApercu + 1) % 2;
+  const paritesAppliquees = new Set(varianteGrillePretePourAlternance.paritesAppliquees || []);
+  const autreParite = parite === 0 ? 1 : 0;
+  let prochainesParites = [];
+  if (paritesAppliquees.size === 0) {
+    prochainesParites = [parite];
+  } else if (paritesAppliquees.size === 1 && paritesAppliquees.has(parite)) {
+    prochainesParites = [autreParite];
+  } else if (paritesAppliquees.size === 1) {
+    prochainesParites = [parite, autreParite];
+  }
+  const signature = signatureStyleEnregistre(reglages);
+  const retirerParitesAppliquees = (paritesARetirer) => {
+    lignes.forEach((_, index) => {
+      if (!paritesARetirer.has((index + 1) % 2)) {
+        return;
+      }
+      const cle = String(index);
+      const reglagesLigne = reglagesParLigne[cle];
+      if (reglagesLigne && signatureStyleEnregistre(reglagesLigne) === varianteGrillePretePourAlternance.signature) {
+        delete stylesVerrouillesParLigne[cle];
+        delete reglagesParLigne[cle];
+      }
+    });
+  };
+  enregistrerHistoriqueAvantAction();
+  retirerParitesAppliquees(paritesAppliquees);
+  lignes.forEach((_, index) => {
+    if (!prochainesParites.includes((index + 1) % 2)) {
+      return;
+    }
+    const cle = String(index);
+    stylesVerrouillesParLigne[cle] = true;
+    reglagesParLigne[cle] = clonerReglages(reglages);
+  });
+  sauvegarderReglagesAutomatiques();
+  mettreAJour();
+  selectionGrilleJukeboxInlineActive = true;
+  varianteGrillePretePourAlternance = {
+    ...varianteGrillePretePourAlternance,
+    parite: prochainesParites.length === 1 ? prochainesParites[0] : null,
+    paritesAppliquees: prochainesParites,
+    etat: prochainesParites.length === 0 ? "pret" : prochainesParites.length >= 2 ? "complet" : "partiel",
+    reglages,
+    signature,
+  };
+  actualiserGrilleJukeboxInline();
+}
+
+function mettreAJourActionsGrilleJukeboxInline() {
+  if (!elementsGrilleJukeboxInline) {
+    return;
+  }
+  const ligne = obtenirLignes()[indexApercu] || null;
+  const visible = grilleJukeboxInlineOuverte && selectionGrilleJukeboxInlineActive && Boolean(ligne);
+  elementsGrilleJukeboxInline.actionsSelection.hidden = !visible;
+  if (!visible) {
+    return;
+  }
+  elementsGrilleJukeboxInline.libelleSelection.textContent = `${traduirePhrase("Étiquette")} ${ligne.numeroTableau} ${traduirePhrase("sélectionnée")}`;
+  const parite = ligne.numeroTableau % 2;
+  const actionAlternance = varianteGrillePretePourAlternance?.index === indexApercu ? varianteGrillePretePourAlternance : null;
+  const paritesAppliquees = new Set(actionAlternance?.paritesAppliquees || []);
+  const cycleComplet = paritesAppliquees.size >= 2;
+  const autreParite = parite === 0 ? 1 : 0;
+  const pariteCible = paritesAppliquees.size === 1 && paritesAppliquees.has(parite) ? autreParite : parite;
+  elementsGrilleJukeboxInline.boutonAlternance.hidden = !actionAlternance;
+  elementsGrilleJukeboxInline.boutonAlternance.textContent = cycleComplet
+    ? traduirePhrase("Supprimer l’application")
+    : paritesAppliquees.size === 1 && paritesAppliquees.has(autreParite)
+      ? traduirePhrase("Appliquer aux deux")
+    : `${traduirePhrase("Appliquer aux étiquettes")} ${obtenirLibellePariteEtiquettes(pariteCible)}`;
+  elementsGrilleJukeboxInline.boutonAnnuler.disabled = historiqueReglages.annulations.length === 0;
+  const retablirDisponible = historiqueReglages.retablissements.length > 0;
+  elementsGrilleJukeboxInline.boutonRetablir.disabled = !retablirDisponible;
+  elementsGrilleJukeboxInline.boutonRetablir.hidden = !retablirDisponible;
+}
+
+function creerPanneauGrilleJukeboxInline() {
+  panneauGrilleJukeboxInline = document.createElement("section");
+  panneauGrilleJukeboxInline.className = "jukebox-inline";
+  panneauGrilleJukeboxInline.hidden = true;
+  panneauGrilleJukeboxInline.setAttribute("aria-label", traduirePhrase("Grille Jukebox"));
+
+  const entete = document.createElement("div");
+  entete.className = "jukebox-inline__entete";
+
+  const titre = document.createElement("h3");
+  titre.textContent = traduirePhrase("Grille");
+
+  const outils = document.createElement("div");
+  outils.className = "jukebox-inline__outils";
+  const colonnes = creerInputJukebox(traduirePhrase("Colonnes"), "number", "8");
+  colonnes.input.min = "1";
+  colonnes.input.max = "30";
+  const lignes = creerInputJukebox(traduirePhrase("Lignes"), "number", "10");
+  lignes.input.min = "1";
+  lignes.input.max = "40";
+
+  const boutonFermer = document.createElement("button");
+  boutonFermer.className = "jukebox-inline__fermer";
+  boutonFermer.type = "button";
+  boutonFermer.textContent = "⌄";
+  boutonFermer.setAttribute("aria-label", traduirePhrase("Déplier la grille"));
+  boutonFermer.title = traduirePhrase("Déplier la grille");
+
+  const aide = document.createElement("p");
+  aide.className = "jukebox-aide jukebox-inline__aide";
+
+  const actionsSelection = document.createElement("div");
+  actionsSelection.className = "jukebox-selection";
+  actionsSelection.hidden = true;
+  const libelleSelection = document.createElement("p");
+  libelleSelection.className = "jukebox-selection__texte";
+  const boutonModifierStyle = creerBoutonActionGrille(traduirePhrase("Modifier le style"), "principal");
+  const boutonChangerEtiquette = creerBoutonActionGrille(traduirePhrase("Changer d’étiquette"));
+  const boutonVarianteAuto = creerBoutonActionGrille(traduirePhrase("Variante auto"));
+  const boutonAlternance = creerBoutonActionGrille(traduirePhrase("Appliquer en alternance"));
+  boutonAlternance.hidden = true;
+  const boutonAnnuler = creerBoutonActionGrille("↶");
+  boutonAnnuler.classList.add("jukebox-selection__icone");
+  boutonAnnuler.setAttribute("aria-label", traduirePhrase("Annuler la dernière modification"));
+  boutonAnnuler.title = traduirePhrase("Annuler");
+  const boutonRetablir = creerBoutonActionGrille("↷");
+  boutonRetablir.classList.add("jukebox-selection__icone");
+  boutonRetablir.setAttribute("aria-label", traduirePhrase("Rétablir la modification annulée"));
+  boutonRetablir.title = traduirePhrase("Rétablir");
+  actionsSelection.append(
+    libelleSelection,
+    boutonModifierStyle,
+    boutonChangerEtiquette,
+    boutonVarianteAuto,
+    boutonAlternance,
+    boutonAnnuler,
+    boutonRetablir,
+  );
+
+  const modeles = document.createElement("div");
+  modeles.className = "jukebox-modeles jukebox-inline__modeles";
+  modeles.hidden = true;
+
+  const grille = document.createElement("div");
+  grille.className = "jukebox-grille jukebox-inline__grille";
+
+  const apercuSurvol = document.createElement("div");
+  apercuSurvol.className = "jukebox-survol";
+  apercuSurvol.hidden = true;
+  const imageSurvol = document.createElement("img");
+  imageSurvol.alt = "";
+  const repereSurvol = document.createElement("span");
+  repereSurvol.className = "jukebox-survol__repere";
+  apercuSurvol.append(repereSurvol, imageSurvol);
+
+  outils.append(colonnes.label, lignes.label, boutonFermer);
+  entete.append(titre, outils);
+  panneauGrilleJukeboxInline.append(entete, aide, actionsSelection, modeles, grille, apercuSurvol);
+  elements.scene.after(panneauGrilleJukeboxInline);
+  installerSeparateursAtelier();
+
+  const obtenirCapacite = () => {
+    const totalColonnes = Math.max(1, Math.min(30, Number(colonnes.input.value) || 8));
+    const totalLignes = Math.max(1, Math.min(40, Number(lignes.input.value) || 10));
+    return { totalColonnes, totalLignes, total: totalColonnes * totalLignes };
+  };
+
+  const rendreModeles = () => {
+    rendreModelesJukebox(modeles, () => {
+      actualiserGrilleJukeboxInline();
+      rendreModeles();
+    });
+  };
+
+  const ouvrirModeles = () => {
+    modeles.hidden = false;
+    rendreModeles();
+  };
+
+  colonnes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
+  lignes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
+  boutonModifierStyle.addEventListener("click", modifierStyleDepuisGrilleJukeboxInline);
+  boutonChangerEtiquette.addEventListener("click", ouvrirModeles);
+  boutonVarianteAuto.addEventListener("click", appliquerVarianteDepuisGrilleJukeboxInline);
+  boutonAlternance.addEventListener("click", appliquerVarianteEnAlternanceDepuisGrille);
+  boutonAnnuler.addEventListener("click", () => {
+    annulerDerniereModification();
+    actualiserGrilleJukeboxInline();
+  });
+  boutonRetablir.addEventListener("click", () => {
+    retablirModification();
+    actualiserGrilleJukeboxInline();
+  });
+  boutonFermer.addEventListener("click", basculerGrilleJukebox);
+
+  grille.addEventListener("click", (evenement) => {
+    const emplacement = evenement.target.closest("[data-index-jukebox]");
+    if (!emplacement) {
+      return;
+    }
+    editionTexteMasqueeParGrille = true;
+    selectionGrilleJukeboxInlineActive = true;
+    varianteGrillePretePourAlternance = null;
+    appliquerActionJukebox(Number(emplacement.dataset.indexJukebox));
+    actualiserGrilleJukeboxInline();
+  });
+  grille.addEventListener("dragstart", (evenement) => {
+    const emplacement = evenement.target.closest("[data-index-jukebox]");
+    if (!emplacement || emplacement.classList.contains("is-vide")) {
+      return;
+    }
+    masquerApercuSurvolJukeboxInline();
+    nettoyerEtatDragJukebox(grille);
+    grille.classList.add("is-drag-jukebox-actif");
+    emplacement.classList.add("is-source-deplacement");
+    evenement.dataTransfer.setData("application/x-45ojuke-ligne", emplacement.dataset.indexJukebox);
+    evenement.dataTransfer.effectAllowed = "move";
+    creerImageDragJukebox(emplacement, evenement);
+  });
+  grille.addEventListener("dragover", (evenement) => {
+    const emplacement = evenement.target.closest("[data-index-jukebox]");
+    if (!emplacement) {
+      return;
+    }
+    evenement.preventDefault();
+    const effet = Array.from(evenement.dataTransfer.types).includes("application/x-45ojuke-modele") ? "copy" : "move";
+    evenement.dataTransfer.dropEffect = effet;
+    grille.classList.toggle("is-drag-jukebox-copie", effet === "copy");
+    marquerCibleDepotJukebox(grille, emplacement, effet);
+  });
+  grille.addEventListener("dragleave", (evenement) => {
+    if (!grille.contains(evenement.relatedTarget)) {
+      nettoyerEtatDragJukebox(grille);
+    }
+  });
+  grille.addEventListener("drop", (evenement) => {
+    const emplacement = evenement.target.closest("[data-index-jukebox]");
+    if (!emplacement) {
+      return;
+    }
+    evenement.preventDefault();
+    const cible = Number(emplacement.dataset.indexJukebox);
+    const modele = evenement.dataTransfer.getData("application/x-45ojuke-modele");
+    nettoyerEtatDragJukebox(grille);
+    if (modele) {
+      appliquerModeleJukebox(cible, modele);
+      preparerAlternanceGrilleJukeboxInline(cible, modele === "variante" ? "variante" : "style");
+      actualiserGrilleJukeboxInline();
+      animerDepotJukebox(grille, cible);
+      if (!modeles.hidden) {
+        rendreModeles();
+      }
+      return;
+    }
+    const source = Number(evenement.dataTransfer.getData("application/x-45ojuke-ligne"));
+    if (Number.isInteger(source) && Number.isInteger(cible) && source !== cible) {
+      deplacerEtiquetteJukebox(source, cible);
+      actualiserGrilleJukeboxInline();
+      animerDepotJukebox(grille, cible);
+    }
+  });
+  grille.addEventListener("dragend", () => nettoyerEtatDragJukebox(grille));
+  grille.addEventListener("pointerover", (evenement) => {
+    return;
+    if (!MEDIA_SURVOL_PRECIS.matches) {
+      return;
+    }
+    const image = evenement.target.closest(".jukebox-emplacement__image");
+    if (!image) {
+      return;
+    }
+    clearTimeout(elementsGrilleJukeboxInline?.temporisateurSurvol);
+    elementsGrilleJukeboxInline.imageSurvolActive = image;
+    elementsGrilleJukeboxInline.dernierPointSurvol = { clientX: evenement.clientX, clientY: evenement.clientY };
+    imageSurvol.src = image.src;
+    imageSurvol.alt = image.alt;
+    repereSurvol.textContent = image.closest(".jukebox-emplacement")?.dataset.repereJukebox || "";
+    apercuSurvol.hidden = true;
+    elementsGrilleJukeboxInline.temporisateurSurvol = window.setTimeout(() => {
+      if (elementsGrilleJukeboxInline.imageSurvolActive !== image || !elementsGrilleJukeboxInline.dernierPointSurvol) {
+        return;
+      }
+      apercuSurvol.hidden = false;
+      placerApercuSurvolJukebox(elementsGrilleJukeboxInline.dernierPointSurvol, apercuSurvol);
+    }, 1000);
+  });
+  grille.addEventListener("pointermove", (evenement) => {
+    return;
+    if (elementsGrilleJukeboxInline?.imageSurvolActive) {
+      elementsGrilleJukeboxInline.dernierPointSurvol = { clientX: evenement.clientX, clientY: evenement.clientY };
+    }
+    if (!apercuSurvol.hidden) {
+      placerApercuSurvolJukebox(evenement, apercuSurvol);
+    }
+  });
+  grille.addEventListener("pointerout", (evenement) => {
+    return;
+    if (
+      evenement.target.closest(".jukebox-emplacement__image")
+      && !evenement.relatedTarget?.closest?.(".jukebox-emplacement")
+    ) {
+      masquerApercuSurvolJukeboxInline();
+    }
+  });
+
+  elementsGrilleJukeboxInline = {
+    colonnes,
+    lignes,
+    aide,
+    actionsSelection,
+    libelleSelection,
+    boutonAnnuler,
+    boutonRetablir,
+    boutonAlternance,
+    grille,
+    modeles,
+    ouvrirModeles,
+    boutonFermer,
+    obtenirCapacite,
+    apercuSurvol,
+    temporisateurSurvol: null,
+    dernierPointSurvol: null,
+    imageSurvolActive: null,
+  };
+}
+
+function ajusterGrilleJukeboxInlineDepuisChamps() {
+  if (!elementsGrilleJukeboxInline) {
+    return;
+  }
+  const { total } = elementsGrilleJukeboxInline.obtenirCapacite();
+  if (total > vinyles.length) {
+    completerVinylesJukebox(total);
+    finaliserChangementTableau();
+    return;
+  }
+  actualiserGrilleJukeboxInline();
+}
+
+function ajusterHauteurGrilleJukeboxInline() {
+  if (!grilleJukeboxInlineOuverte || !panneauGrilleJukeboxInline || MEDIA_MOBILE.matches) {
+    return;
+  }
+  const atelier = obtenirAtelier();
+  if (!atelier) {
+    return;
+  }
+  requestAnimationFrame(() => {
+    if (!grilleJukeboxInlineOuverte || !panneauGrilleJukeboxInline || panneauGrilleJukeboxInline.hidden) {
+      return;
+    }
+    const hauteurViewport = window.visualViewport?.height || window.innerHeight;
+    const hauteurScene = elements.scene?.getBoundingClientRect().height || 0;
+    const hauteurCible = Math.min(
+      Math.max(hauteurScene * 0.95, 520),
+      Math.max(520, hauteurViewport * 0.72),
+    );
+    atelier.style.setProperty("--hauteur-grille", `${Math.round(hauteurCible)}px`);
+  });
+}
+
+function actualiserGrilleJukeboxInline() {
+  if (!grilleJukeboxInlineOuverte || !elementsGrilleJukeboxInline) {
+    return;
+  }
+  if (!modeleChoisi || MEDIA_MOBILE.matches) {
+    fermerGrilleJukeboxInline();
+    return;
+  }
+  const { totalColonnes, totalLignes, total } = elementsGrilleJukeboxInline.obtenirCapacite();
+  elementsGrilleJukeboxInline.grille.style.setProperty("--colonnes-jukebox", String(totalColonnes));
+  elementsGrilleJukeboxInline.grille.replaceChildren();
+  for (let index = 0; index < total; index += 1) {
+    elementsGrilleJukeboxInline.grille.append(creerEmplacementJukebox(index, totalColonnes));
+  }
+  elementsGrilleJukeboxInline.aide.textContent = traduirePhrase("Glissez les étiquettes pour les déplacer. Cliquez une case pour la sélectionner, modifier son style ou appliquer une variante.");
+  ajusterHauteurGrilleJukeboxInline();
+  mettreAJourActionsGrilleJukeboxInline();
+}
+
+function masquerApercuSurvolJukeboxInline() {
+  if (!elementsGrilleJukeboxInline) {
+    return;
+  }
+  clearTimeout(elementsGrilleJukeboxInline.temporisateurSurvol);
+  elementsGrilleJukeboxInline.temporisateurSurvol = null;
+  elementsGrilleJukeboxInline.imageSurvolActive = null;
+  elementsGrilleJukeboxInline.dernierPointSurvol = null;
+  elementsGrilleJukeboxInline.apercuSurvol.hidden = true;
+}
+
+function rendreModelesJukebox(conteneur, apresApplication = null) {
+  const lignes = obtenirLignes();
+  const ligne = lignes[indexApercu] || lignes[0] || null;
+  const reglagesBase = lireReglages("1", ligne);
+  const cartes = [];
+  if (ligne) {
+    cartes.push(creerCarteModeleJukebox({
+      id: "variante",
+      nom: "Variante",
+      ligne,
+      reglages: creerVarianteCouleur(reglagesBase),
+      apresApplication,
+    }));
+  }
+  obtenirStylesEtiquettes("tout").forEach((style) => {
+    if (!style?.reglages) {
+      return;
+    }
+    const modele = style.reglages.modele;
+    const reglagesDefaut = obtenirReglagesDefautModele(modele) || {};
+    cartes.push(creerCarteModeleJukebox({
+      id: modele,
+      nom: style.nom,
+      ligne: ligne || {
+        titreA: "Face A",
+        artiste: style.nom,
+        titreB: "Face B",
+        position: "",
+      },
+      reglages: {
+        ...reglagesDefaut,
+        ...style.reglages,
+        modele,
+        largeurEtiquette: reglagesBase.largeurEtiquette,
+        hauteurEtiquette: reglagesBase.hauteurEtiquette,
+      },
+      apresApplication,
+    }));
+  });
+  conteneur.replaceChildren(...cartes);
+}
+
+function creerCarteModeleJukebox({ id, nom, ligne, reglages, apresApplication = null }) {
+  const carte = document.createElement("button");
+  carte.className = "jukebox-modele";
+  carte.type = "button";
+  carte.draggable = true;
+  carte.dataset.modeleJukebox = id;
+  const image = document.createElement("img");
+  image.alt = nom;
+  image.src = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
+  const libelle = document.createElement("span");
+  libelle.textContent = nom;
+  carte.append(image, libelle);
+  carte.addEventListener("dragstart", (evenement) => {
+    evenement.dataTransfer.setData("application/x-45ojuke-modele", id);
+    evenement.dataTransfer.effectAllowed = "copy";
+  });
+  carte.addEventListener("click", () => {
+    appliquerModeleJukebox(indexApercu, id);
+    preparerAlternanceGrilleJukeboxInline(indexApercu, id === "variante" ? "variante" : "style");
+    apresApplication?.();
+  });
+  return carte;
+}
+
+function obtenirReglagesModeleJukebox(cible, modele) {
+  const ligne = obtenirLignes()[cible] || null;
+  const reglagesBase = lireReglages("1", ligne);
+  if (modele === "variante") {
+    return creerVarianteCouleur(reglagesBase);
+  }
+  const style = obtenirStylesEtiquettes("tout").find((item) => item.reglages?.modele === modele);
+  const reglagesDefaut = obtenirReglagesDefautModele(modele) || {};
+  return {
+    ...reglagesDefaut,
+    ...(style?.reglages || presets[modele] || {}),
+    modele,
+    largeurEtiquette: reglagesBase.largeurEtiquette,
+    hauteurEtiquette: reglagesBase.hauteurEtiquette,
+  };
+}
+
+function appliquerModeleJukebox(cible, modele) {
+  if (!vinyles[cible]) {
+    completerVinylesJukebox(cible + 1);
+  }
+  const reglages = obtenirReglagesModeleJukebox(cible, modele);
+  stylesVerrouillesParLigne[String(cible)] = true;
+  reglagesParLigne[String(cible)] = clonerReglages(reglages);
+  indexApercu = cible;
+  sauvegarderReglagesAutomatiques();
+  mettreAJour();
+}
+
+function creerImageDragJukebox(emplacement, evenement) {
+  const image = emplacement.querySelector(".jukebox-emplacement__image");
+  if (!image || !evenement.dataTransfer?.setDragImage) {
+    return;
+  }
+  const fantome = document.createElement("div");
+  fantome.className = "jukebox-drag-fantome";
+  fantome.append(image.cloneNode(true));
+  document.body.append(fantome);
+  const rect = emplacement.getBoundingClientRect();
+  evenement.dataTransfer.setDragImage(
+    fantome,
+    Math.max(12, evenement.clientX - rect.left),
+    Math.max(12, evenement.clientY - rect.top),
+  );
+  window.setTimeout(() => fantome.remove(), 0);
+}
+
+function nettoyerEtatDragJukebox(zone) {
+  zone.classList.remove("is-drag-jukebox-actif", "is-drag-jukebox-copie");
+  zone.querySelectorAll(".is-source-deplacement, .is-cible-depot, .is-cible-copie").forEach((element) => {
+    element.classList.remove("is-source-deplacement", "is-cible-depot", "is-cible-copie");
+  });
+}
+
+function marquerCibleDepotJukebox(zone, emplacement, effet) {
+  zone.querySelectorAll(".is-cible-depot, .is-cible-copie").forEach((element) => {
+    if (element !== emplacement) {
+      element.classList.remove("is-cible-depot", "is-cible-copie");
+    }
+  });
+  emplacement.classList.add("is-cible-depot");
+  emplacement.classList.toggle("is-cible-copie", effet === "copy");
+}
+
+function animerDepotJukebox(zone, index) {
+  window.requestAnimationFrame(() => {
+    const emplacement = zone.querySelector(`[data-index-jukebox="${index}"]`);
+    if (!emplacement) {
+      return;
+    }
+    emplacement.classList.remove("is-deposee");
+    void emplacement.offsetWidth;
+    emplacement.classList.add("is-deposee");
+    emplacement.addEventListener("animationend", () => {
+      emplacement.classList.remove("is-deposee");
+    }, { once: true });
+  });
+}
+
+function deplacerEtiquetteJukebox(source, cible) {
+  if (!vinyles[source] || !vinyles[cible]) {
+    return;
+  }
+  [vinyles[source], vinyles[cible]] = [vinyles[cible], vinyles[source]];
+  const cleSource = String(source);
+  const cleCible = String(cible);
+  const verrouSource = stylesVerrouillesParLigne[cleSource];
+  const verrouCible = stylesVerrouillesParLigne[cleCible];
+  const reglagesSource = reglagesParLigne[cleSource];
+  const reglagesCible = reglagesParLigne[cleCible];
+  if (verrouCible) {
+    stylesVerrouillesParLigne[cleSource] = verrouCible;
+  } else {
+    delete stylesVerrouillesParLigne[cleSource];
+  }
+  if (verrouSource) {
+    stylesVerrouillesParLigne[cleCible] = verrouSource;
+  } else {
+    delete stylesVerrouillesParLigne[cleCible];
+  }
+  if (reglagesCible) {
+    reglagesParLigne[cleSource] = reglagesCible;
+  } else {
+    delete reglagesParLigne[cleSource];
+  }
+  if (reglagesSource) {
+    reglagesParLigne[cleCible] = reglagesSource;
+  } else {
+    delete reglagesParLigne[cleCible];
+  }
+  indexApercu = cible;
+  finaliserChangementTableau();
+}
+
+function creerEmplacementJukebox(index, totalColonnes) {
+  const ligne = obtenirLignes()[index] || null;
+  const carte = document.createElement("article");
+  carte.className = "jukebox-emplacement";
+  carte.dataset.indexJukebox = String(index);
+  carte.classList.toggle("is-actif", index === indexApercu);
+  carte.classList.toggle("is-vide", !ligne);
+  carte.dataset.repereJukebox = creerRepereJukebox(index, totalColonnes, ligne);
+  carte.draggable = Boolean(ligne);
+
+  if (!ligne) {
+    const vide = document.createElement("span");
+    vide.className = "jukebox-emplacement__vide";
+    vide.textContent = traduirePhrase("Vide");
+    carte.append(vide);
+    return carte;
+  }
+
+  const image = document.createElement("img");
+  image.className = "jukebox-emplacement__image";
+  image.alt = `Étiquette ${ligne.numeroTableau}`;
+  image.src = dessinerEtiquette(ligne, lireReglages("1", ligne)).toDataURL("image/png");
+  carte.title = [ligne.artiste, ligne.titreA, ligne.titreB].filter(Boolean).join(" - ");
+
+  carte.append(image);
+  return carte;
+}
+
+function placerApercuSurvolJukebox(evenement, apercu) {
+  const marge = 18;
+  const rect = apercu.getBoundingClientRect();
+  const largeur = rect.width || 420;
+  const hauteur = rect.height || 160;
+  let x = evenement.clientX + marge;
+  let y = evenement.clientY + marge;
+  if (x + largeur > window.innerWidth - marge) {
+    x = evenement.clientX - largeur - marge;
+  }
+  if (y + hauteur > window.innerHeight - marge) {
+    y = evenement.clientY - hauteur - marge;
+  }
+  apercu.style.left = `${Math.max(marge, x)}px`;
+  apercu.style.top = `${Math.max(marge, y)}px`;
+}
+
+function creerRepereJukebox(index, totalColonnes, ligne = null) {
+  const selections = [ligne?.selection_face_a, ligne?.selection_face_b]
+    .map((selection) => String(selection || "").trim())
+    .filter(Boolean);
+  if (selections.length) {
+    return selections.join(" / ");
+  }
+  return `#${String(index + 1).padStart(totalColonnes * 10 > 99 ? 3 : 2, "0")}`;
+}
+
+function completerVinylesJukebox(total) {
+  const premierOrdre = vinyles.reduce(
+    (maximum, entree) => Math.max(maximum, entree.__ordreOriginal ?? -1),
+    -1,
+  ) + 1;
+  while (vinyles.length < total) {
+    const index = vinyles.length;
+    vinyles.push({
+      emplacement: "jukebox",
+      position_jukebox: "",
+      selection_face_a: "",
+      selection_face_b: "",
+      artiste: "",
+      titre_face_a: "",
+      titre_face_b: "",
+      __ordreOriginal: premierOrdre + index,
+    });
+  }
+}
+
+function appliquerActionJukebox(index) {
+  if (!vinyles[index]) {
+    completerVinylesJukebox(index + 1);
+    finaliserChangementTableau();
+  }
+  indexApercu = Math.max(0, Math.min(index, vinyles.length - 1));
+  etiquetteActive = "1";
+  appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
+  mettreAJour();
 }
 
 function creerBoutonTableau(texte, action, classe = "bouton") {
@@ -5682,7 +7180,6 @@ function changerApercu(delta) {
   }
   enregistrerReglagesActifs();
   verrouillerEtiquetteActiveAutomatiquement();
-  animerChangementApercu(delta);
   if (deuxiemeEtiquetteActive()) {
     const nombrePaires = Math.ceil(lignes.length / 2);
     const paireActive = Math.floor(indexApercu / 2);
@@ -5692,6 +7189,39 @@ function changerApercu(delta) {
   }
   appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
   mettreAJour();
+  recentrerDefilementCarrouselApercu();
+  animerChangementApercu(delta);
+}
+
+function obtenirIndexApercuVoisin(lignes, delta) {
+  if (!lignes.length) {
+    return -1;
+  }
+  if (deuxiemeEtiquetteActive()) {
+    const nombrePaires = Math.ceil(lignes.length / 2);
+    const paireActive = Math.floor(indexApercu / 2);
+    return ((paireActive + delta + nombrePaires) % nombrePaires) * 2;
+  }
+  return (indexApercu + delta + lignes.length) % lignes.length;
+}
+
+function mettreAJourApercuVoisin(image, lignes, delta, zoomApercu) {
+  const afficher = lignes.length > 1;
+  image.hidden = !afficher;
+  if (!afficher) {
+    image.removeAttribute("src");
+    image.removeAttribute("role");
+    image.removeAttribute("tabindex");
+    image.removeAttribute("title");
+    return;
+  }
+  const ligne = lignes[obtenirIndexApercuVoisin(lignes, delta)];
+  const reglages = lireReglages("1", ligne);
+  image.src = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
+  appliquerTailleApercu(image, reglages, zoomApercu * FACTEUR_ZOOM_APERCU_VOISIN);
+  image.setAttribute("role", "button");
+  image.setAttribute("tabindex", "0");
+  image.setAttribute("title", delta < 0 ? traduirePhrase("Étiquette précédente") : traduirePhrase("Étiquette suivante"));
 }
 
 function animerChangementApercu(delta) {
@@ -5701,10 +7231,9 @@ function animerChangementApercu(delta) {
     element.dataset.directionChangement = direction;
   });
   window.cancelAnimationFrame(frameAnimationApercu);
-  frameAnimationApercu = window.requestAnimationFrame(() => {
-    [elements.apercus, elements.editionTexte].forEach((element) => {
-      element.classList.add("is-changement-etiquette");
-    });
+  void elements.apercus.offsetWidth;
+  [elements.apercus, elements.editionTexte].forEach((element) => {
+    element.classList.add("is-changement-etiquette");
   });
   clearTimeout(temporisateurAnimationApercu);
   temporisateurAnimationApercu = window.setTimeout(() => {
@@ -5712,7 +7241,9 @@ function animerChangementApercu(delta) {
       element.classList.remove("is-changement-etiquette");
       delete element.dataset.directionChangement;
     });
-  }, 520);
+    recentrerDefilementCarrouselApercu();
+    synchroniserGeometrieCarrouselApercu(obtenirZoomApercuCourant());
+  }, 560);
 }
 
 function demarrerGesteApercu(evenement) {
@@ -5755,7 +7286,7 @@ function annulerGesteApercu() {
 function mettreAJour() {
   mettreAJourBoutonsHistorique();
   const lignes = obtenirLignes();
-  const afficherIndicateursSwipe = modeleChoisi && lignes.length > 1;
+  const afficherIndicateursSwipe = false;
   elements.indicateurSwipePrecedent.hidden = !afficherIndicateursSwipe;
   elements.indicateurSwipeSuivant.hidden = !afficherIndicateursSwipe;
   const deuxiemeActive = deuxiemeEtiquetteActive();
@@ -5765,12 +7296,18 @@ function mettreAJour() {
     elements.editionTexteEtat.textContent = "";
     elements.statutPlanche.textContent = "0 page";
     elements.apercu.removeAttribute("src");
+    elements.apercuPrecedent.removeAttribute("src");
+    elements.apercuSuivant.removeAttribute("src");
+    elements.apercuPrecedent.hidden = true;
+    elements.apercuSuivant.hidden = true;
     elements.apercuSecondaire.removeAttribute("src");
     elements.apercuSecondaire.hidden = true;
+    mettreAJourZonesApercu({}, false);
     elements.reglageRetourLigneTitres.hidden = true;
     mettreAJourEditeurTexte(null);
     afficherFavoris();
     ajusterHauteurPanneauOptionsMobile();
+    actualiserGrilleJukeboxInline();
     return;
   }
 
@@ -5783,6 +7320,7 @@ function mettreAJour() {
   elements.changerEtiquetteMobile.textContent = `${traduirePhrase("Modifier l'étiquette")} ${etiquetteActive === "1" ? "2" : "1"}`;
   elements.apercus.classList.toggle("apercus--duo", deuxiemeActive);
   elements.apercus.classList.toggle("apercus--selection", deuxiemeActive);
+  elements.apercus.classList.toggle("apercus--carrousel", lignes.length > 1);
   elements.apercu.classList.toggle("is-selectionnee", deuxiemeActive && etiquetteActive === "1");
   elements.apercuSecondaire.classList.toggle("is-selectionnee", deuxiemeActive && etiquetteActive === "2");
   elements.apercu.toggleAttribute("aria-current", deuxiemeActive && etiquetteActive === "1");
@@ -5805,12 +7343,18 @@ function mettreAJour() {
     elements.etat.textContent = traduirePhrase("Aucune étiquette");
     elements.editionTexteEtat.textContent = "0/0";
     elements.apercu.removeAttribute("src");
+    elements.apercuPrecedent.removeAttribute("src");
+    elements.apercuSuivant.removeAttribute("src");
+    elements.apercuPrecedent.hidden = true;
+    elements.apercuSuivant.hidden = true;
     elements.apercuSecondaire.hidden = true;
+    mettreAJourZonesApercu({}, deuxiemeActive);
     elements.reglageRetourLigneTitres.hidden = true;
     elements.statutPlanche.textContent = "0 page";
     mettreAJourEditeurTexte(null);
     afficherFavoris();
     ajusterHauteurPanneauOptionsMobile();
+    actualiserGrilleJukeboxInline();
     return;
   }
 
@@ -5826,6 +7370,9 @@ function mettreAJour() {
   elements.apercu.src = canvasPrincipal.toDataURL("image/png");
   const zoomApercu = obtenirZoomApercuCourant();
   appliquerTailleApercu(elements.apercu, reglagesPrincipaux, zoomApercu);
+  mettreAJourApercuVoisin(elements.apercuPrecedent, lignes, -1, zoomApercu);
+  mettreAJourApercuVoisin(elements.apercuSuivant, lignes, 1, zoomApercu);
+  synchroniserGeometrieCarrouselApercu(zoomApercu);
   let canvasSecondaire = null;
   if (deuxiemeActive && ligneSecondaire) {
     const reglagesSecondaires = lireReglages("2", ligneSecondaire);
@@ -5840,6 +7387,7 @@ function mettreAJour() {
   const canvasEtiquetteActive = etiquetteActive === "2" && canvasSecondaire
     ? canvasSecondaire
     : canvasPrincipal;
+  mettreAJourZonesApercu(lireReglages(etiquetteActive), deuxiemeActive);
   synchroniserControleZoomApercu(zoomApercu);
   elements.reglageRetourLigneTitres.hidden = canvasEtiquetteActive.dataset.retourLigneTitresPossible !== "true";
   elements.etat.textContent = MEDIA_MOBILE.matches
@@ -5852,6 +7400,7 @@ function mettreAJour() {
   elements.statutPlanche.textContent = `${pages} ${traduirePhrase(pages > 1 ? "pages" : "page")} A4`;
   afficherFavoris();
   ajusterHauteurPanneauOptionsMobile();
+  actualiserGrilleJukeboxInline();
 }
 
 function mettreAJourVisibiliteApercu() {
@@ -5861,7 +7410,7 @@ function mettreAJourVisibiliteApercu() {
   elements.apercus.hidden = !modeleChoisi;
   elements.navigationApercu.hidden = !modeleChoisi;
   elements.basculerEditionTexteMobile.hidden = !modeleChoisi;
-  elements.editionTexte.hidden = !modeleChoisi;
+  elements.editionTexte.hidden = !modeleChoisi || !editionTexteDemandee;
 }
 
 function appliquerTailleApercu(image, reglages, pourcentage = obtenirZoomApercuCourant()) {

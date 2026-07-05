@@ -2565,16 +2565,6 @@ function lireCouleurRgb(couleur) {
   };
 }
 
-function melangerCouleurs(couleurA, couleurB, poidsB = 0.5) {
-  const a = lireCouleurRgb(couleurA);
-  const b = lireCouleurRgb(couleurB);
-  const poids = Math.max(0, Math.min(1, poidsB));
-  const canal = (nom) => Math.round(a[nom] * (1 - poids) + b[nom] * poids)
-    .toString(16)
-    .padStart(2, "0");
-  return `#${canal("rouge")}${canal("vert")}${canal("bleu")}`;
-}
-
 function luminanceCouleur(couleur) {
   const { rouge, vert, bleu } = lireCouleurRgb(couleur);
   const convertir = (canal) => {

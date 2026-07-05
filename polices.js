@@ -63,20 +63,8 @@ const POLICES_PAR_ID = new Map(
   GROUPES_POLICES.flatMap((groupe) => groupe.polices.map((police) => [police.id, police])),
 );
 
-const ALIASES_POLICES_SUPPRIMEES = new Map([
-  ["silk-remington", "dactylo-ronde"],
-  ["american-elite", "dactylo-ronde"],
-  ["machine-vintage", "dactylo-seche"],
-  ["courrier-classique", "dactylo-seche"],
-  ["prestige-elite", "dactylo-seche"],
-  ["telegramme", "dactylo-seche"],
-  ["garamond-fin", "journal-ancien"],
-  ["affiche-condensee", "rock-affiche"],
-]);
-
 export function normaliserIdPolice(id, valeurParDefaut = "dactylo-ronde") {
-  const idNormalise = ALIASES_POLICES_SUPPRIMEES.get(id) || id;
-  return POLICES_PAR_ID.has(idNormalise) ? idNormalise : valeurParDefaut;
+  return POLICES_PAR_ID.has(id) ? id : valeurParDefaut;
 }
 
 export function obtenirPolice(id) {

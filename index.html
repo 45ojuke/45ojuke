@@ -244,21 +244,21 @@
                 <legend>Comment souhaitez-vous les modifier ?</legend>
                 <label>
                   <input name="modeModificationEtiquettes" type="radio" value="toutes" checked />
-                  <span><strong>Toutes les étiquettes</strong><small>Avec un seul style, les modifications s’appliquent à toutes les étiquettes. Avec deux styles, le style 1 est appliqué aux étiquettes impaires et le style 2 aux étiquettes paires. Les étiquettes verrouillées ne sont pas modifiées.</small></span>
+                  <span><strong>Toutes les étiquettes</strong><small>Idéal pour appliquer rapidement le même style à plusieurs étiquettes.</small></span>
                 </label>
                 <label>
                   <input name="modeModificationEtiquettes" type="radio" value="individuel" />
-                  <span><strong>Une étiquette à la fois</strong><small>Mode avancé : dès que vous changez d’étiquette, la précédente est automatiquement verrouillée pour conserver son style. Vous pouvez la déverrouiller à tout moment pour la modifier à nouveau.</small></span>
+                  <span><strong>Une étiquette à la fois</strong><small>Idéal si chaque étiquette doit avoir un style différent. Les étiquettes sont automatiquement verrouillées pour conserver leur style, mais peuvent être déverrouillées à tout moment.</small></span>
                 </label>
               </fieldset>
             </div>
           </section>
 
-          <section class="groupe onglet-panneau" data-tab-panel="style">
+          <section class="groupe onglet-panneau" data-tab-panel="style" data-tab-disabled="true" hidden>
             <div class="grille grille-style-secondaire">
               <select id="modele" hidden></select>
               <div class="mise-en-avant-secondaire champ-large" id="miseEnAvantSecondaire">
-                <fieldset class="selecteur-secondaire" aria-label="Ajouter un deuxième style">
+                <fieldset class="selecteur-secondaire" aria-label="Deuxième style">
                   <label><input id="deuxiemeEtiquetteNon" name="deuxiemeEtiquette" type="radio" value="non" checked /> Non</label>
                   <label><input id="deuxiemeEtiquetteOui" name="deuxiemeEtiquette" type="radio" value="oui" /> Oui</label>
                 </fieldset>
@@ -750,11 +750,11 @@
                 <span aria-hidden="true">🔓</span>
               </button>
             </div>
-            <button class="bouton bouton-secondaire" id="reinitialiserReglage" type="button" aria-label="Revenir au style par défaut" title="Style par défaut">Reset</button>
             <button class="bouton bouton-secondaire" id="inverser" type="button">Variante</button>
             <button class="bouton bouton-secondaire" id="teinte" type="button">Teinte</button>
+            <button class="bouton bouton-secondaire" id="reinitialiserReglage" type="button" aria-label="Revenir au style par défaut" title="Style par défaut">Reset</button>
             <button class="bouton bouton-secondaire bouton-afficher-favoris" id="ouvrirFavoris" type="button" aria-expanded="false" hidden>Favoris</button>
-            <button class="bouton" id="ouvrirTableauCsvApercu" type="button">Données</button>
+            <button class="bouton bouton-secondaire" id="ouvrirJukebox" type="button" hidden>Grille</button>
             <button class="bouton bouton-principal" id="imprimer" type="button">Imprimer</button>
           </div>
           <div class="favoris__liste favoris__liste--apercu" id="listeFavoris" hidden></div>
@@ -781,8 +781,16 @@
           <div class="apercus" hidden>
             <p class="aide-selection-etiquette" id="aideSelectionEtiquette" hidden>Cliquez sur une étiquette pour la modifier.</p>
             <button class="indicateur-swipe indicateur-swipe--precedent" id="indicateurSwipePrecedent" type="button" aria-label="Étiquette précédente" hidden>←</button>
-            <img class="apercu-image" id="apercu" alt="Aperçu étiquette Canvas" data-apercu-etiquette="1" />
-            <img class="apercu-image apercu-secondaire" id="apercuSecondaire" alt="Aperçu étiquette secondaire Canvas" data-apercu-etiquette="2" hidden />
+            <div class="carrousel-etiquettes" id="carrouselEtiquettes" aria-label="Navigation des étiquettes">
+              <img class="apercu-image apercu-image--voisine apercu-image--precedente" id="apercuPrecedent" alt="Aperçu étiquette précédente" data-direction-carrousel="-1" hidden />
+              <div class="carrousel-etiquettes__centre">
+                <img class="apercu-image" id="apercu" alt="Aperçu étiquette Canvas" data-apercu-etiquette="1" />
+                <img class="apercu-image apercu-secondaire" id="apercuSecondaire" alt="Aperçu étiquette secondaire Canvas" data-apercu-etiquette="2" hidden />
+                <div class="zones-apercu" id="zonesApercu" aria-label="Zones modifiables de l’étiquette"></div>
+              </div>
+              <img class="apercu-image apercu-image--voisine apercu-image--suivante" id="apercuSuivant" alt="Aperçu étiquette suivante" data-direction-carrousel="1" hidden />
+            </div>
+            <p class="etat compteur-etiquette" id="etat">Chargement...</p>
             <button class="indicateur-swipe indicateur-swipe--suivant" id="indicateurSwipeSuivant" type="button" aria-label="Étiquette suivante" hidden>→</button>
             <div class="regle-apercu" id="regleApercu" aria-label="Règle de l’aperçu">
               <div class="regle-apercu__graduations" aria-hidden="true"></div>
@@ -803,7 +811,6 @@
           </div>
           <div class="navigation" id="navigationApercu" hidden>
             <button class="bouton" id="precedent" type="button">‹</button>
-            <p class="etat" id="etat">Chargement...</p>
             <button class="bouton" id="suivant" type="button">›</button>
           </div>
           <button class="bouton bouton-secondaire bouton-editer-textes-mobile" id="basculerEditionTexteMobile" type="button" hidden>Modifier les textes</button>
@@ -820,6 +827,10 @@
             <label class="champ">Face A <input id="texteFaceA" type="text" /></label>
             <label class="champ">Artiste <input id="texteArtiste" type="text" /></label>
             <label class="champ">Face B <input id="texteFaceB" type="text" /></label>
+            <div class="edition-texte__actions">
+              <button class="bouton bouton-secondaire edition-texte__donnees" id="ouvrirTableauCsvApercu" type="button">Données</button>
+              <button class="bouton bouton-principal edition-texte__retour" id="retourOptionsEditionTexte" type="button">Retour aux options</button>
+            </div>
           </section>
         </section>
       </div>
