@@ -3099,10 +3099,6 @@ body.is-edition-texte-mobile .controles > .edition-texte .champ input {
   }
 }
 
-body.is-favoris-ouverts .scene {
-  overflow: visible;
-}
-
 .scene__entete {
   width: 100%;
   display: flex;
@@ -4441,12 +4437,17 @@ body.is-favoris-ouverts .scene {
 .bouton-favori {
   min-width: 0;
   gap: 8px;
-  color: var(--accent-2);
+  color: #7b7065;
+}
+
+.bouton-favori span {
+  color: currentColor;
 }
 
 .bouton-favori[aria-pressed="true"] {
   background: rgba(145, 26, 16, 0.1);
   border-color: rgba(145, 26, 16, 0.28);
+  color: #911a10;
 }
 
 .favoris {
@@ -4483,6 +4484,14 @@ body.is-favoris-ouverts .scene {
 .favoris__liste {
   display: grid;
   gap: 7px;
+}
+
+.favoris__liste--options {
+  margin-bottom: 10px;
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 250, 241, 0.82);
 }
 
 .favoris__liste--apercu {
@@ -4883,11 +4892,6 @@ body.is-favoris-ouverts .scene {
     touch-action: pan-x;
     border-radius: 0 0 10px 10px;
     padding: 3px 10px 4px;
-  }
-
-  body.is-favoris-ouverts:not(.is-accueil-selection) .scene {
-    max-height: none;
-    overflow: visible;
   }
 
   body:not(.is-accueil-selection) .controles {

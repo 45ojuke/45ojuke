@@ -398,6 +398,7 @@ let vinylesReferenceOrganisation = [];
 let langueActive = lireLangueMemorisee() || detecterLangueNavigateur() || document.documentElement.lang || "fr";
 let bulleAideActive = null;
 let favorisOuverts = false;
+let etapeAvantFavoris = null;
 let invitationInstallation = null;
 let dernierToucherZoom = 0;
 let zoomApercuPourcentage = null;
@@ -1860,6 +1861,11 @@ function activerEtapeReglage(nomEtape, options = {}) {
   const panneauActif = Array.from(elements.panneauxReglages).find((panneau) => panneau.dataset.tabPanel === nomEtape);
   if (!panneauActif || panneauActif.dataset.tabDisabled === "true") {
     return;
+  }
+  if (nomEtape !== "favoris" && favorisOuverts) {
+    favorisOuverts = false;
+    etapeAvantFavoris = null;
+    afficherFavoris();
   }
   if (nomEtape !== "texte" && !options.conserverEditionTexte) {
     editionTexteDemandee = false;
@@ -3550,10 +3556,9 @@ function afficherFavoris() {
   const favoris = obtenirFavoris();
   const idCourant = signatureReglages(lireReglagesFormulaire());
   const estFavori = favoris.some((favori) => favori.id === idCourant);
-  if (!favoris.length) {
+  if (!favoris.length && !favorisOuverts) {
     favorisOuverts = false;
   }
-  document.body.classList.toggle("is-favoris-ouverts", favorisOuverts);
 
   elements.aimerReglage.setAttribute("aria-pressed", String(estFavori));
   elements.aimerReglage.querySelector("span:first-child").textContent = estFavori ? "♥" : "♡";
@@ -3565,6 +3570,7 @@ function afficherFavoris() {
   elements.ouvrirFavoris.hidden = favoris.length === 0;
   elements.ouvrirFavoris.setAttribute("aria-expanded", String(favorisOuverts));
   elements.ouvrirFavoris.textContent = traduirePhrase("Favoris");
+  document.body.classList.toggle("is-favoris-ouverts", favorisOuverts);
 
   if (favorisOuverts) {
     remplirListeFavoris(favoris);
@@ -3576,8 +3582,20 @@ function afficherFavoris() {
 }
 
 function ouvrirListeFavoris() {
-  favorisOuverts = !favorisOuverts;
+  if (!favorisOuverts) {
+    etapeAvantFavoris = etapeReglageActive === "favoris" ? "reglages" : etapeReglageActive;
+  }
+  favorisOuverts = true;
+  activerEtapeReglage("favoris");
   afficherFavoris();
+}
+
+function revenirOptionsDepuisFavoris() {
+  favorisOuverts = false;
+  const etapeRetour = etapeAvantFavoris || "reglages";
+  etapeAvantFavoris = null;
+  afficherFavoris();
+  activerEtapeReglage(etapeRetour);
 }
 
 function remplirListeFavoris(favoris = obtenirFavoris()) {
@@ -3593,7 +3611,7 @@ function remplirListeFavoris(favoris = obtenirFavoris()) {
   const fermer = document.createElement("button");
   fermer.className = "bouton bouton-secondaire";
   fermer.type = "button";
-  fermer.textContent = traduirePhrase("Fermer");
+  fermer.textContent = traduirePhrase("Retour aux options");
 
   entete.append(titre, fermer);
   elements.listeFavoris.append(entete);
@@ -3604,10 +3622,7 @@ function remplirListeFavoris(favoris = obtenirFavoris()) {
     messageVide.textContent = traduirePhrase("Vous n'avez enregistré aucun favori.");
     elements.listeFavoris.append(messageVide);
     elements.listeFavoris.hidden = false;
-    fermer.addEventListener("click", () => {
-      favorisOuverts = false;
-      afficherFavoris();
-    });
+    fermer.addEventListener("click", revenirOptionsDepuisFavoris);
     return;
   }
 
@@ -3629,10 +3644,7 @@ function remplirListeFavoris(favoris = obtenirFavoris()) {
   }
 
   elements.listeFavoris.hidden = false;
-  fermer.addEventListener("click", () => {
-    favorisOuverts = false;
-    afficherFavoris();
-  });
+  fermer.addEventListener("click", revenirOptionsDepuisFavoris);
 }
 
 function creerCarteFavori(favori) {
@@ -5092,8 +5104,8 @@ function restaurerSauvegardeSession(donnees) {
 
 function creerPayloadJsonStyle() {
   const deuxiemeActive = deuxiemeEtiquetteActive();
-  const reglagesPrincipaux = lireReglages("1");
-  const reglagesSecondaires = deuxiemeActive ? lireReglages("2") : null;
+  const reglagesPrincipaux = lireReglagesEtiquettePourEmail("1");
+  const reglagesSecondaires = deuxiemeActive ? lireReglagesEtiquettePourEmail("2") : null;
   const stylesGrille = creerStylesGrillePourEmail();
   return {
     styles: {
@@ -5111,6 +5123,13 @@ function creerPayloadJsonStyle() {
       })).filter((image) => image.dataUrl),
     },
   };
+}
+
+function lireReglagesEtiquettePourEmail(numero) {
+  if (numero === "2") {
+    return clonerReglages(reglagesParEtiquette[2]) || creerReglagesSecondaires();
+  }
+  return clonerReglages(reglagesParEtiquette[1]) || lireReglagesFormulaire();
 }
 
 function creerStylesGrillePourEmail() {
