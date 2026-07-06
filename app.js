@@ -3028,6 +3028,9 @@ function ouvrirChoixVerrouillageStyle() {
   const titre = document.createElement("h2");
   titre.className = "fenetre-import__titre";
   titre.textContent = traduirePhrase("Verrouillage");
+  const aide = document.createElement("p");
+  aide.className = "fenetre-verrouillage__aide";
+  aide.textContent = traduirePhrase("Le verrouillage bloque le style d’une étiquette : ses couleurs, son modèle et ses réglages ne changent plus par accident.");
   const actions = document.createElement("div");
   actions.className = "fenetre-import__actions";
   const optionsBase = [
@@ -3052,7 +3055,7 @@ function ouvrirChoixVerrouillageStyle() {
   const fermer = creerBoutonActionGrille(traduirePhrase("Annuler"));
   fermer.addEventListener("click", () => dialogue.close());
   actions.append(fermer);
-  contenu.append(titre, actions);
+  contenu.append(titre, aide, actions);
   dialogue.append(contenu);
   document.body.append(dialogue);
   dialogue.addEventListener("close", () => dialogue.remove(), { once: true });

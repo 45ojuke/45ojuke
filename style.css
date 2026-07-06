@@ -1164,6 +1164,15 @@ body.is-accueil-selection .seo-accueil {
 }
 
 @media screen and (min-width: 861px) {
+  body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .controles {
+    position: sticky;
+    top: 12px;
+    z-index: 8;
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
   body.is-grille-jukebox-disponible:not(.is-accueil-selection) .atelier-separateur {
     position: relative;
     display: block;
@@ -2083,13 +2092,22 @@ body.is-accueil-selection .seo-accueil {
 
 .fenetre-verrouillage .fenetre-import__contenu {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   padding: 20px;
+}
+
+.fenetre-verrouillage__aide {
+  margin: -4px 0 4px;
+  color: var(--texte-doux);
+  font-size: 0.86rem;
+  font-weight: 760;
+  line-height: 1.35;
 }
 
 .fenetre-verrouillage .fenetre-import__actions {
   display: grid;
   justify-content: stretch;
+  gap: 10px;
 }
 
 .fenetre-verrouillage .bouton {
