@@ -362,6 +362,7 @@ let vinyles = [];
 let indexApercu = 0;
 let etiquetteActive = "1";
 let modeModificationEtiquettes = "toutes";
+let porteeModificationGrilleJukebox = "selection";
 let stylesVerrouillesParLigne = {};
 let reglagesParLigne = {};
 let modeleChoisi = false;
@@ -1927,36 +1928,38 @@ function ajusterHauteurPanneauOptionsMobile() {
 }
 
 function appliquerCanvasImage(image, canvas) {
-  const source = canvas.toDataURL("image/png");
-  if (
-    image._sourceCanvas === source
-    && image.width === canvas.width
-    && image.height === canvas.height
-  ) {
+  if (image instanceof HTMLCanvasElement) {
+    const contexte = image.getContext("2d");
+    if (!contexte) {
+      return;
+    }
+    if (image.width !== canvas.width) {
+      image.width = canvas.width;
+    }
+    if (image.height !== canvas.height) {
+      image.height = canvas.height;
+    }
+    contexte.clearRect(0, 0, image.width, image.height);
+    contexte.drawImage(canvas, 0, 0);
+    image.dataset.apercuRendu = "true";
     return;
   }
 
-  const jeton = Symbol("apercu-canvas");
-  image._jetonCanvas = jeton;
+  image.width = canvas.width;
+  image.height = canvas.height;
+  image.src = canvas.toDataURL("image/png");
+}
 
-  const appliquer = () => {
-    if (image._jetonCanvas !== jeton || !image.isConnected) {
-      return;
+function effacerApercuImage(image) {
+  if (image instanceof HTMLCanvasElement) {
+    const contexte = image.getContext("2d");
+    if (contexte) {
+      contexte.clearRect(0, 0, image.width, image.height);
     }
-    image.width = canvas.width;
-    image.height = canvas.height;
-    image.src = source;
-    image._sourceCanvas = source;
-  };
-
-  const prechargement = new Image();
-  prechargement.decoding = "sync";
-  prechargement.onload = appliquer;
-  prechargement.onerror = appliquer;
-  prechargement.src = source;
-  if (prechargement.complete) {
-    appliquer();
+    delete image.dataset.apercuRendu;
+    return;
   }
+  image.removeAttribute("src");
 }
 
 function appliquerDimensionsImageReglages(image, reglages) {
@@ -2172,6 +2175,13 @@ function validerModeModificationEtiquettes(valeur) {
     return valeur;
   }
   throw new Error(traduirePhrase("Format de sauvegarde invalide."));
+}
+
+function obtenirModeModificationEffectif() {
+  if (grilleJukeboxInlineOuverte && porteeModificationGrilleJukebox === "selection") {
+    return "individuel";
+  }
+  return modeModificationEtiquettes;
 }
 
 function appliquerOrganisationEtiquettes() {
@@ -4096,11 +4106,21 @@ function lireReglages(numero = etiquetteActive, ligne = null) {
 
 function enregistrerReglagesActifs() {
   const reglages = lireReglagesFormulaire();
+  if (grilleJukeboxInlineOuverte && porteeModificationGrilleJukebox === "selection") {
+    reglagesParEtiquette[etiquetteActive] = reglages;
+    const cle = obtenirCleLigneApercu();
+    if (cle !== null) {
+      stylesVerrouillesParLigne[cle] = true;
+      reglagesParLigne[cle] = clonerReglages(reglages);
+    }
+    sauvegarderReglagesAutomatiques();
+    return;
+  }
   if (styleActifVerrouille()) {
     enregistrerDimensionsEtiquettesVerrouillees(reglages);
     return;
   }
-  if (modeModificationEtiquettes === "toutes") {
+  if (obtenirModeModificationEffectif() === "toutes") {
     if (deuxiemeEtiquetteActive()) {
       reglagesParEtiquette[etiquetteActive] = clonerReglages(reglages);
     } else if (etiquetteActive === "1") {
@@ -4113,7 +4133,7 @@ function enregistrerReglagesActifs() {
 }
 
 function verrouillerEtiquetteActiveAutomatiquement() {
-  if (modeModificationEtiquettes !== "individuel" || styleActifVerrouille()) {
+  if (obtenirModeModificationEffectif() !== "individuel" || styleActifVerrouille()) {
     return;
   }
   const cle = obtenirCleLigneApercu();
@@ -4306,6 +4326,16 @@ function obtenirActionApercuDepuisPoint(point, reglages) {
     || obtenirActionCouleurApercu(point, reglages);
 }
 
+function apercuRenduPret(apercu) {
+  if (!apercu) {
+    return false;
+  }
+  if (apercu instanceof HTMLCanvasElement) {
+    return apercu.dataset.apercuRendu === "true" && apercu.width > 0 && apercu.height > 0;
+  }
+  return Boolean(apercu.src);
+}
+
 function mettreAJourZonesApercu(reglages, deuxiemeActive) {
   if (!elements.zonesApercu) {
     return;
@@ -4314,7 +4344,7 @@ function mettreAJourZonesApercu(reglages, deuxiemeActive) {
   const imageReference = etiquetteActive === "2" && deuxiemeActive && !elements.apercuSecondaire.hidden
     ? elements.apercuSecondaire
     : elements.apercu;
-  if (!modeleChoisi || !imageReference?.src || imageReference.hidden) {
+  if (!modeleChoisi || !apercuRenduPret(imageReference) || imageReference.hidden) {
     elements.zonesApercu.hidden = true;
     return;
   }
@@ -6518,6 +6548,8 @@ function mettreAJourActionsGrilleJukeboxInline() {
     return;
   }
   elementsGrilleJukeboxInline.libelleSelection.textContent = `${traduirePhrase("Étiquette")} ${ligne.numeroTableau} ${traduirePhrase("sélectionnée")}`;
+  elementsGrilleJukeboxInline.radioPorteeSelection.checked = porteeModificationGrilleJukebox === "selection";
+  elementsGrilleJukeboxInline.radioPorteeToutes.checked = porteeModificationGrilleJukebox === "toutes";
   mettreAJourActionsRapidesGrilleJukeboxInline();
   const parite = ligne.numeroTableau % 2;
   const actionAlternance = varianteGrillePretePourAlternance?.index === indexApercu ? varianteGrillePretePourAlternance : null;
@@ -6629,6 +6661,24 @@ function creerPanneauGrilleJukeboxInline() {
   actionsSelection.hidden = true;
   const libelleSelection = document.createElement("p");
   libelleSelection.className = "jukebox-selection__texte";
+  const porteeSelection = document.createElement("fieldset");
+  porteeSelection.className = "jukebox-selection__portee";
+  const legendePortee = document.createElement("legend");
+  legendePortee.textContent = traduirePhrase("Modifier");
+  const optionPorteeSelection = document.createElement("label");
+  const radioPorteeSelection = document.createElement("input");
+  radioPorteeSelection.type = "radio";
+  radioPorteeSelection.name = "porteeModificationGrilleJukebox";
+  radioPorteeSelection.value = "selection";
+  radioPorteeSelection.checked = true;
+  optionPorteeSelection.append(radioPorteeSelection, document.createTextNode(traduirePhrase("Étiquette")));
+  const optionPorteeToutes = document.createElement("label");
+  const radioPorteeToutes = document.createElement("input");
+  radioPorteeToutes.type = "radio";
+  radioPorteeToutes.name = "porteeModificationGrilleJukebox";
+  radioPorteeToutes.value = "toutes";
+  optionPorteeToutes.append(radioPorteeToutes, document.createTextNode(traduirePhrase("Toutes")));
+  porteeSelection.append(legendePortee, optionPorteeSelection, optionPorteeToutes);
   const actionsRapides = document.createElement("div");
   actionsRapides.className = "jukebox-selection__rapides";
   const boutonFavori = document.createElement("button");
@@ -6672,6 +6722,7 @@ function creerPanneauGrilleJukeboxInline() {
   boutonRetablir.title = traduirePhrase("Rétablir");
   actionsSelection.append(
     libelleSelection,
+    porteeSelection,
     actionsRapides,
     boutonModifierStyle,
     boutonChangerEtiquette,
@@ -6723,6 +6774,10 @@ function creerPanneauGrilleJukeboxInline() {
   colonnes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
   lignes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
   boutonModifierStyle.addEventListener("click", modifierStyleDepuisGrilleJukeboxInline);
+  porteeSelection.addEventListener("change", () => {
+    porteeModificationGrilleJukebox = radioPorteeToutes.checked ? "toutes" : "selection";
+    mettreAJourActionsGrilleJukeboxInline();
+  });
   boutonChangerEtiquette.addEventListener("click", ouvrirModeles);
   boutonFavori.addEventListener("click", () => {
     basculerFavori();
@@ -6883,6 +6938,9 @@ function creerPanneauGrilleJukeboxInline() {
     boutonAnnuler,
     boutonRetablir,
     boutonAlternance,
+    porteeSelection,
+    radioPorteeSelection,
+    radioPorteeToutes,
     navigation,
     boutonPrecedent,
     boutonSuivant,
@@ -7610,7 +7668,7 @@ function mettreAJourApercuVoisin(image, lignes, delta, zoomApercu) {
   const afficher = lignes.length > 1;
   image.hidden = !afficher;
   if (!afficher) {
-    image.removeAttribute("src");
+    effacerApercuImage(image);
     image.removeAttribute("role");
     image.removeAttribute("tabindex");
     image.removeAttribute("title");
@@ -7697,12 +7755,12 @@ async function mettreAJour() {
     elements.etat.textContent = traduirePhrase("En attente");
     elements.editionTexteEtat.textContent = "";
     elements.statutPlanche.textContent = "0 page";
-    elements.apercu.removeAttribute("src");
-    elements.apercuPrecedent.removeAttribute("src");
-    elements.apercuSuivant.removeAttribute("src");
+    effacerApercuImage(elements.apercu);
+    effacerApercuImage(elements.apercuPrecedent);
+    effacerApercuImage(elements.apercuSuivant);
     elements.apercuPrecedent.hidden = true;
     elements.apercuSuivant.hidden = true;
-    elements.apercuSecondaire.removeAttribute("src");
+    effacerApercuImage(elements.apercuSecondaire);
     elements.apercuSecondaire.hidden = true;
     mettreAJourZonesApercu({}, false);
     elements.reglageRetourLigneTitres.hidden = true;
@@ -7744,9 +7802,9 @@ async function mettreAJour() {
   if (!lignes.length) {
     elements.etat.textContent = traduirePhrase("Aucune étiquette");
     elements.editionTexteEtat.textContent = "0/0";
-    elements.apercu.removeAttribute("src");
-    elements.apercuPrecedent.removeAttribute("src");
-    elements.apercuSuivant.removeAttribute("src");
+    effacerApercuImage(elements.apercu);
+    effacerApercuImage(elements.apercuPrecedent);
+    effacerApercuImage(elements.apercuSuivant);
     elements.apercuPrecedent.hidden = true;
     elements.apercuSuivant.hidden = true;
     elements.apercuSecondaire.hidden = true;
@@ -7799,7 +7857,7 @@ async function mettreAJour() {
     elements.apercuSecondaire.hidden = false;
   } else {
     elements.apercuSecondaire.hidden = true;
-    elements.apercuSecondaire.removeAttribute("src");
+    effacerApercuImage(elements.apercuSecondaire);
   }
   const canvasEtiquetteActive = etiquetteActive === "2" && canvasSecondaire
     ? canvasSecondaire

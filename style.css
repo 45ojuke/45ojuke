@@ -3838,6 +3838,49 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
   font-weight: 950;
 }
 
+.jukebox-selection__portee {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 4px 0 0;
+  padding: 4px;
+  border: 1px solid rgba(138, 85, 53, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.44);
+}
+
+.jukebox-selection__portee legend {
+  padding: 0 4px;
+  color: var(--accent-2);
+  font-size: 0.62rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.jukebox-selection__portee label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 24px;
+  padding: 0 7px;
+  border-radius: 5px;
+  color: var(--accent-2);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.jukebox-selection__portee label:has(input:checked) {
+  background: var(--accent-2);
+  color: #fffaf0;
+}
+
+.jukebox-selection__portee input {
+  accent-color: currentColor;
+}
+
 .jukebox-selection__rapides {
   display: flex;
   flex-wrap: wrap;
