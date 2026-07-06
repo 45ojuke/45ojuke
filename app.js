@@ -1927,9 +1927,36 @@ function ajusterHauteurPanneauOptionsMobile() {
 }
 
 function appliquerCanvasImage(image, canvas) {
-  image.width = canvas.width;
-  image.height = canvas.height;
-  image.src = canvas.toDataURL("image/png");
+  const source = canvas.toDataURL("image/png");
+  if (
+    image._sourceCanvas === source
+    && image.width === canvas.width
+    && image.height === canvas.height
+  ) {
+    return;
+  }
+
+  const jeton = Symbol("apercu-canvas");
+  image._jetonCanvas = jeton;
+
+  const appliquer = () => {
+    if (image._jetonCanvas !== jeton || !image.isConnected) {
+      return;
+    }
+    image.width = canvas.width;
+    image.height = canvas.height;
+    image.src = source;
+    image._sourceCanvas = source;
+  };
+
+  const prechargement = new Image();
+  prechargement.decoding = "sync";
+  prechargement.onload = appliquer;
+  prechargement.onerror = appliquer;
+  prechargement.src = source;
+  if (prechargement.complete) {
+    appliquer();
+  }
 }
 
 function appliquerDimensionsImageReglages(image, reglages) {
