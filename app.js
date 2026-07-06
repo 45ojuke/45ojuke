@@ -369,6 +369,7 @@ let chargementReglages = false;
 let temporisateurRedimensionnement = null;
 let temporisateurAnimationApercu = null;
 let frameAnimationApercu = null;
+let framePositionGrilleJukebox = null;
 let gesteApercu = null;
 let signatureDerniereVarianteCouleur = "";
 let cycleVarianteBouton = null;
@@ -392,6 +393,7 @@ let selectionGrilleJukeboxInlineActive = false;
 let varianteGrillePretePourAlternance = null;
 let debutFenetreGrilleJukebox = 0;
 const NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE = 20;
+const NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE = 2;
 const LIMITE_CACHE_MINIATURES_GRILLE_JUKEBOX = 240;
 const cacheMiniaturesGrilleJukebox = new Map();
 let separateurVerticalAtelier = null;
@@ -696,6 +698,9 @@ function brancherEvenements() {
       }
     }, 120);
   });
+  window.addEventListener("scroll", planifierPositionGrilleJukeboxInline, { passive: true });
+  window.visualViewport?.addEventListener("scroll", planifierPositionGrilleJukeboxInline, { passive: true });
+  window.visualViewport?.addEventListener("resize", planifierPositionGrilleJukeboxInline);
   window.visualViewport?.addEventListener("resize", ajusterHauteurPanneauOptionsMobile);
   window.visualViewport?.addEventListener("scroll", ajusterHauteurPanneauOptionsMobile);
   window.addEventListener("beforeinstallprompt", (evenement) => {
@@ -6266,6 +6271,7 @@ function preparerGrilleJukeboxRepliee() {
   if (elementsGrilleJukeboxInline?.boutonFermer) {
     elementsGrilleJukeboxInline.boutonFermer.textContent = "⌄";
   }
+  panneauGrilleJukeboxInline.style.removeProperty("--decalage-grille-sticky");
 }
 
 function ouvrirGrilleJukeboxInline() {
@@ -6288,6 +6294,7 @@ function ouvrirGrilleJukeboxInline() {
   }
   placerFenetreGrilleJukeboxSurIndex(indexApercu);
   actualiserGrilleJukeboxInline();
+  planifierPositionGrilleJukeboxInline();
   mettreAJourVisibiliteApercu();
   obtenirAtelier()?.scrollIntoView({ block: "start" });
   window.requestAnimationFrame(() => appliquerZoomApercuCourant());
@@ -6308,6 +6315,7 @@ function fermerGrilleJukeboxInline() {
   if (elementsGrilleJukeboxInline?.boutonFermer) {
     elementsGrilleJukeboxInline.boutonFermer.textContent = "⌄";
   }
+  panneauGrilleJukeboxInline?.style.removeProperty("--decalage-grille-sticky");
   masquerApercuSurvolJukeboxInline();
   mettreAJourVisibiliteApercu();
   window.requestAnimationFrame(() => appliquerZoomApercuCourant());
@@ -6480,7 +6488,7 @@ function creerPanneauGrilleJukeboxInline() {
   plage.type = "range";
   plage.min = "0";
   plage.max = "0";
-  plage.step = String(NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
+  plage.step = String(NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
   plage.value = "0";
   plage.setAttribute("aria-label", traduirePhrase("Faire défiler la grille"));
   const libellePlage = document.createElement("span");
@@ -6575,8 +6583,8 @@ function creerPanneauGrilleJukeboxInline() {
     actualiserGrilleJukeboxInline();
   });
   boutonFermer.addEventListener("click", basculerGrilleJukebox);
-  boutonPrecedent.addEventListener("click", () => deplacerFenetreGrilleJukebox(-NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE));
-  boutonSuivant.addEventListener("click", () => deplacerFenetreGrilleJukebox(NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE));
+  boutonPrecedent.addEventListener("click", () => deplacerFenetreGrilleJukebox(-NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE));
+  boutonSuivant.addEventListener("click", () => deplacerFenetreGrilleJukebox(NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE));
   plage.addEventListener("input", () => {
     debutFenetreGrilleJukebox = Number(plage.value) || 0;
     actualiserGrilleJukeboxInline();
@@ -6750,46 +6758,93 @@ function ajusterHauteurGrilleJukeboxInline() {
       Math.max(520, hauteurViewport * 0.72),
     );
     atelier.style.setProperty("--hauteur-grille", `${Math.round(hauteurCible)}px`);
+    planifierPositionGrilleJukeboxInline();
   });
 }
 
+function planifierPositionGrilleJukeboxInline() {
+  if (framePositionGrilleJukebox !== null) {
+    return;
+  }
+  framePositionGrilleJukebox = requestAnimationFrame(actualiserPositionGrilleJukeboxInline);
+}
+
+function actualiserPositionGrilleJukeboxInline() {
+  framePositionGrilleJukebox = null;
+  if (!panneauGrilleJukeboxInline) {
+    return;
+  }
+  if (!grilleJukeboxInlineOuverte || MEDIA_MOBILE.matches || panneauGrilleJukeboxInline.hidden) {
+    panneauGrilleJukeboxInline.style.removeProperty("--decalage-grille-sticky");
+    return;
+  }
+  const scene = elements.scene;
+  if (!scene) {
+    panneauGrilleJukeboxInline.style.removeProperty("--decalage-grille-sticky");
+    return;
+  }
+  const decalageActuel = Number.parseFloat(
+    panneauGrilleJukeboxInline.style.getPropertyValue("--decalage-grille-sticky"),
+  ) || 0;
+  const rectScene = scene.getBoundingClientRect();
+  const rectGrille = panneauGrilleJukeboxInline.getBoundingClientRect();
+  const hautGrilleSansDecalage = rectGrille.top - decalageActuel;
+  const marge = 12;
+  const decalage = Math.max(0, Math.ceil(rectScene.bottom + marge - hautGrilleSansDecalage));
+  panneauGrilleJukeboxInline.style.setProperty("--decalage-grille-sticky", `${decalage}px`);
+}
+
 function bornerDebutFenetreGrilleJukebox(total) {
-  const maximum = Math.max(0, total - NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
+  const maximum = Math.max(0, total - NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
   debutFenetreGrilleJukebox = Math.max(0, Math.min(maximum, debutFenetreGrilleJukebox));
   return debutFenetreGrilleJukebox;
 }
 
 function placerFenetreGrilleJukeboxSurIndex(index) {
-  if (!Number.isInteger(index) || index < 0) {
+  if (!Number.isInteger(index) || index < 0 || !elementsGrilleJukeboxInline) {
     return;
   }
-  debutFenetreGrilleJukebox = Math.floor(index / NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE)
-    * NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE;
+  const { totalColonnes } = elementsGrilleJukeboxInline.obtenirCapacite();
+  const colonne = index % totalColonnes;
+  debutFenetreGrilleJukebox = Math.floor(colonne / NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE)
+    * NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE;
+  bornerDebutFenetreGrilleJukebox(totalColonnes);
 }
 
 function deplacerFenetreGrilleJukebox(delta) {
   if (!elementsGrilleJukeboxInline) {
     return;
   }
-  const { total } = elementsGrilleJukeboxInline.obtenirCapacite();
+  const { totalColonnes } = elementsGrilleJukeboxInline.obtenirCapacite();
   debutFenetreGrilleJukebox += delta;
-  bornerDebutFenetreGrilleJukebox(total);
+  bornerDebutFenetreGrilleJukebox(totalColonnes);
   actualiserGrilleJukeboxInline();
 }
 
-function mettreAJourNavigationGrilleJukebox(debut, fin, total) {
+function mettreAJourNavigationGrilleJukebox(debutColonne, finColonne, totalColonnes, total) {
   if (!elementsGrilleJukeboxInline) {
     return;
   }
-  const maximum = Math.max(0, total - NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
-  const navigationUtile = total > NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE;
+  const maximum = Math.max(0, totalColonnes - NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
+  const navigationUtile = totalColonnes > NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE;
   elementsGrilleJukeboxInline.navigation.hidden = !navigationUtile;
-  elementsGrilleJukeboxInline.boutonPrecedent.disabled = debut <= 0;
-  elementsGrilleJukeboxInline.boutonSuivant.disabled = fin >= total;
+  elementsGrilleJukeboxInline.boutonPrecedent.disabled = debutColonne <= 0;
+  elementsGrilleJukeboxInline.boutonSuivant.disabled = finColonne >= totalColonnes;
   elementsGrilleJukeboxInline.plage.max = String(maximum);
-  elementsGrilleJukeboxInline.plage.step = String(NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
-  elementsGrilleJukeboxInline.plage.value = String(debut);
-  elementsGrilleJukeboxInline.libellePlage.textContent = `${debut + 1}-${fin} / ${total}`;
+  elementsGrilleJukeboxInline.plage.step = String(NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
+  elementsGrilleJukeboxInline.plage.value = String(debutColonne);
+  elementsGrilleJukeboxInline.libellePlage.textContent = `${traduirePhrase("Colonnes")} ${debutColonne + 1}-${finColonne} / ${totalColonnes}`;
+}
+
+function obtenirIndicesFenetreGrilleJukebox(debutColonne, totalColonnes, totalLignes) {
+  const finColonne = Math.min(totalColonnes, debutColonne + NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
+  const indices = [];
+  for (let ligne = 0; ligne < totalLignes; ligne += 1) {
+    for (let colonne = debutColonne; colonne < finColonne; colonne += 1) {
+      indices.push(ligne * totalColonnes + colonne);
+    }
+  }
+  return { finColonne, indices };
 }
 
 function actualiserGrilleJukeboxInline() {
@@ -6800,22 +6855,22 @@ function actualiserGrilleJukeboxInline() {
     fermerGrilleJukeboxInline();
     return;
   }
-  const { totalColonnes, total } = elementsGrilleJukeboxInline.obtenirCapacite();
-  const debut = bornerDebutFenetreGrilleJukebox(total);
-  const fin = Math.min(total, debut + NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
-  const colonnesFenetre = Math.min(totalColonnes, Math.max(1, fin - debut));
-  elementsGrilleJukeboxInline.grille.style.setProperty("--colonnes-jukebox", String(colonnesFenetre));
+  const { totalColonnes, totalLignes, total } = elementsGrilleJukeboxInline.obtenirCapacite();
+  const debut = bornerDebutFenetreGrilleJukebox(totalColonnes);
+  const { finColonne, indices } = obtenirIndicesFenetreGrilleJukebox(debut, totalColonnes, totalLignes);
+  elementsGrilleJukeboxInline.grille.style.setProperty("--colonnes-jukebox", String(finColonne - debut));
   elementsGrilleJukeboxInline.grille.dataset.debutJukebox = String(debut);
-  elementsGrilleJukeboxInline.grille.dataset.finJukebox = String(fin);
+  elementsGrilleJukeboxInline.grille.dataset.finJukebox = String(finColonne);
   elementsGrilleJukeboxInline.grille.replaceChildren();
-  for (let index = debut; index < fin; index += 1) {
+  indices.forEach((index) => {
     elementsGrilleJukeboxInline.grille.append(creerEmplacementJukebox(index, totalColonnes));
-  }
-  mettreAJourNavigationGrilleJukebox(debut, fin, total);
+  });
+  mettreAJourNavigationGrilleJukebox(debut, finColonne, totalColonnes, total);
   elementsGrilleJukeboxInline.aide.textContent = total > NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE
-    ? traduirePhrase("La grille affiche 20 cases à la fois pour rester fluide. Glissez le curseur pour voir les autres étiquettes.")
+    ? `${traduirePhrase("La grille affiche")} ${NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE} ${traduirePhrase("Colonnes").toLocaleLowerCase(localeCourante())} x ${totalLignes} ${traduirePhrase("Lignes").toLocaleLowerCase(localeCourante())}. ${traduirePhrase("Glissez le curseur pour voir les autres étiquettes.")}`
     : traduirePhrase("Glissez les étiquettes pour les déplacer. Cliquez une case pour la sélectionner, modifier son style ou appliquer une variante.");
   ajusterHauteurGrilleJukeboxInline();
+  planifierPositionGrilleJukeboxInline();
   mettreAJourActionsGrilleJukeboxInline();
 }
 

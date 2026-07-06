@@ -1130,6 +1130,7 @@ body.is-accueil-selection .seo-accueil {
 
 .atelier {
   --largeur-reglages: minmax(310px, 430px);
+  --top-apercu-sticky: clamp(12px, 1.5vw, 24px);
   --hauteur-grille: clamp(420px, 56vh, 760px);
   display: grid;
   grid-template-columns: minmax(310px, 430px) minmax(520px, 1fr);
@@ -1154,7 +1155,8 @@ body.is-accueil-selection .seo-accueil {
     grid-column: 3;
     grid-row: 1;
     position: sticky;
-    top: clamp(12px, 1.5vw, 24px);
+    z-index: 3;
+    top: var(--top-apercu-sticky);
     min-height: 0;
     height: var(--hauteur-apercu, fit-content);
     overflow: visible;
@@ -3742,12 +3744,16 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 
 @media screen and (min-width: 861px) {
   body.is-grille-jukebox-disponible:not(.is-accueil-selection) .jukebox-inline {
-    position: relative;
-    z-index: 2;
+    position: sticky;
+    z-index: 1;
+    top: calc(var(--top-apercu-sticky) + var(--hauteur-apercu, 390px) + 12px);
     grid-column: 3;
     grid-row: 3;
+    align-self: start;
     height: auto;
     overflow: hidden;
+    transform: translateY(var(--decalage-grille-sticky, 0px));
+    will-change: transform;
   }
 
   body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .jukebox-inline {
