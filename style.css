@@ -1149,6 +1149,9 @@ body.is-accueil-selection .seo-accueil {
   body.is-grille-jukebox-disponible:not(.is-accueil-selection) .controles {
     grid-column: 1;
     grid-row: 1 / -1;
+    position: sticky;
+    top: var(--top-apercu-sticky);
+    height: max-content;
   }
 
   body.is-grille-jukebox-disponible:not(.is-accueil-selection) .scene {
