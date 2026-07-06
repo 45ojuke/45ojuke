@@ -2184,6 +2184,28 @@ function obtenirModeModificationEffectif() {
   return modeModificationEtiquettes;
 }
 
+function obtenirClesLignesPourPorteeGrille(portee) {
+  if (portee === "selection") {
+    const cle = obtenirCleLigneApercu();
+    return cle === null ? [] : [cle];
+  }
+  if (portee === "paires" || portee === "impaires") {
+    const parite = portee === "paires" ? 0 : 1;
+    return obtenirLignes()
+      .map((ligne, index) => ({ ligne, index }))
+      .filter(({ ligne, index }) => ligne && (index + 1) % 2 === parite)
+      .map(({ index }) => String(index));
+  }
+  return [];
+}
+
+function enregistrerReglagesSurLignes(cles, reglages) {
+  cles.forEach((cle) => {
+    stylesVerrouillesParLigne[cle] = true;
+    reglagesParLigne[cle] = clonerReglages(reglages);
+  });
+}
+
 function appliquerOrganisationEtiquettes() {
   modeModificationEtiquettes = obtenirModeModificationEtiquettes();
   const total = Math.max(1, Math.min(500, Math.round(Number(elements.nombreEtiquettes.value) || vinyles.length || 1)));
@@ -4106,13 +4128,13 @@ function lireReglages(numero = etiquetteActive, ligne = null) {
 
 function enregistrerReglagesActifs() {
   const reglages = lireReglagesFormulaire();
-  if (grilleJukeboxInlineOuverte && porteeModificationGrilleJukebox === "selection") {
-    reglagesParEtiquette[etiquetteActive] = reglages;
-    const cle = obtenirCleLigneApercu();
-    if (cle !== null) {
-      stylesVerrouillesParLigne[cle] = true;
-      reglagesParLigne[cle] = clonerReglages(reglages);
-    }
+  if (grilleJukeboxInlineOuverte && porteeModificationGrilleJukebox !== "toutes") {
+    enregistrerReglagesSurLignes(obtenirClesLignesPourPorteeGrille(porteeModificationGrilleJukebox), reglages);
+    sauvegarderReglagesAutomatiques();
+    return;
+  }
+  if (obtenirModeModificationEffectif() === "individuel") {
+    enregistrerReglagesSurLignes(obtenirClesLignesPourPorteeGrille("selection"), reglages);
     sauvegarderReglagesAutomatiques();
     return;
   }
@@ -6549,6 +6571,8 @@ function mettreAJourActionsGrilleJukeboxInline() {
   }
   elementsGrilleJukeboxInline.libelleSelection.textContent = `${traduirePhrase("Étiquette")} ${ligne.numeroTableau} ${traduirePhrase("sélectionnée")}`;
   elementsGrilleJukeboxInline.radioPorteeSelection.checked = porteeModificationGrilleJukebox === "selection";
+  elementsGrilleJukeboxInline.radioPorteePaires.checked = porteeModificationGrilleJukebox === "paires";
+  elementsGrilleJukeboxInline.radioPorteeImpaires.checked = porteeModificationGrilleJukebox === "impaires";
   elementsGrilleJukeboxInline.radioPorteeToutes.checked = porteeModificationGrilleJukebox === "toutes";
   mettreAJourActionsRapidesGrilleJukeboxInline();
   const parite = ligne.numeroTableau % 2;
@@ -6672,13 +6696,25 @@ function creerPanneauGrilleJukeboxInline() {
   radioPorteeSelection.value = "selection";
   radioPorteeSelection.checked = true;
   optionPorteeSelection.append(radioPorteeSelection, document.createTextNode(traduirePhrase("Étiquette")));
+  const optionPorteePaires = document.createElement("label");
+  const radioPorteePaires = document.createElement("input");
+  radioPorteePaires.type = "radio";
+  radioPorteePaires.name = "porteeModificationGrilleJukebox";
+  radioPorteePaires.value = "paires";
+  optionPorteePaires.append(radioPorteePaires, document.createTextNode(traduirePhrase("Paires")));
+  const optionPorteeImpaires = document.createElement("label");
+  const radioPorteeImpaires = document.createElement("input");
+  radioPorteeImpaires.type = "radio";
+  radioPorteeImpaires.name = "porteeModificationGrilleJukebox";
+  radioPorteeImpaires.value = "impaires";
+  optionPorteeImpaires.append(radioPorteeImpaires, document.createTextNode(traduirePhrase("Impaires")));
   const optionPorteeToutes = document.createElement("label");
   const radioPorteeToutes = document.createElement("input");
   radioPorteeToutes.type = "radio";
   radioPorteeToutes.name = "porteeModificationGrilleJukebox";
   radioPorteeToutes.value = "toutes";
   optionPorteeToutes.append(radioPorteeToutes, document.createTextNode(traduirePhrase("Toutes")));
-  porteeSelection.append(legendePortee, optionPorteeSelection, optionPorteeToutes);
+  porteeSelection.append(legendePortee, optionPorteeSelection, optionPorteePaires, optionPorteeImpaires, optionPorteeToutes);
   const actionsRapides = document.createElement("div");
   actionsRapides.className = "jukebox-selection__rapides";
   const boutonFavori = document.createElement("button");
@@ -6775,7 +6811,7 @@ function creerPanneauGrilleJukeboxInline() {
   lignes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
   boutonModifierStyle.addEventListener("click", modifierStyleDepuisGrilleJukeboxInline);
   porteeSelection.addEventListener("change", () => {
-    porteeModificationGrilleJukebox = radioPorteeToutes.checked ? "toutes" : "selection";
+    porteeModificationGrilleJukebox = porteeSelection.querySelector('input[name="porteeModificationGrilleJukebox"]:checked')?.value || "selection";
     mettreAJourActionsGrilleJukeboxInline();
   });
   boutonChangerEtiquette.addEventListener("click", ouvrirModeles);
@@ -6940,6 +6976,8 @@ function creerPanneauGrilleJukeboxInline() {
     boutonAlternance,
     porteeSelection,
     radioPorteeSelection,
+    radioPorteePaires,
+    radioPorteeImpaires,
     radioPorteeToutes,
     navigation,
     boutonPrecedent,

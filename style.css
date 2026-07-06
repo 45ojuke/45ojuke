@@ -3840,6 +3840,7 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 
 .jukebox-selection__portee {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 5px;
   margin: 0 4px 0 0;

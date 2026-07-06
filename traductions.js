@@ -225,6 +225,8 @@ export const phrasesInterface = {
   "Toutes les étiquettes": phrase("All labels", "Alle labels", "Alle Etiketten", "Todas las etiquetas", "Tutte le etichette"),
   "Toutes": phrase("All", "Alle", "Alle", "Todas", "Tutte"),
   "Étiquette": phrase("Label", "Label", "Etikett", "Etiqueta", "Etichetta"),
+  "Paires": phrase("Even", "Even", "Gerade", "Pares", "Pari"),
+  "Impaires": phrase("Odd", "Oneven", "Ungerade", "Impares", "Dispari"),
   "Modifier": phrase("Edit", "Bewerken", "Bearbeiten", "Modificar", "Modifica"),
   "Idéal pour appliquer rapidement le même style à plusieurs étiquettes.": phrase("Ideal for quickly applying the same style to several labels.", "Ideaal om snel dezelfde stijl op meerdere labels toe te passen.", "Ideal, um schnell denselben Stil auf mehrere Etiketten anzuwenden.", "Ideal para aplicar rápidamente el mismo estilo a varias etiquetas.", "Ideale per applicare rapidamente lo stesso stile a più etichette."),
   "Police des titres": phrase("Title font", "Lettertype titels", "Titelschrift", "Fuente de títulos", "Font dei titoli"),
