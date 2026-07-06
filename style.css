@@ -3685,6 +3685,7 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 }
 
 .jukebox-inline {
+  position: relative;
   width: 100%;
   min-height: 0;
   display: grid;
@@ -3711,7 +3712,7 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 
 .jukebox-inline__entete {
   display: grid;
-  grid-template-columns: auto minmax(210px, 0.82fr) minmax(320px, 1.55fr) auto;
+  grid-template-columns: auto minmax(320px, 1fr) auto;
   gap: 12px;
   align-items: center;
   border: 1px solid rgba(138, 85, 53, 0.16);
@@ -3733,7 +3734,7 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 .jukebox-inline__outils {
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(66px, 90px)) auto;
+  grid-template-columns: repeat(2, minmax(66px, 90px));
   justify-content: end;
   gap: 6px;
   align-items: end;
@@ -3945,6 +3946,20 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
   border-radius: 8px;
   padding: 6px;
   background: rgba(255, 250, 241, 0.78);
+}
+
+.jukebox-inline__modeles.is-menu-contextuel {
+  position: absolute;
+  left: var(--menu-x, 12px);
+  top: var(--menu-y, 12px);
+  z-index: 12;
+  width: min(440px, calc(100% - 24px));
+  max-height: min(360px, calc(100% - 24px));
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  padding: 8px;
+  background: rgba(255, 250, 241, 0.98);
+  border-color: rgba(145, 26, 16, 0.36);
+  box-shadow: 0 18px 36px rgba(31, 21, 14, 0.22);
 }
 
 .jukebox-inline__grille {
@@ -5103,6 +5118,10 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 
   .barre-actions--apercu .bouton-historique {
     width: 28px;
+  }
+
+  #ouvrirJukebox {
+    display: none;
   }
 
   .apercus {

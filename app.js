@@ -6466,6 +6466,16 @@ function appliquerVarianteDepuisGrilleJukeboxInline() {
   actualiserGrilleJukeboxInline();
 }
 
+function masquerMenuModelesJukeboxInline() {
+  if (!elementsGrilleJukeboxInline?.modeles) {
+    return;
+  }
+  elementsGrilleJukeboxInline.modeles.hidden = true;
+  elementsGrilleJukeboxInline.modeles.classList.remove("is-menu-contextuel");
+  elementsGrilleJukeboxInline.modeles.style.removeProperty("--menu-x");
+  elementsGrilleJukeboxInline.modeles.style.removeProperty("--menu-y");
+}
+
 function preparerAlternanceGrilleJukeboxInline(index, type = "style") {
   const ligne = obtenirLignes()[index] || null;
   const reglages = ligne ? clonerReglages(lireReglages("1", ligne)) : null;
@@ -6547,11 +6557,9 @@ function mettreAJourActionsGrilleJukeboxInline() {
   }
   const ligne = obtenirLignes()[indexApercu] || null;
   const visible = grilleJukeboxInlineOuverte && selectionGrilleJukeboxInlineActive && Boolean(ligne);
-  elementsGrilleJukeboxInline.actionsSelection.hidden = !visible;
   if (!visible) {
     return;
   }
-  elementsGrilleJukeboxInline.libelleSelection.textContent = `${traduirePhrase("Étiquette")} ${ligne.numeroTableau} ${traduirePhrase("sélectionnée")}`;
   synchroniserPorteeModificationApercu();
   mettreAJourActionsRapidesGrilleJukeboxInline();
   const parite = ligne.numeroTableau % 2;
@@ -6560,16 +6568,22 @@ function mettreAJourActionsGrilleJukeboxInline() {
   const cycleComplet = paritesAppliquees.size >= 2;
   const autreParite = parite === 0 ? 1 : 0;
   const pariteCible = paritesAppliquees.size === 1 && paritesAppliquees.has(parite) ? autreParite : parite;
-  elementsGrilleJukeboxInline.boutonAlternance.hidden = !actionAlternance;
-  elementsGrilleJukeboxInline.boutonAlternance.textContent = cycleComplet
-    ? traduirePhrase("Supprimer l’application")
-    : paritesAppliquees.size === 1 && paritesAppliquees.has(autreParite)
-      ? traduirePhrase("Appliquer aux deux")
-    : `${traduirePhrase("Appliquer aux étiquettes")} ${obtenirLibellePariteEtiquettes(pariteCible)}`;
-  elementsGrilleJukeboxInline.boutonAnnuler.disabled = historiqueReglages.annulations.length === 0;
   const retablirDisponible = historiqueReglages.retablissements.length > 0;
-  elementsGrilleJukeboxInline.boutonRetablir.disabled = !retablirDisponible;
-  elementsGrilleJukeboxInline.boutonRetablir.hidden = !retablirDisponible;
+  if (elementsGrilleJukeboxInline.boutonAlternance) {
+    elementsGrilleJukeboxInline.boutonAlternance.hidden = !actionAlternance;
+    elementsGrilleJukeboxInline.boutonAlternance.textContent = cycleComplet
+      ? traduirePhrase("Supprimer l’application")
+      : paritesAppliquees.size === 1 && paritesAppliquees.has(autreParite)
+        ? traduirePhrase("Appliquer aux deux")
+      : `${traduirePhrase("Appliquer aux étiquettes")} ${obtenirLibellePariteEtiquettes(pariteCible)}`;
+  }
+  if (elementsGrilleJukeboxInline.boutonAnnuler) {
+    elementsGrilleJukeboxInline.boutonAnnuler.disabled = historiqueReglages.annulations.length === 0;
+  }
+  if (elementsGrilleJukeboxInline.boutonRetablir) {
+    elementsGrilleJukeboxInline.boutonRetablir.disabled = !retablirDisponible;
+    elementsGrilleJukeboxInline.boutonRetablir.hidden = !retablirDisponible;
+  }
 }
 
 function mettreAJourActionsRapidesGrilleJukeboxInline() {
@@ -6625,16 +6639,6 @@ function creerPanneauGrilleJukeboxInline() {
   const lignes = creerInputJukebox(traduirePhrase("Lignes"), "number", "10");
   lignes.input.min = "1";
   lignes.input.max = "40";
-
-  const boutonFermer = document.createElement("button");
-  boutonFermer.className = "jukebox-inline__fermer";
-  boutonFermer.type = "button";
-  boutonFermer.textContent = traduirePhrase("Retour");
-  boutonFermer.setAttribute("aria-label", traduirePhrase("Retour à la vue normale"));
-  boutonFermer.title = traduirePhrase("Retour à la vue normale");
-
-  const aide = document.createElement("p");
-  aide.className = "jukebox-aide jukebox-inline__aide";
 
   const navigation = document.createElement("div");
   navigation.className = "jukebox-navigation";
@@ -6724,7 +6728,6 @@ function creerPanneauGrilleJukeboxInline() {
   actionsRapides.append(boutonFavori, boutonVerrouiller, boutonVariante, boutonTeinte, boutonReset);
   const boutonModifierStyle = creerBoutonActionGrille(traduirePhrase("Modifier le style"), "principal");
   const boutonChangerEtiquette = creerBoutonActionGrille(traduirePhrase("Changer d’étiquette"));
-  const boutonVarianteAuto = creerBoutonActionGrille(traduirePhrase("Variante auto"));
   const boutonAlternance = creerBoutonActionGrille(traduirePhrase("Appliquer en alternance"));
   boutonAlternance.hidden = true;
   const boutonAnnuler = creerBoutonActionGrille("↶");
@@ -6739,7 +6742,6 @@ function creerPanneauGrilleJukeboxInline() {
     libelleSelection,
     boutonModifierStyle,
     boutonChangerEtiquette,
-    boutonVarianteAuto,
     boutonAlternance,
     boutonAnnuler,
     boutonRetablir,
@@ -6761,9 +6763,9 @@ function creerPanneauGrilleJukeboxInline() {
   repereSurvol.className = "jukebox-survol__repere";
   apercuSurvol.append(repereSurvol, imageSurvol);
 
-  outils.append(colonnes.label, lignes.label, boutonFermer);
-  entete.append(titre, aide, navigation, outils);
-  panneauGrilleJukeboxInline.append(entete, actionsSelection, modeles, grille, apercuSurvol);
+  outils.append(colonnes.label, lignes.label);
+  entete.append(titre, navigation, outils);
+  panneauGrilleJukeboxInline.append(entete, modeles, grille, apercuSurvol);
   elements.scene.append(panneauGrilleJukeboxInline);
 
   const obtenirCapacite = () => {
@@ -6774,14 +6776,30 @@ function creerPanneauGrilleJukeboxInline() {
 
   const rendreModeles = () => {
     rendreModelesJukebox(modeles, () => {
+      masquerMenuModelesJukeboxInline();
       actualiserGrilleJukeboxInline();
-      rendreModeles();
     });
   };
 
-  const ouvrirModeles = () => {
+  const ouvrirMenuModeles = (evenement, index) => {
+    evenement.preventDefault();
+    evenement.stopPropagation();
+    editionTexteMasqueeParGrille = true;
+    selectionGrilleJukeboxInlineActive = true;
+    varianteGrillePretePourAlternance = null;
+    appliquerActionJukebox(index);
+    modeles.classList.add("is-menu-contextuel");
     modeles.hidden = false;
     rendreModeles();
+    window.requestAnimationFrame(() => {
+      const rectPanneau = panneauGrilleJukeboxInline.getBoundingClientRect();
+      const rectMenu = modeles.getBoundingClientRect();
+      const marge = 8;
+      const x = Math.max(marge, Math.min(evenement.clientX - rectPanneau.left, rectPanneau.width - rectMenu.width - marge));
+      const y = Math.max(marge, Math.min(evenement.clientY - rectPanneau.top, rectPanneau.height - rectMenu.height - marge));
+      modeles.style.setProperty("--menu-x", `${Math.round(x)}px`);
+      modeles.style.setProperty("--menu-y", `${Math.round(y)}px`);
+    });
   };
 
   colonnes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
@@ -6793,7 +6811,7 @@ function creerPanneauGrilleJukeboxInline() {
     mettreAJourActionsGrilleJukeboxInline();
     sauvegarderReglagesAutomatiques();
   });
-  boutonChangerEtiquette.addEventListener("click", ouvrirModeles);
+  boutonChangerEtiquette.addEventListener("click", () => {});
   boutonFavori.addEventListener("click", () => {
     basculerFavori();
     mettreAJourActionsRapidesGrilleJukeboxInline();
@@ -6811,7 +6829,6 @@ function creerPanneauGrilleJukeboxInline() {
     reinitialiserStyleDefaut();
     actualiserGrilleJukeboxInline();
   });
-  boutonVarianteAuto.addEventListener("click", appliquerVarianteDepuisGrilleJukeboxInline);
   boutonAlternance.addEventListener("click", appliquerVarianteEnAlternanceDepuisGrille);
   boutonAnnuler.addEventListener("click", () => {
     annulerDerniereModification();
@@ -6821,7 +6838,6 @@ function creerPanneauGrilleJukeboxInline() {
     retablirModification();
     actualiserGrilleJukeboxInline();
   });
-  boutonFermer.addEventListener("click", basculerGrilleJukebox);
   boutonPrecedent.addEventListener("click", () => deplacerFenetreGrilleJukebox(-obtenirNombreColonnesGrilleJukeboxVisible()));
   boutonSuivant.addEventListener("click", () => deplacerFenetreGrilleJukebox(obtenirNombreColonnesGrilleJukeboxVisible()));
   plage.addEventListener("input", () => {
@@ -6832,13 +6848,22 @@ function creerPanneauGrilleJukeboxInline() {
   grille.addEventListener("click", (evenement) => {
     const emplacement = evenement.target.closest("[data-index-jukebox]");
     if (!emplacement) {
+      masquerMenuModelesJukeboxInline();
       return;
     }
+    masquerMenuModelesJukeboxInline();
     editionTexteMasqueeParGrille = true;
     selectionGrilleJukeboxInlineActive = true;
     varianteGrillePretePourAlternance = null;
     appliquerActionJukebox(Number(emplacement.dataset.indexJukebox));
     actualiserGrilleJukeboxInline();
+  });
+  grille.addEventListener("contextmenu", (evenement) => {
+    const emplacement = evenement.target.closest("[data-index-jukebox]");
+    if (!emplacement) {
+      return;
+    }
+    ouvrirMenuModeles(evenement, Number(emplacement.dataset.indexJukebox));
   });
   grille.addEventListener("dragstart", (evenement) => {
     const emplacement = evenement.target.closest("[data-index-jukebox]");
@@ -6942,9 +6967,6 @@ function creerPanneauGrilleJukeboxInline() {
   elementsGrilleJukeboxInline = {
     colonnes,
     lignes,
-    aide,
-    actionsSelection,
-    libelleSelection,
     boutonFavori,
     boutonVerrouiller,
     boutonVariante,
@@ -6965,8 +6987,7 @@ function creerPanneauGrilleJukeboxInline() {
     libellePlage,
     grille,
     modeles,
-    ouvrirModeles,
-    boutonFermer,
+    ouvrirModeles: () => {},
     obtenirCapacite,
     apercuSurvol,
     temporisateurSurvol: null,
@@ -7095,7 +7116,6 @@ function actualiserGrilleJukeboxInline() {
   const { totalColonnes, totalLignes, total } = elementsGrilleJukeboxInline.obtenirCapacite();
   const debut = bornerDebutFenetreGrilleJukebox(totalColonnes);
   const { finColonne, indices } = obtenirIndicesFenetreGrilleJukebox(debut, totalColonnes, totalLignes);
-  const colonnesAffichees = finColonne - debut;
   elementsGrilleJukeboxInline.grille.style.setProperty("--colonnes-jukebox", String(finColonne - debut));
   elementsGrilleJukeboxInline.grille.dataset.debutJukebox = String(debut);
   elementsGrilleJukeboxInline.grille.dataset.finJukebox = String(finColonne);
@@ -7104,9 +7124,6 @@ function actualiserGrilleJukeboxInline() {
     elementsGrilleJukeboxInline.grille.append(creerEmplacementJukebox(index, totalColonnes));
   });
   mettreAJourNavigationGrilleJukebox(debut, finColonne, totalColonnes, total);
-  elementsGrilleJukeboxInline.aide.textContent = total > colonnesAffichees * totalLignes
-    ? `${traduirePhrase("La grille affiche")} ${colonnesAffichees} ${traduirePhrase("Colonnes").toLocaleLowerCase(localeCourante())} x ${totalLignes} ${traduirePhrase("Lignes").toLocaleLowerCase(localeCourante())}. ${traduirePhrase("Glissez le curseur pour voir les autres étiquettes.")}`
-    : traduirePhrase("Glissez les étiquettes pour les déplacer. Cliquez une case pour la sélectionner, modifier son style ou appliquer une variante.");
   ajusterHauteurGrilleJukeboxInline();
   planifierPositionGrilleJukeboxInline();
   mettreAJourActionsGrilleJukeboxInline();
@@ -7128,15 +7145,6 @@ function rendreModelesJukebox(conteneur, apresApplication = null) {
   const ligne = lignes[indexApercu] || lignes[0] || null;
   const reglagesBase = lireReglages("1", ligne);
   const cartes = [];
-  if (ligne) {
-    cartes.push(creerCarteModeleJukebox({
-      id: "variante",
-      nom: "Variante",
-      ligne,
-      reglages: creerVarianteCouleur(reglagesBase),
-      apresApplication,
-    }));
-  }
   obtenirStylesEtiquettes("tout").forEach((style) => {
     if (!style?.reglages) {
       return;
