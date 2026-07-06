@@ -2720,6 +2720,16 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   color: var(--accent-2);
 }
 
+.soutien-impression__titre {
+  color: var(--accent-2);
+  font-size: 0.98rem;
+  font-weight: 900;
+}
+
+.soutien-impression__actions .bouton {
+  text-align: center;
+}
+
 .fenetre-soutien__titre {
   margin: 0 0 6px;
   color: var(--accent-2);

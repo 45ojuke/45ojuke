@@ -8209,6 +8209,30 @@ function ouvrirDialogueImpression(lignes) {
   soutienActions.append(participer, continuer);
   soutien.append(soutienTexte, soutienAide, soutienActions);
 
+  const etapeFacebook = document.createElement("div");
+  etapeFacebook.className = "soutien-impression soutien-impression--facebook";
+  etapeFacebook.hidden = true;
+  const facebookTitre = document.createElement("p");
+  facebookTitre.className = "soutien-impression__titre";
+  facebookTitre.textContent = traduirePhrase("Une dernière étape");
+  const facebookTexte = document.createElement("p");
+  facebookTexte.textContent = traduirePhrase("Pensez à nous suivre sur Facebook : c'est gratuit et cela aide 45'O'Juke à se faire connaître.");
+  const facebookActions = document.createElement("div");
+  facebookActions.className = "fenetre-import__actions soutien-impression__actions";
+  const continuerApresFacebook = document.createElement("button");
+  continuerApresFacebook.className = "bouton bouton-secondaire";
+  continuerApresFacebook.type = "button";
+  continuerApresFacebook.textContent = traduirePhrase("Continuer gratuitement");
+  const suivreFacebook = document.createElement("a");
+  suivreFacebook.className = "bouton bouton-principal";
+  suivreFacebook.href = LIEN_FACEBOOK_CONTACT;
+  suivreFacebook.target = "_blank";
+  suivreFacebook.rel = "noopener noreferrer";
+  suivreFacebook.textContent = traduirePhrase("Suivez-nous sur Facebook");
+  suivreFacebook.setAttribute("aria-label", traduirePhrase("Ouvrir la page Facebook de 45'O'Juke dans un nouvel onglet"));
+  facebookActions.append(continuerApresFacebook, suivreFacebook);
+  etapeFacebook.append(facebookTitre, facebookTexte, facebookActions);
+
   const options = document.createElement("div");
   options.className = "sortie-etiquettes";
   options.hidden = true;
@@ -8328,7 +8352,14 @@ function ouvrirDialogueImpression(lignes) {
 
   const afficherOptions = () => {
     soutien.hidden = true;
+    etapeFacebook.hidden = true;
     options.hidden = false;
+  };
+
+  const afficherEtapeFacebook = () => {
+    soutien.hidden = true;
+    etapeFacebook.hidden = false;
+    continuerApresFacebook.focus();
   };
 
   const selectionnerLignes = () => {
@@ -8376,7 +8407,8 @@ function ouvrirDialogueImpression(lignes) {
   participer.addEventListener("click", () => {
     ouvrirSoutien({ onParticipation: afficherOptions });
   });
-  continuer.addEventListener("click", afficherOptions);
+  continuer.addEventListener("click", afficherEtapeFacebook);
+  continuerApresFacebook.addEventListener("click", afficherOptions);
   choixSelection.addEventListener("change", () => {
     personnalise.hidden = options.querySelector('input[name="selectionImpression"]:checked')?.value !== "choix";
     message.hidden = true;
@@ -8386,7 +8418,7 @@ function ouvrirDialogueImpression(lignes) {
   });
   boutonImpression.addEventListener("click", executerSortie);
 
-  contenu.append(entete, soutien, options);
+  contenu.append(entete, soutien, etapeFacebook, options);
   dialogue.append(contenu);
   document.body.append(dialogue);
 
