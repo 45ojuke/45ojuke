@@ -86,7 +86,7 @@ body.is-intro-active > .pied-site {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("Images/fond-45ojuke.jpeg");
+  background-image: url("Images/fond-45ojuke.webp");
   background-position: center top;
   background-repeat: no-repeat;
   background-size: cover;
@@ -753,7 +753,7 @@ body.is-accueil-selection .seo-accueil {
   min-height: 100vh;
   background:
     linear-gradient(rgba(255, 247, 223, 0.88), rgba(255, 243, 216, 0.94)),
-    url("Images/fond-45ojuke.jpeg") center top / cover no-repeat;
+    url("Images/fond-45ojuke.webp") center top / cover no-repeat;
 }
 
 .guide-retour-fixe {
@@ -2482,11 +2482,11 @@ body.is-accueil-selection .seo-accueil {
   display: none;
 }
 
-.edition-texte__reglages #reglagesTextePrincipaux {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  padding-top: 2px;
+.edition-texte__separateur {
+  grid-column: 1 / -1;
+  height: 1px;
+  margin: 4px 0 2px;
+  background: linear-gradient(90deg, transparent, rgba(138, 85, 53, 0.32), transparent);
 }
 
 .edition-texte__entete {
@@ -2494,24 +2494,24 @@ body.is-accueil-selection .seo-accueil {
 }
 
 .edition-texte.is-changement-etiquette .edition-texte__etat,
-.edition-texte.is-changement-etiquette .champ {
+.edition-texte.is-changement-etiquette > .champ {
   animation: swipe-edition-etiquette 460ms cubic-bezier(0.18, 0.9, 0.18, 1) both;
 }
 
 .edition-texte.is-changement-etiquette[data-direction-changement="precedent"] .edition-texte__etat,
-.edition-texte.is-changement-etiquette[data-direction-changement="precedent"] .champ {
+.edition-texte.is-changement-etiquette[data-direction-changement="precedent"] > .champ {
   animation-name: swipe-edition-etiquette-inverse;
 }
 
-.edition-texte.is-changement-etiquette .champ:nth-of-type(1) {
+.edition-texte.is-changement-etiquette > .champ:nth-of-type(1) {
   animation-delay: 36ms;
 }
 
-.edition-texte.is-changement-etiquette .champ:nth-of-type(2) {
+.edition-texte.is-changement-etiquette > .champ:nth-of-type(2) {
   animation-delay: 72ms;
 }
 
-.edition-texte.is-changement-etiquette .champ:nth-of-type(3) {
+.edition-texte.is-changement-etiquette > .champ:nth-of-type(3) {
   animation-delay: 108ms;
 }
 
@@ -2519,18 +2519,20 @@ body.is-accueil-selection .seo-accueil {
   display: none;
 }
 
-body.is-edition-texte-mobile .assistant-reglages,
 body.is-edition-texte-mobile .onglet-panneau,
-body.is-edition-texte-mobile .assistant-navigation {
+body.is-edition-texte-mobile .edition-texte__actions {
   display: none;
 }
 
 body.is-edition-texte-mobile .controles > .edition-texte:not([hidden]) {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 11px;
-  border-radius: 9px;
-  padding: 12px;
+  gap: 10px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
 }
 
 body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__entete {
@@ -2566,20 +2568,16 @@ body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__etat {
   white-space: nowrap;
 }
 
-body.is-edition-texte-mobile .controles > .edition-texte .champ {
+body.is-edition-texte-mobile .controles > .edition-texte > .champ {
   gap: 6px;
   padding: 2px 0 6px;
   font-size: 0.76rem;
 }
 
-body.is-edition-texte-mobile .controles > .edition-texte .champ input {
+body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   min-height: 38px;
   padding: 7px 10px;
   font-size: 0.92rem;
-}
-
-body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__reglages #reglagesTextePrincipaux {
-  grid-template-columns: 1fr;
 }
 
 .bouton-editer-textes-mobile {
@@ -3708,7 +3706,7 @@ body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__reglage
   width: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
   gap: 8px;
   border: 1px solid rgba(138, 85, 53, 0.18);
   border-radius: 10px;
@@ -3735,6 +3733,7 @@ body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__reglage
 
 .jukebox-inline.is-replie .jukebox-inline__outils > :not(.jukebox-inline__fermer),
 .jukebox-inline.is-replie .jukebox-inline__aide,
+.jukebox-inline.is-replie .jukebox-navigation,
 .jukebox-inline.is-replie .jukebox-selection,
 .jukebox-inline.is-replie .jukebox-inline__modeles,
 .jukebox-inline.is-replie .jukebox-inline__grille {
@@ -3830,6 +3829,49 @@ body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__reglage
 
 .jukebox-inline__aide {
   font-size: 0.72rem;
+}
+
+.jukebox-navigation {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(120px, 1fr) auto 34px;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgba(138, 85, 53, 0.16);
+  border-radius: 8px;
+  padding: 7px;
+  background: rgba(255, 250, 241, 0.72);
+}
+
+.jukebox-navigation[hidden] {
+  display: none;
+}
+
+.jukebox-navigation__bouton {
+  width: 34px;
+  min-width: 34px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 7px;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.jukebox-navigation__bouton:disabled {
+  cursor: default;
+  opacity: 0.44;
+}
+
+.jukebox-navigation__plage {
+  width: 100%;
+  accent-color: var(--accent-2);
+}
+
+.jukebox-navigation__texte {
+  color: var(--accent-2);
+  font-size: 0.76rem;
+  font-weight: 950;
+  white-space: nowrap;
 }
 
 .jukebox-selection {
@@ -4431,7 +4473,7 @@ body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__reglage
 
 @media (prefers-reduced-motion: reduce) {
   .edition-texte.is-changement-etiquette .edition-texte__etat,
-  .edition-texte.is-changement-etiquette .champ,
+  .edition-texte.is-changement-etiquette > .champ,
   .apercus.is-changement-etiquette .carrousel-etiquettes__centre,
   .apercus.is-changement-etiquette .apercu-image,
   .apercus.is-changement-etiquette::after {
@@ -5186,25 +5228,20 @@ body.is-edition-texte-mobile .controles > .edition-texte .edition-texte__reglage
     white-space: nowrap;
   }
 
-  .edition-texte .champ {
+  .edition-texte > .champ {
     gap: 6px;
     padding: 2px 0 6px;
     font-size: 0.76rem;
   }
 
-  .edition-texte .champ input {
+  .edition-texte > .champ input {
     min-height: 38px;
     padding: 7px 10px;
     font-size: 0.92rem;
   }
 
-  .edition-texte__reglages #reglagesTextePrincipaux {
-    grid-template-columns: 1fr;
-  }
-
-  body.is-edition-texte-mobile .assistant-reglages,
   body.is-edition-texte-mobile .onglet-panneau,
-  body.is-edition-texte-mobile .assistant-navigation {
+  body.is-edition-texte-mobile .edition-texte__actions {
     display: none;
   }
 

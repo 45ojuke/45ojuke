@@ -390,6 +390,10 @@ let panneauGrilleJukeboxInline = null;
 let elementsGrilleJukeboxInline = null;
 let selectionGrilleJukeboxInlineActive = false;
 let varianteGrillePretePourAlternance = null;
+let debutFenetreGrilleJukebox = 0;
+const NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE = 20;
+const LIMITE_CACHE_MINIATURES_GRILLE_JUKEBOX = 240;
+const cacheMiniaturesGrilleJukebox = new Map();
 let separateurVerticalAtelier = null;
 let separateurHorizontalAtelier = null;
 let editionTexteMasqueeParGrille = false;
@@ -4916,6 +4920,16 @@ function mettreAJourReglagesTexteMiseEnPage() {
   const afficherDansEditionTexte = editionTexteDemandee && elements.editionTexteReglages;
   elements.reglagesTexteMiseEnPage.hidden = !afficherDansMiseEnPage || Boolean(afficherDansEditionTexte);
   elements.editionTexteReglages.hidden = !afficherDansEditionTexte;
+  if (afficherDansEditionTexte) {
+    if (!elements.editionTexteReglages.contains(elements.assistantReglages)) {
+      elements.editionTexteReglages.append(elements.assistantReglages);
+    }
+  } else {
+    const premierPanneau = elements.formulaire.querySelector(".onglet-panneau");
+    if (premierPanneau && elements.assistantReglages.nextElementSibling !== premierPanneau) {
+      elements.formulaire.insertBefore(elements.assistantReglages, premierPanneau);
+    }
+  }
   const cible = afficherDansEditionTexte
     ? elements.editionTexteReglages
     : afficherDansMiseEnPage
@@ -6272,6 +6286,7 @@ function ouvrirGrilleJukeboxInline() {
   if (elementsGrilleJukeboxInline?.boutonFermer) {
     elementsGrilleJukeboxInline.boutonFermer.textContent = "⌃";
   }
+  placerFenetreGrilleJukeboxSurIndex(indexApercu);
   actualiserGrilleJukeboxInline();
   mettreAJourVisibiliteApercu();
   obtenirAtelier()?.scrollIntoView({ block: "start" });
@@ -6454,6 +6469,29 @@ function creerPanneauGrilleJukeboxInline() {
   const aide = document.createElement("p");
   aide.className = "jukebox-aide jukebox-inline__aide";
 
+  const navigation = document.createElement("div");
+  navigation.className = "jukebox-navigation";
+  const boutonPrecedent = creerBoutonActionGrille("‹");
+  boutonPrecedent.classList.add("jukebox-navigation__bouton");
+  boutonPrecedent.setAttribute("aria-label", traduirePhrase("Précédent"));
+  boutonPrecedent.title = traduirePhrase("Précédent");
+  const plage = document.createElement("input");
+  plage.className = "jukebox-navigation__plage";
+  plage.type = "range";
+  plage.min = "0";
+  plage.max = "0";
+  plage.step = String(NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
+  plage.value = "0";
+  plage.setAttribute("aria-label", traduirePhrase("Faire défiler la grille"));
+  const libellePlage = document.createElement("span");
+  libellePlage.className = "jukebox-navigation__texte";
+  navigation.append(boutonPrecedent, plage, libellePlage);
+  const boutonSuivant = creerBoutonActionGrille("›");
+  boutonSuivant.classList.add("jukebox-navigation__bouton");
+  boutonSuivant.setAttribute("aria-label", traduirePhrase("Suivant"));
+  boutonSuivant.title = traduirePhrase("Suivant");
+  navigation.append(boutonSuivant);
+
   const actionsSelection = document.createElement("div");
   actionsSelection.className = "jukebox-selection";
   actionsSelection.hidden = true;
@@ -6500,7 +6538,7 @@ function creerPanneauGrilleJukeboxInline() {
 
   outils.append(colonnes.label, lignes.label, boutonFermer);
   entete.append(titre, outils);
-  panneauGrilleJukeboxInline.append(entete, aide, actionsSelection, modeles, grille, apercuSurvol);
+  panneauGrilleJukeboxInline.append(entete, aide, navigation, actionsSelection, modeles, grille, apercuSurvol);
   elements.scene.after(panneauGrilleJukeboxInline);
   installerSeparateursAtelier();
 
@@ -6537,6 +6575,12 @@ function creerPanneauGrilleJukeboxInline() {
     actualiserGrilleJukeboxInline();
   });
   boutonFermer.addEventListener("click", basculerGrilleJukebox);
+  boutonPrecedent.addEventListener("click", () => deplacerFenetreGrilleJukebox(-NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE));
+  boutonSuivant.addEventListener("click", () => deplacerFenetreGrilleJukebox(NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE));
+  plage.addEventListener("input", () => {
+    debutFenetreGrilleJukebox = Number(plage.value) || 0;
+    actualiserGrilleJukeboxInline();
+  });
 
   grille.addEventListener("click", (evenement) => {
     const emplacement = evenement.target.closest("[data-index-jukebox]");
@@ -6657,6 +6701,11 @@ function creerPanneauGrilleJukeboxInline() {
     boutonAnnuler,
     boutonRetablir,
     boutonAlternance,
+    navigation,
+    boutonPrecedent,
+    boutonSuivant,
+    plage,
+    libellePlage,
     grille,
     modeles,
     ouvrirModeles,
@@ -6704,6 +6753,45 @@ function ajusterHauteurGrilleJukeboxInline() {
   });
 }
 
+function bornerDebutFenetreGrilleJukebox(total) {
+  const maximum = Math.max(0, total - NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
+  debutFenetreGrilleJukebox = Math.max(0, Math.min(maximum, debutFenetreGrilleJukebox));
+  return debutFenetreGrilleJukebox;
+}
+
+function placerFenetreGrilleJukeboxSurIndex(index) {
+  if (!Number.isInteger(index) || index < 0) {
+    return;
+  }
+  debutFenetreGrilleJukebox = Math.floor(index / NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE)
+    * NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE;
+}
+
+function deplacerFenetreGrilleJukebox(delta) {
+  if (!elementsGrilleJukeboxInline) {
+    return;
+  }
+  const { total } = elementsGrilleJukeboxInline.obtenirCapacite();
+  debutFenetreGrilleJukebox += delta;
+  bornerDebutFenetreGrilleJukebox(total);
+  actualiserGrilleJukeboxInline();
+}
+
+function mettreAJourNavigationGrilleJukebox(debut, fin, total) {
+  if (!elementsGrilleJukeboxInline) {
+    return;
+  }
+  const maximum = Math.max(0, total - NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
+  const navigationUtile = total > NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE;
+  elementsGrilleJukeboxInline.navigation.hidden = !navigationUtile;
+  elementsGrilleJukeboxInline.boutonPrecedent.disabled = debut <= 0;
+  elementsGrilleJukeboxInline.boutonSuivant.disabled = fin >= total;
+  elementsGrilleJukeboxInline.plage.max = String(maximum);
+  elementsGrilleJukeboxInline.plage.step = String(NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
+  elementsGrilleJukeboxInline.plage.value = String(debut);
+  elementsGrilleJukeboxInline.libellePlage.textContent = `${debut + 1}-${fin} / ${total}`;
+}
+
 function actualiserGrilleJukeboxInline() {
   if (!grilleJukeboxInlineOuverte || !elementsGrilleJukeboxInline) {
     return;
@@ -6712,13 +6800,21 @@ function actualiserGrilleJukeboxInline() {
     fermerGrilleJukeboxInline();
     return;
   }
-  const { totalColonnes, totalLignes, total } = elementsGrilleJukeboxInline.obtenirCapacite();
-  elementsGrilleJukeboxInline.grille.style.setProperty("--colonnes-jukebox", String(totalColonnes));
+  const { totalColonnes, total } = elementsGrilleJukeboxInline.obtenirCapacite();
+  const debut = bornerDebutFenetreGrilleJukebox(total);
+  const fin = Math.min(total, debut + NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE);
+  const colonnesFenetre = Math.min(totalColonnes, Math.max(1, fin - debut));
+  elementsGrilleJukeboxInline.grille.style.setProperty("--colonnes-jukebox", String(colonnesFenetre));
+  elementsGrilleJukeboxInline.grille.dataset.debutJukebox = String(debut);
+  elementsGrilleJukeboxInline.grille.dataset.finJukebox = String(fin);
   elementsGrilleJukeboxInline.grille.replaceChildren();
-  for (let index = 0; index < total; index += 1) {
+  for (let index = debut; index < fin; index += 1) {
     elementsGrilleJukeboxInline.grille.append(creerEmplacementJukebox(index, totalColonnes));
   }
-  elementsGrilleJukeboxInline.aide.textContent = traduirePhrase("Glissez les étiquettes pour les déplacer. Cliquez une case pour la sélectionner, modifier son style ou appliquer une variante.");
+  mettreAJourNavigationGrilleJukebox(debut, fin, total);
+  elementsGrilleJukeboxInline.aide.textContent = total > NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE
+    ? traduirePhrase("La grille affiche 20 cases à la fois pour rester fluide. Glissez le curseur pour voir les autres étiquettes.")
+    : traduirePhrase("Glissez les étiquettes pour les déplacer. Cliquez une case pour la sélectionner, modifier son style ou appliquer une variante.");
   ajusterHauteurGrilleJukeboxInline();
   mettreAJourActionsGrilleJukeboxInline();
 }
@@ -6825,6 +6921,7 @@ function appliquerModeleJukebox(cible, modele) {
   stylesVerrouillesParLigne[String(cible)] = true;
   reglagesParLigne[String(cible)] = clonerReglages(reglages);
   indexApercu = cible;
+  placerFenetreGrilleJukeboxSurIndex(indexApercu);
   sauvegarderReglagesAutomatiques();
   mettreAJour();
 }
@@ -6914,6 +7011,38 @@ function deplacerEtiquetteJukebox(source, cible) {
   finaliserChangementTableau();
 }
 
+function limiterCacheMiniaturesGrilleJukebox() {
+  while (cacheMiniaturesGrilleJukebox.size > LIMITE_CACHE_MINIATURES_GRILLE_JUKEBOX) {
+    const premiereCle = cacheMiniaturesGrilleJukebox.keys().next().value;
+    cacheMiniaturesGrilleJukebox.delete(premiereCle);
+  }
+}
+
+function signatureLigneMiniatureJukebox(index, ligne, reglages) {
+  return JSON.stringify([
+    index,
+    ligne?.numeroTableau,
+    ligne?.artiste,
+    ligne?.titreA,
+    ligne?.titreB,
+    ligne?.selection_face_a,
+    ligne?.selection_face_b,
+    signatureEtatReglages(reglages),
+  ]);
+}
+
+function obtenirMiniatureJukebox(index, ligne, reglages) {
+  const signature = signatureLigneMiniatureJukebox(index, ligne, reglages);
+  const miniatureEnCache = cacheMiniaturesGrilleJukebox.get(signature);
+  if (miniatureEnCache) {
+    return miniatureEnCache;
+  }
+  const miniature = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
+  cacheMiniaturesGrilleJukebox.set(signature, miniature);
+  limiterCacheMiniaturesGrilleJukebox();
+  return miniature;
+}
+
 function creerEmplacementJukebox(index, totalColonnes) {
   const ligne = obtenirLignes()[index] || null;
   const carte = document.createElement("article");
@@ -6935,7 +7064,8 @@ function creerEmplacementJukebox(index, totalColonnes) {
   const image = document.createElement("img");
   image.className = "jukebox-emplacement__image";
   image.alt = `Étiquette ${ligne.numeroTableau}`;
-  image.src = dessinerEtiquette(ligne, lireReglages("1", ligne)).toDataURL("image/png");
+  const reglages = lireReglages("1", ligne);
+  image.src = obtenirMiniatureJukebox(index, ligne, reglages);
   carte.title = [ligne.artiste, ligne.titreA, ligne.titreB].filter(Boolean).join(" - ");
 
   carte.append(image);
@@ -6995,6 +7125,7 @@ function appliquerActionJukebox(index) {
     finaliserChangementTableau();
   }
   indexApercu = Math.max(0, Math.min(index, vinyles.length - 1));
+  placerFenetreGrilleJukeboxSurIndex(indexApercu);
   etiquetteActive = "1";
   appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
   mettreAJour();
