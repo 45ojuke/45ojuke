@@ -234,26 +234,6 @@
             <p class="assistant-reglages__aide" id="assistantAide">Gardez l'aperçu sous les yeux pendant chaque réglage.</p>
           </div>
 
-          <section class="groupe onglet-panneau" data-tab-panel="organisation" data-configuration-etiquettes hidden>
-            <div class="grille grille-organisation">
-              <label class="champ champ-large">
-                Combien d’étiquettes souhaitez-vous créer ?
-                <input id="nombreEtiquettes" type="number" min="1" max="500" step="1" inputmode="numeric" />
-              </label>
-              <fieldset class="champ champ-large choix-modification-etiquettes">
-                <legend>Comment souhaitez-vous les modifier ?</legend>
-                <label>
-                  <input name="modeModificationEtiquettes" type="radio" value="toutes" checked />
-                  <span><strong>Toutes les étiquettes</strong><small>Idéal pour appliquer rapidement le même style à plusieurs étiquettes.</small></span>
-                </label>
-                <label>
-                  <input name="modeModificationEtiquettes" type="radio" value="individuel" />
-                  <span><strong>Une étiquette à la fois</strong><small>Idéal si chaque étiquette doit avoir un style différent. Les étiquettes sont automatiquement verrouillées pour conserver leur style, mais peuvent être déverrouillées à tout moment.</small></span>
-                </label>
-              </fieldset>
-            </div>
-          </section>
-
           <section class="groupe onglet-panneau" data-tab-panel="style" data-tab-disabled="true" hidden>
             <div class="grille grille-style-secondaire">
               <select id="modele" hidden></select>
@@ -294,8 +274,7 @@
 
           <section class="groupe onglet-panneau" data-tab-panel="donnees" hidden>
             <div class="grille">
-              <input id="importStyleFile" type="file" accept="application/json,.json" hidden />
-              <input id="importSauvegardeFile" type="file" accept="application/json,.json" hidden />
+              <input id="importFichierUnique" type="file" accept="application/json,.json,.csv,text/csv" hidden />
               <input id="importCsv" type="file" accept=".csv,text/csv" hidden />
               <div class="barre-actions barre-actions--csv champ-large">
                 <button class="bouton bouton-principal bouton-action-large" id="ouvrirTableauCsv" type="button">Modifier les données</button>
@@ -306,22 +285,24 @@
                       <p class="bloc-fichier__titre">Sauvegarde <button class="aide-option" type="button" data-help-key="Aide sauvegarde session">?</button></p>
                       <div class="bloc-fichier__actions">
                         <button class="bouton bouton-secondaire" id="exporterSauvegardeDonnees" type="button">Télécharger sauvegarde</button>
-                        <button class="bouton" id="importerSauvegardeDonnees" type="button">Importer sauvegarde</button>
                       </div>
                     </div>
                     <div class="bloc-fichier">
                       <p class="bloc-fichier__titre">Style de l’étiquette <button class="aide-option" type="button" data-help-key="Aide style export import">?</button></p>
                       <div class="bloc-fichier__actions">
                         <button class="bouton bouton-secondaire" id="copierReglagesDonnees" type="button">Exporter style</button>
-                        <button class="bouton" id="importerStyleDonnees" type="button">Importer style</button>
                       </div>
                     </div>
                     <div class="bloc-fichier">
                       <p class="bloc-fichier__titre">Données du tableau <button class="aide-option" type="button" data-help-key="Aide donnees CSV">?</button></p>
                       <div class="bloc-fichier__actions">
-                        <button class="bouton" id="choisirCsv" type="button">Importer CSV</button>
                         <button class="bouton bouton-secondaire" id="exporterCsv" type="button">Exporter CSV</button>
                       </div>
+                    </div>
+                    <div class="bloc-fichier bloc-fichier--import">
+                      <p class="bloc-fichier__titre">Importer</p>
+                      <p class="bloc-fichier__description">Importez une sauvegarde, un style ou un CSV : 45’O’Juke reconnaît le fichier automatiquement.</p>
+                      <button class="bouton" id="importerFichierDonnees" type="button">Importer</button>
                     </div>
                   </div>
                 </details>
@@ -709,22 +690,24 @@
                 <p class="bloc-fichier__titre">Sauvegarde <button class="aide-option" type="button" data-help-key="Aide sauvegarde session">?</button></p>
                 <div class="bloc-fichier__actions">
                   <button class="bouton bouton-secondaire" id="exporterSauvegardeFavoris" type="button">Télécharger sauvegarde</button>
-                  <button class="bouton" id="importerSauvegardeFavoris" type="button">Importer sauvegarde</button>
                 </div>
               </div>
               <div class="bloc-fichier">
                 <p class="bloc-fichier__titre">Style de l’étiquette <button class="aide-option" type="button" data-help-key="Aide style export import">?</button></p>
                 <div class="bloc-fichier__actions">
                   <button class="bouton bouton-secondaire" id="copierReglagesFavoris" type="button">Exporter style</button>
-                  <button class="bouton" id="importerReglagesFavoris" type="button">Importer style</button>
                 </div>
               </div>
               <div class="bloc-fichier">
                 <p class="bloc-fichier__titre">Données du tableau <button class="aide-option" type="button" data-help-key="Aide donnees CSV">?</button></p>
                 <div class="bloc-fichier__actions">
-                  <button class="bouton" id="choisirCsvSauvegarde" type="button">Importer CSV</button>
                   <button class="bouton bouton-secondaire" id="exporterCsvSauvegarde" type="button">Exporter CSV</button>
                 </div>
+              </div>
+              <div class="bloc-fichier bloc-fichier--import">
+                <p class="bloc-fichier__titre">Importer</p>
+                <p class="bloc-fichier__description">Importez une sauvegarde, un style ou un CSV : 45’O’Juke reconnaît le fichier automatiquement.</p>
+                <button class="bouton" id="importerFichierFavoris" type="button">Importer</button>
               </div>
             </div>
           </section>
@@ -741,6 +724,13 @@
             </div>
           </div>
           <div class="barre-actions barre-actions--apercu" id="actionsApercu" hidden>
+            <fieldset class="portee-modification-apercu" id="porteeModificationApercu">
+              <legend>Modifier</legend>
+              <label><input name="porteeModificationApercu" type="radio" value="selection" checked /> Étiquette</label>
+              <label><input name="porteeModificationApercu" type="radio" value="paires" /> Paires</label>
+              <label><input name="porteeModificationApercu" type="radio" value="impaires" /> Impaires</label>
+              <label><input name="porteeModificationApercu" type="radio" value="toutes" /> Toutes</label>
+            </fieldset>
             <div class="groupe-historique" aria-label="Historique des modifications">
               <button class="bouton bouton-secondaire bouton-historique" id="annulerReglage" type="button" disabled aria-label="Annuler la dernière modification" title="Annuler">↶</button>
               <button class="bouton bouton-secondaire bouton-historique" id="retablirReglage" type="button" disabled aria-label="Rétablir la modification annulée" title="Rétablir">↷</button>
@@ -755,7 +745,7 @@
             <button class="bouton bouton-secondaire" id="teinte" type="button">Teinte</button>
             <button class="bouton bouton-secondaire" id="reinitialiserReglage" type="button" aria-label="Revenir au style par défaut" title="Style par défaut">Reset</button>
             <button class="bouton bouton-secondaire bouton-afficher-favoris" id="ouvrirFavoris" type="button" aria-expanded="false" hidden>Favoris</button>
-            <button class="bouton bouton-secondaire" id="ouvrirJukebox" type="button" hidden>Grille</button>
+            <button class="bouton bouton-secondaire" id="ouvrirJukebox" type="button" hidden>Prévisualisation</button>
             <button class="bouton bouton-principal" id="imprimer" type="button">Imprimer</button>
           </div>
           <section class="accueil-apercu" id="accueilApercu">

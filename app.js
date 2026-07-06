@@ -91,8 +91,8 @@ const elements = {
   assistantNavigation: document.querySelector("#assistantNavigation"),
   assistantPrecedent: document.querySelector("#assistantPrecedent"),
   assistantSuivant: document.querySelector("#assistantSuivant"),
-  nombreEtiquettes: document.querySelector("#nombreEtiquettes"),
-  modeModificationEtiquettes: document.querySelectorAll('input[name="modeModificationEtiquettes"]'),
+  porteeModificationApercu: document.querySelector("#porteeModificationApercu"),
+  porteeModificationApercuOptions: document.querySelectorAll('input[name="porteeModificationApercu"]'),
   panneauxReglages: document.querySelectorAll("[data-tab-panel]"),
   ouvrirSoutien: document.querySelector("#ouvrirSoutien"),
   ouvrirSoutienMenu: document.querySelector("#ouvrirSoutienMenu"),
@@ -287,17 +287,13 @@ const elements = {
   largeurEtiquette: document.querySelector("#largeurEtiquette"),
   hauteurEtiquette: document.querySelector("#hauteurEtiquette"),
   messageDimensions: document.querySelector("#messageDimensions"),
-  importStyleFile: document.querySelector("#importStyleFile"),
-  importSauvegardeFile: document.querySelector("#importSauvegardeFile"),
+  importFichierUnique: document.querySelector("#importFichierUnique"),
   exporterSauvegardeDonnees: document.querySelector("#exporterSauvegardeDonnees"),
-  importerSauvegardeDonnees: document.querySelector("#importerSauvegardeDonnees"),
   exporterSauvegardeFavoris: document.querySelector("#exporterSauvegardeFavoris"),
-  importerSauvegardeFavoris: document.querySelector("#importerSauvegardeFavoris"),
-  importerStyleDonnees: document.querySelector("#importerStyleDonnees"),
+  importerFichierDonnees: document.querySelector("#importerFichierDonnees"),
+  importerFichierFavoris: document.querySelector("#importerFichierFavoris"),
   copierReglagesDonnees: document.querySelector("#copierReglagesDonnees"),
   importCsv: document.querySelector("#importCsv"),
-  choisirCsv: document.querySelector("#choisirCsv"),
-  choisirCsvSauvegarde: document.querySelector("#choisirCsvSauvegarde"),
   ouvrirTableauCsv: document.querySelector("#ouvrirTableauCsv"),
   ouvrirTableauCsvApercu: document.querySelector("#ouvrirTableauCsvApercu"),
   ouvrirJukebox: document.querySelector("#ouvrirJukebox"),
@@ -307,7 +303,6 @@ const elements = {
   texteArtiste: document.querySelector("#texteArtiste"),
   texteFaceB: document.querySelector("#texteFaceB"),
   copierReglagesFavoris: document.querySelector("#copierReglagesFavoris"),
-  importerReglagesFavoris: document.querySelector("#importerReglagesFavoris"),
   aimerReglage: document.querySelector("#aimerReglage"),
   ouvrirFavoris: document.querySelector("#ouvrirFavoris"),
   listeFavoris: document.querySelector("#listeFavoris"),
@@ -361,7 +356,6 @@ const PALETTES_TEINTES = [
 let vinyles = [];
 let indexApercu = 0;
 let etiquetteActive = "1";
-let modeModificationEtiquettes = "toutes";
 let porteeModificationGrilleJukebox = "selection";
 let stylesVerrouillesParLigne = {};
 let reglagesParLigne = {};
@@ -444,7 +438,6 @@ async function initialiser() {
   installerAidesOptions();
   mettreAJourBoutonsInstallation(true);
   await chargerBibliotheque();
-  elements.nombreEtiquettes.value = String(Math.max(1, vinyles.length));
   mettreAJourGalerieModeles();
   mettreAJour();
   afficherFavoris();
@@ -557,9 +550,13 @@ function brancherEvenements() {
   elements.modelesAccueilSuivant.addEventListener("click", () => changerPageModelesAccueil(1));
   elements.assistantPrecedent.addEventListener("click", () => naviguerAssistant(-1));
   elements.assistantSuivant.addEventListener("click", naviguerAssistantSuivant);
-  elements.modeModificationEtiquettes.forEach((radio) => {
+  elements.porteeModificationApercuOptions.forEach((radio) => {
     radio.addEventListener("change", () => {
-      modeModificationEtiquettes = obtenirModeModificationEtiquettes();
+      if (!radio.checked) {
+        return;
+      }
+      porteeModificationGrilleJukebox = radio.value;
+      synchroniserPorteeModificationApercu();
       sauvegarderReglagesAutomatiques();
     });
   });
@@ -614,18 +611,13 @@ function brancherEvenements() {
   elements.reinitialiserReglage.addEventListener("click", reinitialiserStyleDefaut);
   elements.copierReglagesFavoris.addEventListener("click", copierReglages);
   elements.copierReglagesDonnees.addEventListener("click", copierReglages);
-  elements.importerReglagesFavoris.addEventListener("click", importerReglages);
-  elements.importerStyleDonnees.addEventListener("click", importerReglages);
-  elements.importStyleFile.addEventListener("change", importerReglagesDepuisFichier);
   [elements.exporterSauvegardeDonnees, elements.exporterSauvegardeFavoris].forEach((bouton) => {
     bouton.addEventListener("click", exporterSauvegardeSession);
   });
-  [elements.importerSauvegardeDonnees, elements.importerSauvegardeFavoris].forEach((bouton) => {
-    bouton.addEventListener("click", demanderImportSauvegardeSession);
+  [elements.importerFichierDonnees, elements.importerFichierFavoris].forEach((bouton) => {
+    bouton.addEventListener("click", demanderImportFichierUnique);
   });
-  elements.importSauvegardeFile.addEventListener("change", importerSauvegardeSessionDepuisFichier);
-  elements.choisirCsv.addEventListener("click", demanderImportCsv);
-  elements.choisirCsvSauvegarde.addEventListener("click", demanderImportCsv);
+  elements.importFichierUnique.addEventListener("change", importerFichierUniqueDepuisFichier);
   elements.importCsv.addEventListener("change", importerCsvUtilisateur);
   elements.exporterCsv.addEventListener("click", exporterCsv);
   elements.exporterCsvSauvegarde.addEventListener("click", exporterCsv);
@@ -806,10 +798,10 @@ function restaurerReglagesAutomatiques() {
 
     reglagesParEtiquette[1] = reglagesPrincipaux;
     reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
-    modeModificationEtiquettes = validerModeModificationEtiquettes(sauvegarde.modeModificationEtiquettes);
-    elements.modeModificationEtiquettes.forEach((radio) => {
-      radio.checked = radio.value === modeModificationEtiquettes;
-    });
+    porteeModificationGrilleJukebox = ["selection", "paires", "impaires", "toutes"].includes(sauvegarde.porteeModificationEtiquettes)
+      ? sauvegarde.porteeModificationEtiquettes
+      : "selection";
+    synchroniserPorteeModificationApercu();
     stylesVerrouillesParLigne = { ...(sauvegarde.stylesVerrouillesParLigne || {}) };
     reglagesParLigne = Object.fromEntries(
       Object.entries(sauvegarde.reglagesParLigne || {}).map(([cle, reglages]) => [
@@ -876,7 +868,7 @@ function sauvegarderReglagesAutomatiques() {
       sauvegardeLe: new Date().toISOString(),
       etiquetteActive,
       deuxiemeEtiquetteActive: deuxiemeEtiquetteActive(),
-      modeModificationEtiquettes,
+      porteeModificationEtiquettes: porteeModificationGrilleJukebox,
       stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
       reglagesParLigne: clonerReglages(reglagesParLigne),
       reglagesBrouillonParLigne: clonerReglages(reglagesBrouillonParLigne),
@@ -2164,9 +2156,6 @@ function revenirSelectionAccueil() {
 function naviguerAssistantSuivant() {
   const etapes = etapesAssistantDisponibles();
   const index = indexEtapeAssistantActive();
-  if (etapeReglageActive === "organisation") {
-    appliquerOrganisationEtiquettes();
-  }
   if (index >= etapes.length - 1) {
     imprimer();
     return;
@@ -2174,22 +2163,16 @@ function naviguerAssistantSuivant() {
   activerEtapeReglage(etapes[index + 1]);
 }
 
-function obtenirModeModificationEtiquettes() {
-  return [...elements.modeModificationEtiquettes].find((radio) => radio.checked)?.value || "toutes";
-}
-
-function validerModeModificationEtiquettes(valeur) {
-  if (valeur === "toutes" || valeur === "individuel") {
-    return valeur;
+function synchroniserPorteeModificationApercu() {
+  elements.porteeModificationApercuOptions?.forEach((radio) => {
+    radio.checked = radio.value === porteeModificationGrilleJukebox;
+  });
+  if (elementsGrilleJukeboxInline) {
+    elementsGrilleJukeboxInline.radioPorteeSelection.checked = porteeModificationGrilleJukebox === "selection";
+    elementsGrilleJukeboxInline.radioPorteePaires.checked = porteeModificationGrilleJukebox === "paires";
+    elementsGrilleJukeboxInline.radioPorteeImpaires.checked = porteeModificationGrilleJukebox === "impaires";
+    elementsGrilleJukeboxInline.radioPorteeToutes.checked = porteeModificationGrilleJukebox === "toutes";
   }
-  throw new Error(traduirePhrase("Format de sauvegarde invalide."));
-}
-
-function obtenirModeModificationEffectif() {
-  if (grilleJukeboxInlineOuverte && porteeModificationGrilleJukebox === "selection") {
-    return "individuel";
-  }
-  return modeModificationEtiquettes;
 }
 
 function obtenirClesLignesPourPorteeGrille(portee) {
@@ -2225,45 +2208,6 @@ function enregistrerBrouillonReglagesSurLigne(cle, reglages) {
     return;
   }
   reglagesBrouillonParLigne[cle] = clonerReglages(reglages);
-}
-
-function appliquerOrganisationEtiquettes() {
-  modeModificationEtiquettes = obtenirModeModificationEtiquettes();
-  const total = Math.max(1, Math.min(500, Math.round(Number(elements.nombreEtiquettes.value) || vinyles.length || 1)));
-  elements.nombreEtiquettes.value = String(total);
-  ajusterNombreEtiquettes(total);
-  sauvegarderReglagesAutomatiques();
-}
-
-function ajusterNombreEtiquettes(total) {
-  synchroniserReferenceOrganisation();
-  vinyles = Array.from({ length: total }, (_, index) => {
-    const entree = vinyles[index] || vinylesReferenceOrganisation[index];
-    return entree ? { ...entree } : creerVinyleVide(index);
-  });
-  stylesVerrouillesParLigne = Object.fromEntries(
-    Object.entries(stylesVerrouillesParLigne).filter(([cle]) => Number(cle) < total),
-  );
-  reglagesParLigne = Object.fromEntries(
-    Object.entries(reglagesParLigne).filter(([cle]) => Number(cle) < total),
-  );
-  reglagesBrouillonParLigne = Object.fromEntries(
-    Object.entries(reglagesBrouillonParLigne).filter(([cle]) => Number(cle) < total),
-  );
-  finaliserChangementTableau();
-}
-
-function creerVinyleVide(index) {
-  return {
-    emplacement: "jukebox",
-    position_jukebox: "",
-    selection_face_a: "",
-    selection_face_b: "",
-    artiste: "",
-    titre_face_a: "",
-    titre_face_b: "",
-    __ordreOriginal: index,
-  };
 }
 
 function synchroniserReferenceOrganisation() {
@@ -2333,23 +2277,27 @@ async function importerCsvUtilisateur() {
     return;
   }
   try {
-    const texte = await fichier.text();
-    const nouveauxVinyles = parserCsvVinyles(texte);
-    if (!nouveauxVinyles.length) {
-      window.alert(traduirePhrase("Le CSV ne contient aucune entrée exploitable."));
-      return;
-    }
-    vinyles = nouveauxVinyles;
-    vinylesReferenceOrganisation = nouveauxVinyles.map((vinyle) => ({ ...vinyle }));
-    memoriserOrdreOriginal();
-    indexApercu = 0;
-    sauvegarderCsvLocal();
-    rendreTableauCsvActif?.();
-    mettreAJourGalerieModeles();
-    mettreAJour();
+    appliquerCsvImporte(await fichier.text());
+  } catch (erreur) {
+    window.alert(erreur.message || traduirePhrase("Impossible d’importer ce fichier."));
   } finally {
     elements.importCsv.value = "";
   }
+}
+
+function appliquerCsvImporte(texte) {
+  const nouveauxVinyles = parserCsvVinyles(texte);
+  if (!nouveauxVinyles.length) {
+    throw new Error(traduirePhrase("Le CSV ne contient aucune entrée exploitable."));
+  }
+  vinyles = nouveauxVinyles;
+  vinylesReferenceOrganisation = nouveauxVinyles.map((vinyle) => ({ ...vinyle }));
+  memoriserOrdreOriginal();
+  indexApercu = 0;
+  sauvegarderCsvLocal();
+  rendreTableauCsvActif?.();
+  mettreAJourGalerieModeles();
+  mettreAJour();
 }
 
 function demanderImportCsv() {
@@ -2954,7 +2902,7 @@ function choisirModeleDepuisAccueil(evenement) {
   if (bouton.dataset.styleId) {
     afficherApercuApresChoixModele();
     if (appliquerStyleEtiquetteEnregistre(bouton.dataset.styleId)) {
-      activerEtapeReglage("organisation");
+      activerEtapeReglage("reglages");
       mettreAJour();
       return;
     }
@@ -2967,7 +2915,7 @@ function choisirModeleDepuisAccueil(evenement) {
     return;
   }
   afficherApercuApresChoixModele();
-  activerEtapeReglage("organisation");
+  activerEtapeReglage("reglages");
   mettreAJour();
 }
 
@@ -3118,7 +3066,7 @@ function mettreAJourVerrouillageStyle() {
   elements.verrouillerStyle.classList.toggle("is-verrouille", verrouille);
 
   elements.panneauxReglages.forEach((panneau) => {
-    const verrouillable = !["organisation", "style", "reglages", "donnees", "favoris"].includes(panneau.dataset.tabPanel);
+    const verrouillable = !["style", "reglages", "donnees", "favoris"].includes(panneau.dataset.tabPanel);
     const panneauVerrouille = verrouille && verrouillable;
     const message = obtenirMessagePanneauVerrouille(panneau);
     mettreAJourBoutonMessageVerrouillage(message, verrouille, libelle);
@@ -3152,13 +3100,10 @@ function mettreAJourVerrouillageStyle() {
   [
     elements.inverser,
     elements.teinte,
-    elements.importerStyleDonnees,
-    elements.importerReglagesFavoris,
   ].filter(Boolean).forEach((bouton) => {
     bouton.disabled = verrouille;
   });
   mettreAJourEtatBoutonReset(verrouille);
-  elements.importStyleFile.disabled = verrouille;
   const clePrincipale = obtenirCleLigneApercu("1");
   const cleSecondaire = obtenirCleLigneApercu("2");
   elements.apercu.classList.toggle("is-verrouillee", clePrincipale !== null && Boolean(stylesVerrouillesParLigne[clePrincipale]));
@@ -4157,7 +4102,7 @@ function lireReglages(numero = etiquetteActive, ligne = null) {
 
 function enregistrerReglagesActifs() {
   const reglages = lireReglagesFormulaire();
-  if (grilleJukeboxInlineOuverte && porteeModificationGrilleJukebox !== "toutes") {
+  if (grilleJukeboxInlineOuverte || porteeModificationGrilleJukebox !== "selection") {
     enregistrerReglagesSurLignes(obtenirClesLignesPourPorteeGrille(porteeModificationGrilleJukebox), reglages);
     sauvegarderReglagesAutomatiques();
     return;
@@ -4166,25 +4111,14 @@ function enregistrerReglagesActifs() {
     enregistrerDimensionsEtiquettesVerrouillees(reglages);
     return;
   }
-  if (obtenirModeModificationEffectif() === "individuel") {
+  if (porteeModificationGrilleJukebox === "selection") {
     enregistrerBrouillonReglagesSurLigne(obtenirCleLigneApercu(), reglages);
     sauvegarderReglagesAutomatiques();
-    return;
   }
-  if (obtenirModeModificationEffectif() === "toutes") {
-    if (deuxiemeEtiquetteActive()) {
-      reglagesParEtiquette[etiquetteActive] = clonerReglages(reglages);
-    } else if (etiquetteActive === "1") {
-      reglagesParEtiquette[1] = clonerReglages(reglages);
-    }
-  } else {
-    reglagesParEtiquette[etiquetteActive] = reglages;
-  }
-  sauvegarderReglagesAutomatiques();
 }
 
 function verrouillerEtiquetteActiveAutomatiquement() {
-  if (obtenirModeModificationEffectif() !== "individuel" || styleActifVerrouille()) {
+  if (porteeModificationGrilleJukebox !== "selection" || styleActifVerrouille()) {
     return;
   }
   const cle = obtenirCleLigneApercu();
@@ -5193,7 +5127,7 @@ function creerSauvegardeSession() {
     session: {
       etiquetteActive: actif,
       deuxiemeEtiquetteActive: deuxiemeEtiquetteActive(),
-      modeModificationEtiquettes,
+      porteeModificationEtiquettes: porteeModificationGrilleJukebox,
       indexApercu,
       etapeReglageActive,
       stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
@@ -5230,27 +5164,6 @@ function exporterSauvegardeSession(evenement) {
   }, 1400);
 }
 
-function demanderImportSauvegardeSession() {
-  elements.importSauvegardeFile.value = "";
-  elements.importSauvegardeFile.click();
-}
-
-async function importerSauvegardeSessionDepuisFichier(evenement) {
-  const fichier = evenement.target.files?.[0];
-  if (!fichier) {
-    return;
-  }
-  try {
-    const donnees = JSON.parse(await fichier.text());
-    restaurerSauvegardeSession(donnees);
-    window.alert(traduirePhrase("Sauvegarde restaurée."));
-  } catch (erreur) {
-    window.alert(erreur.message || traduirePhrase("Impossible d’importer cette sauvegarde."));
-  } finally {
-    evenement.target.value = "";
-  }
-}
-
 function restaurerSauvegardeSession(donnees) {
   if (donnees?.type !== "45ojuke-session" || donnees.version !== 1 || !donnees.session?.reglages?.["1"]) {
     throw new Error(traduirePhrase("Format de sauvegarde invalide."));
@@ -5268,10 +5181,10 @@ function restaurerSauvegardeSession(donnees) {
 
   reglagesParEtiquette[1] = reglagesPrincipaux;
   reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
-  modeModificationEtiquettes = validerModeModificationEtiquettes(session.modeModificationEtiquettes);
-  elements.modeModificationEtiquettes.forEach((radio) => {
-    radio.checked = radio.value === modeModificationEtiquettes;
-  });
+  porteeModificationGrilleJukebox = ["selection", "paires", "impaires", "toutes"].includes(session.porteeModificationEtiquettes)
+    ? session.porteeModificationEtiquettes
+    : "selection";
+  synchroniserPorteeModificationApercu();
   stylesVerrouillesParLigne = { ...(session.stylesVerrouillesParLigne || {}) };
   reglagesParLigne = Object.fromEntries(
     Object.entries(session.reglagesParLigne || {}).map(([cle, reglages]) => [
@@ -5291,7 +5204,6 @@ function restaurerSauvegardeSession(donnees) {
       ? Number(vinyle.__ordreOriginal)
       : index,
   }));
-  elements.nombreEtiquettes.value = String(Math.max(1, vinyles.length));
   enregistrerFavoris(Array.isArray(session.favoris) ? session.favoris : []);
   memoriserOrdreOriginal();
   indexApercu = Math.max(0, Math.min(Number(session.indexApercu) || 0, Math.max(0, vinyles.length - 1)));
@@ -5440,28 +5352,70 @@ function redimensionnerCanvasPourEmail(source) {
   return canvas;
 }
 
-function importerReglages() {
-  elements.importStyleFile.value = "";
-  elements.importStyleFile.click();
+function demanderImportFichierUnique() {
+  elements.importFichierUnique.value = "";
+  elements.importFichierUnique.click();
 }
 
-async function importerReglagesDepuisFichier(evenement) {
+async function importerFichierUniqueDepuisFichier(evenement) {
   const fichier = evenement.target.files?.[0];
   if (!fichier) {
     return;
   }
   try {
     const texte = await fichier.text();
-    const reglages = normaliserReglagesImportes(JSON.parse(texte));
+    importerFichierSelonContenu(texte);
+  } catch (erreur) {
+    window.alert(erreur.message || traduirePhrase("Impossible d’importer ce fichier."));
+  } finally {
+    evenement.target.value = "";
+  }
+}
+
+function importerFichierSelonContenu(texte) {
+  const contenu = String(texte || "").trim();
+  if (!contenu) {
+    throw new Error(traduirePhrase("Impossible d’importer ce fichier."));
+  }
+
+  try {
+    const donnees = JSON.parse(contenu);
+    if (estSauvegardeSession(donnees)) {
+      restaurerSauvegardeSession(donnees);
+      window.alert(traduirePhrase("Sauvegarde restaurée."));
+      return;
+    }
+    if (styleActifVerrouille()) {
+      throw new Error(traduirePhrase("Style verrouillé : déverrouillez l’étiquette avant d’importer un style."));
+    }
+    const reglages = normaliserReglagesImportes(donnees);
     enregistrerHistoriqueAvantAction();
     appliquerReglagesAuFormulaire(reglages);
     enregistrerReglagesActifs();
     mettreAJour();
-  } catch (erreur) {
-    window.alert(erreur.message || traduirePhrase("Impossible d'importer ces réglages."));
-  } finally {
-    evenement.target.value = "";
+    window.alert(traduirePhrase("Style importé."));
+    return;
+  } catch (erreurJson) {
+    if (ressembleAJson(contenu)) {
+      throw erreurJson;
+    }
   }
+
+  appliquerCsvImporte(contenu);
+  window.alert(traduirePhrase("CSV importé."));
+}
+
+function estSauvegardeSession(donnees) {
+  return Boolean(
+    donnees
+    && typeof donnees === "object"
+    && !Array.isArray(donnees)
+    && (donnees.type === "45ojuke-session" || donnees.session),
+  );
+}
+
+function ressembleAJson(texte) {
+  return /^[{\[]/.test(String(texte || "").trim());
 }
 
 function normaliserReglagesStyle(reglagesStyle) {
@@ -6606,10 +6560,7 @@ function mettreAJourActionsGrilleJukeboxInline() {
     return;
   }
   elementsGrilleJukeboxInline.libelleSelection.textContent = `${traduirePhrase("Étiquette")} ${ligne.numeroTableau} ${traduirePhrase("sélectionnée")}`;
-  elementsGrilleJukeboxInline.radioPorteeSelection.checked = porteeModificationGrilleJukebox === "selection";
-  elementsGrilleJukeboxInline.radioPorteePaires.checked = porteeModificationGrilleJukebox === "paires";
-  elementsGrilleJukeboxInline.radioPorteeImpaires.checked = porteeModificationGrilleJukebox === "impaires";
-  elementsGrilleJukeboxInline.radioPorteeToutes.checked = porteeModificationGrilleJukebox === "toutes";
+  synchroniserPorteeModificationApercu();
   mettreAJourActionsRapidesGrilleJukeboxInline();
   const parite = ligne.numeroTableau % 2;
   const actionAlternance = varianteGrillePretePourAlternance?.index === indexApercu ? varianteGrillePretePourAlternance : null;
@@ -6666,13 +6617,13 @@ function creerPanneauGrilleJukeboxInline() {
   panneauGrilleJukeboxInline = document.createElement("section");
   panneauGrilleJukeboxInline.className = "jukebox-inline";
   panneauGrilleJukeboxInline.hidden = true;
-  panneauGrilleJukeboxInline.setAttribute("aria-label", traduirePhrase("Grille Jukebox"));
+  panneauGrilleJukeboxInline.setAttribute("aria-label", traduirePhrase("Prévisualisation"));
 
   const entete = document.createElement("div");
   entete.className = "jukebox-inline__entete";
 
   const titre = document.createElement("h3");
-  titre.textContent = traduirePhrase("Grille");
+  titre.textContent = traduirePhrase("Prévisualisation");
 
   const outils = document.createElement("div");
   outils.className = "jukebox-inline__outils";
@@ -6848,6 +6799,7 @@ function creerPanneauGrilleJukeboxInline() {
   boutonModifierStyle.addEventListener("click", modifierStyleDepuisGrilleJukeboxInline);
   porteeSelection.addEventListener("change", () => {
     porteeModificationGrilleJukebox = porteeSelection.querySelector('input[name="porteeModificationGrilleJukebox"]:checked')?.value || "selection";
+    synchroniserPorteeModificationApercu();
     mettreAJourActionsGrilleJukeboxInline();
   });
   boutonChangerEtiquette.addEventListener("click", ouvrirModeles);
@@ -7263,13 +7215,31 @@ function obtenirReglagesModeleJukebox(cible, modele) {
   };
 }
 
+function obtenirClesApplicationModeleJukebox(cible) {
+  if (!grilleJukeboxInlineOuverte) {
+    return [String(cible)];
+  }
+  if (porteeModificationGrilleJukebox === "selection") {
+    return [String(cible)];
+  }
+  return obtenirClesLignesPourPorteeGrille(porteeModificationGrilleJukebox);
+}
+
 function appliquerModeleJukebox(cible, modele) {
   if (!vinyles[cible]) {
     completerVinylesJukebox(cible + 1);
   }
-  const reglages = obtenirReglagesModeleJukebox(cible, modele);
-  stylesVerrouillesParLigne[String(cible)] = true;
-  reglagesParLigne[String(cible)] = clonerReglages(reglages);
+  const cles = obtenirClesApplicationModeleJukebox(cible);
+  cles.forEach((cle) => {
+    const index = Number(cle);
+    if (!vinyles[index]) {
+      completerVinylesJukebox(index + 1);
+    }
+    const reglages = obtenirReglagesModeleJukebox(index, modele);
+    stylesVerrouillesParLigne[cle] = true;
+    reglagesParLigne[cle] = clonerReglages(reglages);
+    delete reglagesBrouillonParLigne[cle];
+  });
   indexApercu = cible;
   placerFenetreGrilleJukeboxSurIndex(indexApercu);
   sauvegarderReglagesAutomatiques();

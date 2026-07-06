@@ -1281,63 +1281,6 @@ body.is-accueil-selection .seo-accueil {
   display: none !important;
 }
 
-.grille.grille-organisation {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
-}
-
-.choix-modification-etiquettes {
-  margin: 0;
-  border: 0;
-  padding: 0;
-}
-
-.choix-modification-etiquettes legend {
-  margin-bottom: 8px;
-  color: var(--accent-2);
-  font-size: 0.82rem;
-  font-weight: 950;
-}
-
-.choix-modification-etiquettes label {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-  border: 1px solid var(--bordure);
-  border-radius: 9px;
-  padding: 11px;
-  background: rgba(255, 255, 255, 0.58);
-  cursor: pointer;
-}
-
-.choix-modification-etiquettes label:has(input:checked) {
-  border-color: rgba(145, 26, 16, 0.55);
-  background: rgba(145, 26, 16, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(145, 26, 16, 0.1);
-}
-
-.choix-modification-etiquettes input {
-  margin-top: 3px;
-}
-
-.choix-modification-etiquettes span {
-  display: grid;
-  gap: 3px;
-}
-
-.choix-modification-etiquettes strong {
-  color: var(--accent-2);
-  font-size: 0.82rem;
-}
-
-.choix-modification-etiquettes small {
-  color: var(--texte-doux);
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
 .grille {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2908,6 +2851,50 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   overflow-wrap: normal;
 }
 
+.portee-modification-apercu {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  margin: 0;
+  padding: 3px 5px;
+  border: 1px solid rgba(138, 85, 53, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 250, 241, 0.72);
+  white-space: nowrap;
+}
+
+.portee-modification-apercu legend {
+  padding: 0 4px;
+  color: var(--accent-2);
+  font-size: 0.62rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.portee-modification-apercu label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 24px;
+  padding: 0 7px;
+  border-radius: 5px;
+  color: var(--accent-2);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.portee-modification-apercu label:has(input:checked) {
+  background: var(--accent-2);
+  color: #fffaf0;
+}
+
+.portee-modification-apercu input {
+  accent-color: currentColor;
+}
+
 #ouvrirJukebox {
   display: inline-flex;
 }
@@ -3024,6 +3011,10 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   gap: 8px;
 }
 
+.bloc-fichier__actions .bouton:only-child {
+  grid-column: 1 / -1;
+}
+
 .bloc-fichier__actions .bouton {
   min-height: 42px;
   padding-inline: 8px;
@@ -3031,6 +3022,13 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   overflow-wrap: normal;
   word-break: normal;
   hyphens: none;
+}
+
+.bloc-fichier__description {
+  margin: 0;
+  color: var(--texte-doux);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .selecteur-etiquette {
@@ -3907,12 +3905,13 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 }
 
 .jukebox-inline__modeles {
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-  max-height: 178px;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 180px));
+  justify-content: start;
+  max-height: 118px;
   overflow: auto;
   border: 1px solid rgba(138, 85, 53, 0.14);
   border-radius: 8px;
-  padding: 8px;
+  padding: 6px;
   background: rgba(255, 250, 241, 0.78);
 }
 
@@ -3955,7 +3954,7 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 .jukebox-modeles {
   display: grid;
   align-content: start;
-  gap: 8px;
+  gap: 6px;
 }
 
 .jukebox-modeles[hidden] {
@@ -3965,10 +3964,10 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 .jukebox-modele {
   min-width: 0;
   display: grid;
-  gap: 5px;
+  align-content: center;
   border: 1px solid rgba(138, 85, 53, 0.2);
   border-radius: 8px;
-  padding: 7px;
+  padding: 5px;
   background: rgba(255, 253, 247, 0.86);
   color: var(--accent-2);
   cursor: grab;
@@ -3994,8 +3993,12 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 }
 
 .jukebox-modele span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
