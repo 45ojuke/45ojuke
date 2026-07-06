@@ -3748,28 +3748,24 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 
 @media screen and (min-width: 861px) {
   body.is-grille-jukebox-disponible:not(.is-accueil-selection) .jukebox-inline {
-    position: sticky;
+    position: relative;
     z-index: 1;
-    top: calc(var(--top-apercu-sticky) + var(--hauteur-apercu, 390px) + 12px);
     grid-column: 3;
     grid-row: 3;
     align-self: start;
     height: auto;
-    overflow: hidden;
-    transform: translateY(var(--decalage-grille-sticky, 0px));
-    will-change: transform;
+    overflow: visible;
   }
 
   body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .jukebox-inline {
     height: auto;
-    min-height: var(--hauteur-grille);
-    overflow: hidden;
+    min-height: 0;
+    overflow: visible;
   }
 
   body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .jukebox-inline__grille {
     min-height: 0;
-    overflow: auto;
-    overscroll-behavior: contain;
+    overflow: visible;
   }
 }
 
@@ -3933,7 +3929,7 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 .jukebox-inline__grille {
   min-height: 0;
   max-height: none;
-  overflow: auto;
+  overflow: visible;
 }
 
 .jukebox-outils__champ {
@@ -4022,7 +4018,7 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   grid-auto-columns: minmax(96px, 1fr);
   align-items: start;
   gap: 8px;
-  overflow: auto;
+  overflow: visible;
   border: 1px solid rgba(138, 85, 53, 0.18);
   border-radius: 10px;
   padding: 10px;
