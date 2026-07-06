@@ -365,6 +365,7 @@ let modeModificationEtiquettes = "toutes";
 let porteeModificationGrilleJukebox = "selection";
 let stylesVerrouillesParLigne = {};
 let reglagesParLigne = {};
+let reglagesBrouillonParLigne = {};
 let modeleChoisi = false;
 let chargementReglages = false;
 let temporisateurRedimensionnement = null;
@@ -816,6 +817,12 @@ function restaurerReglagesAutomatiques() {
         normaliserReglagesImportes(reglages),
       ]),
     );
+    reglagesBrouillonParLigne = Object.fromEntries(
+      Object.entries(sauvegarde.reglagesBrouillonParLigne || {}).map(([cle, reglages]) => [
+        cle,
+        normaliserReglagesImportes(reglages),
+      ]),
+    );
     synchroniserBoutonDeuxiemeEtiquette(secondeActive);
     if (secondeActive) {
       elements.modeleSecondaire.value = reglagesSecondaires.modele;
@@ -872,6 +879,7 @@ function sauvegarderReglagesAutomatiques() {
       modeModificationEtiquettes,
       stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
       reglagesParLigne: clonerReglages(reglagesParLigne),
+      reglagesBrouillonParLigne: clonerReglages(reglagesBrouillonParLigne),
       reglages: {
         1: etiquetteActive === "1" ? reglagesActifs : reglagesParEtiquette[1],
         2: deuxiemeEtiquetteActive()
@@ -2196,6 +2204,11 @@ function obtenirClesLignesPourPorteeGrille(portee) {
       .filter(({ ligne, index }) => ligne && (index + 1) % 2 === parite)
       .map(({ index }) => String(index));
   }
+  if (portee === "toutes") {
+    return obtenirLignes()
+      .map((ligne, index) => (ligne ? String(index) : null))
+      .filter((cle) => cle !== null);
+  }
   return [];
 }
 
@@ -2203,7 +2216,15 @@ function enregistrerReglagesSurLignes(cles, reglages) {
   cles.forEach((cle) => {
     stylesVerrouillesParLigne[cle] = true;
     reglagesParLigne[cle] = clonerReglages(reglages);
+    delete reglagesBrouillonParLigne[cle];
   });
+}
+
+function enregistrerBrouillonReglagesSurLigne(cle, reglages) {
+  if (cle === null) {
+    return;
+  }
+  reglagesBrouillonParLigne[cle] = clonerReglages(reglages);
 }
 
 function appliquerOrganisationEtiquettes() {
@@ -2225,6 +2246,9 @@ function ajusterNombreEtiquettes(total) {
   );
   reglagesParLigne = Object.fromEntries(
     Object.entries(reglagesParLigne).filter(([cle]) => Number(cle) < total),
+  );
+  reglagesBrouillonParLigne = Object.fromEntries(
+    Object.entries(reglagesBrouillonParLigne).filter(([cle]) => Number(cle) < total),
   );
   finaliserChangementTableau();
 }
@@ -2998,42 +3022,45 @@ function definirVerrouillageLigne(cle, verrouiller, reglages = null) {
   if (verrouiller) {
     stylesVerrouillesParLigne[cle] = true;
     reglagesParLigne[cle] = clonerReglages(reglages || reglagesParLigne[cle]) || lireReglagesFormulaire();
+    delete reglagesBrouillonParLigne[cle];
     return;
+  }
+  if (reglagesParLigne[cle]) {
+    reglagesBrouillonParLigne[cle] = clonerReglages(reglagesParLigne[cle]);
   }
   delete stylesVerrouillesParLigne[cle];
   delete reglagesParLigne[cle];
 }
 
-function appliquerChoixVerrouillageStyle(action) {
+function obtenirReglagesLigneParCle(cle) {
+  const index = Number(cle);
+  const ligne = obtenirLignes()[index] || null;
+  if (!ligne) {
+    return lireReglagesFormulaire();
+  }
+  return lireReglages("1", ligne);
+}
+
+function porteeVerrouillageEntierementVerrouillee(portee) {
+  const cles = obtenirClesLignesPourPorteeGrille(portee);
+  return cles.length > 0 && cles.every((cle) => Boolean(stylesVerrouillesParLigne[cle]));
+}
+
+function appliquerChoixVerrouillageStyle(portee) {
   enregistrerHistoriqueAvantAction();
   const cle = obtenirCleLigneApercu();
   if (cle === null) {
     return;
   }
-  if (action === "unique") {
-    const verrouiller = !stylesVerrouillesParLigne[cle];
-    if (verrouiller) {
-      definirVerrouillageLigne(cle, true);
-    } else {
-      const reglagesConserves = clonerReglages(reglagesParLigne[cle]) || lireReglagesFormulaire();
-      definirVerrouillageLigne(cle, false);
-      reglagesParEtiquette[etiquetteActive] = reglagesConserves;
-      appliquerReglagesAuFormulaire(reglagesConserves);
-    }
-  } else if (action === "paires" || action === "impaires") {
-    const parite = action === "paires" ? 0 : 1;
-    obtenirLignes().forEach((ligne, index) => {
-      if ((index + 1) % 2 === parite) {
-        definirVerrouillageLigne(String(index), true, lireReglages("1", ligne));
-      }
-    });
-  }
-  if (!stylesVerrouillesParLigne[cle]) {
-    const reglagesConserves = clonerReglages(reglagesParLigne[cle]) || lireReglagesFormulaire();
-    reglagesParEtiquette[etiquetteActive] = reglagesConserves;
-    appliquerReglagesAuFormulaire(reglagesConserves);
-  }
+  const cles = obtenirClesLignesPourPorteeGrille(portee);
+  const verrouiller = !porteeVerrouillageEntierementVerrouillee(portee);
+  cles.forEach((cleLigne) => definirVerrouillageLigne(
+    cleLigne,
+    verrouiller,
+    obtenirReglagesLigneParCle(cleLigne),
+  ));
   sauvegarderReglagesAutomatiques();
+  appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
   mettreAJour();
 }
 
@@ -3043,8 +3070,6 @@ function ouvrirChoixVerrouillageStyle() {
   if (cle === null || !ligne) {
     return;
   }
-  const pariteActive = ligne.numeroTableau % 2;
-  const optionsParite = [pariteActive, pariteActive === 0 ? 1 : 0];
   const dialogue = document.createElement("dialog");
   dialogue.className = "fenetre-import fenetre-verrouillage";
   const contenu = document.createElement("div");
@@ -3054,22 +3079,21 @@ function ouvrirChoixVerrouillageStyle() {
   titre.textContent = traduirePhrase("Verrouillage");
   const actions = document.createElement("div");
   actions.className = "fenetre-import__actions";
-  const boutonUnique = creerBoutonActionGrille(
-    stylesVerrouillesParLigne[cle]
-      ? traduirePhrase("Déverrouiller uniquement cette étiquette")
-      : traduirePhrase("Verrouiller uniquement cette étiquette"),
-    "principal",
-  );
-  boutonUnique.addEventListener("click", () => {
-    appliquerChoixVerrouillageStyle("unique");
-    dialogue.close();
-  });
-  actions.append(boutonUnique);
-  optionsParite.forEach((parite) => {
-    const action = parite === 0 ? "paires" : "impaires";
-    const bouton = creerBoutonActionGrille(`${traduirePhrase("Verrouiller toutes les étiquettes")} ${obtenirLibellePariteEtiquettes(parite)}`);
+  const optionsBase = [
+    ["selection", stylesVerrouillesParLigne[cle] ? "Déverrouiller uniquement cette étiquette" : "Verrouiller uniquement cette étiquette"],
+    ["paires", porteeVerrouillageEntierementVerrouillee("paires") ? "Déverrouiller toutes les étiquettes paires" : "Verrouiller toutes les étiquettes paires"],
+    ["impaires", porteeVerrouillageEntierementVerrouillee("impaires") ? "Déverrouiller toutes les étiquettes impaires" : "Verrouiller toutes les étiquettes impaires"],
+    ["toutes", porteeVerrouillageEntierementVerrouillee("toutes") ? "Déverrouiller toutes les étiquettes" : "Verrouiller toutes les étiquettes"],
+  ];
+  const porteePrincipale = grilleJukeboxInlineOuverte ? porteeModificationGrilleJukebox : "selection";
+  const options = [
+    ...optionsBase.filter(([portee]) => portee === porteePrincipale),
+    ...optionsBase.filter(([portee]) => portee !== porteePrincipale),
+  ];
+  options.forEach(([portee, libelle], index) => {
+    const bouton = creerBoutonActionGrille(traduirePhrase(libelle), index === 0 ? "principal" : "secondaire");
     bouton.addEventListener("click", () => {
-      appliquerChoixVerrouillageStyle(action);
+      appliquerChoixVerrouillageStyle(portee);
       dialogue.close();
     });
     actions.append(bouton);
@@ -3436,6 +3460,7 @@ function creerInstantaneReglages() {
     deuxiemeActive: deuxiemeEtiquetteActive(),
     stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
     reglagesParLigne: clonerReglages(reglagesParLigne),
+    reglagesBrouillonParLigne: clonerReglages(reglagesBrouillonParLigne),
     modeleSecondaire: elements.modeleSecondaire.value,
     reglagesParEtiquette: {
       1: clonerReglages(actif === "1" ? reglagesActifs : lireReglages("1")),
@@ -3604,6 +3629,7 @@ function restaurerInstantaneReglages(instantane) {
   reglagesParEtiquette[2] = clonerReglages(instantane.deuxiemeActive ? instantane.reglagesParEtiquette[2] : null);
   stylesVerrouillesParLigne = { ...(instantane.stylesVerrouillesParLigne || {}) };
   reglagesParLigne = clonerReglages(instantane.reglagesParLigne) || {};
+  reglagesBrouillonParLigne = clonerReglages(instantane.reglagesBrouillonParLigne) || {};
   etiquetteActive = instantane.etiquetteActive === "2" && instantane.deuxiemeActive ? "2" : "1";
   modeleChoisi = instantane.modeleChoisi;
   elements.modeleSecondaire.value = instantane.modeleSecondaire;
@@ -4119,6 +4145,9 @@ function lireReglages(numero = etiquetteActive, ligne = null) {
   if (cleLigne !== null && stylesVerrouillesParLigne[cleLigne] && reglagesParLigne[cleLigne]) {
     return reglagesParLigne[cleLigne];
   }
+  if (cleLigne !== null && reglagesBrouillonParLigne[cleLigne]) {
+    return reglagesBrouillonParLigne[cleLigne];
+  }
   if (numero === "2") {
     return reglagesParEtiquette[2] || creerReglagesSecondaires();
   }
@@ -4133,13 +4162,13 @@ function enregistrerReglagesActifs() {
     sauvegarderReglagesAutomatiques();
     return;
   }
-  if (obtenirModeModificationEffectif() === "individuel") {
-    enregistrerReglagesSurLignes(obtenirClesLignesPourPorteeGrille("selection"), reglages);
-    sauvegarderReglagesAutomatiques();
-    return;
-  }
   if (styleActifVerrouille()) {
     enregistrerDimensionsEtiquettesVerrouillees(reglages);
+    return;
+  }
+  if (obtenirModeModificationEffectif() === "individuel") {
+    enregistrerBrouillonReglagesSurLigne(obtenirCleLigneApercu(), reglages);
+    sauvegarderReglagesAutomatiques();
     return;
   }
   if (obtenirModeModificationEffectif() === "toutes") {
@@ -4162,10 +4191,10 @@ function verrouillerEtiquetteActiveAutomatiquement() {
   if (cle === null) {
     return;
   }
-  const reglages = lireReglagesFormulaire();
-  reglagesParEtiquette[etiquetteActive] = reglages;
+  const reglages = reglagesBrouillonParLigne[cle] || lireReglagesFormulaire();
   stylesVerrouillesParLigne[cle] = true;
   reglagesParLigne[cle] = clonerReglages(reglages);
+  delete reglagesBrouillonParLigne[cle];
   sauvegarderReglagesAutomatiques();
 }
 
@@ -5169,6 +5198,7 @@ function creerSauvegardeSession() {
       etapeReglageActive,
       stylesVerrouillesParLigne: { ...stylesVerrouillesParLigne },
       reglagesParLigne: clonerReglages(reglagesParLigne),
+      reglagesBrouillonParLigne: clonerReglages(reglagesBrouillonParLigne),
       reglages: {
         1: clonerReglages(actif === "1" ? reglagesActifs : lireReglages("1")),
         2: deuxiemeEtiquetteActive()
@@ -5245,6 +5275,12 @@ function restaurerSauvegardeSession(donnees) {
   stylesVerrouillesParLigne = { ...(session.stylesVerrouillesParLigne || {}) };
   reglagesParLigne = Object.fromEntries(
     Object.entries(session.reglagesParLigne || {}).map(([cle, reglages]) => [
+      cle,
+      normaliserReglagesImportes(reglages),
+    ]),
+  );
+  reglagesBrouillonParLigne = Object.fromEntries(
+    Object.entries(session.reglagesBrouillonParLigne || {}).map(([cle, reglages]) => [
       cle,
       normaliserReglagesImportes(reglages),
     ]),
@@ -7301,6 +7337,8 @@ function deplacerEtiquetteJukebox(source, cible) {
   const verrouCible = stylesVerrouillesParLigne[cleCible];
   const reglagesSource = reglagesParLigne[cleSource];
   const reglagesCible = reglagesParLigne[cleCible];
+  const brouillonSource = reglagesBrouillonParLigne[cleSource];
+  const brouillonCible = reglagesBrouillonParLigne[cleCible];
   if (verrouCible) {
     stylesVerrouillesParLigne[cleSource] = verrouCible;
   } else {
@@ -7320,6 +7358,16 @@ function deplacerEtiquetteJukebox(source, cible) {
     reglagesParLigne[cleCible] = reglagesSource;
   } else {
     delete reglagesParLigne[cleCible];
+  }
+  if (brouillonCible) {
+    reglagesBrouillonParLigne[cleSource] = brouillonCible;
+  } else {
+    delete reglagesBrouillonParLigne[cleSource];
+  }
+  if (brouillonSource) {
+    reglagesBrouillonParLigne[cleCible] = brouillonSource;
+  } else {
+    delete reglagesBrouillonParLigne[cleCible];
   }
   indexApercu = cible;
   finaliserChangementTableau();
