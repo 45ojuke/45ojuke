@@ -1148,9 +1148,10 @@ body.is-accueil-selection .seo-accueil {
 
   body.is-grille-jukebox-disponible:not(.is-accueil-selection) .controles {
     grid-column: 1;
-    grid-row: 1 / -1;
+    grid-row: 1;
     position: sticky;
     top: var(--top-apercu-sticky);
+    align-self: start;
     height: max-content;
   }
 
