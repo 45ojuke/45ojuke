@@ -44,7 +44,7 @@
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
     <link rel="apple-touch-icon" href="/Images/icons/apple-touch-icon.png" />
-    <link rel="preload" as="image" href="./Images/fond-45ojuke.webp" />
+    <link rel="preload" as="image" href="./Images/fond-45ojuke.webp" fetchpriority="high" />
     <link rel="stylesheet" href="./polices-locales.css" />
     <link rel="stylesheet" href="./style.css" />
     <script type="application/ld+json">
@@ -119,7 +119,7 @@
 
     <section class="intro" id="intro">
       <div class="intro-fond" id="introFond" aria-hidden="true">
-        <img src="./Images/fond-45ojuke.webp" alt="" draggable="false" />
+        <img src="./Images/fond-45ojuke.webp" alt="" width="3072" height="2048" decoding="async" fetchpriority="high" draggable="false" />
       </div>
       <div class="contenu-intro">
         <div class="bloc-titre">
@@ -221,7 +221,7 @@
       <section class="hero-site" aria-label="45'O'Juke">
         <div class="hero-site__contenu">
           <h1 class="visuellement-cache">45'O'Juke - Étiquettes jukebox personnalisées</h1>
-          <img class="hero-site__logo" src="./Images/titre.webp" alt="45'O'Juke - Étiquettes jukebox 100% personnalisables" />
+          <img class="hero-site__logo" src="./Images/titre.webp" alt="45'O'Juke - Étiquettes jukebox 100% personnalisables" width="2070" height="325" decoding="async" />
         </div>
       </section>
 
@@ -782,13 +782,13 @@
             <p class="aide-selection-etiquette" id="aideSelectionEtiquette" hidden>Cliquez sur une étiquette pour la modifier.</p>
             <button class="indicateur-swipe indicateur-swipe--precedent" id="indicateurSwipePrecedent" type="button" aria-label="Étiquette précédente" hidden>←</button>
             <div class="carrousel-etiquettes" id="carrouselEtiquettes" aria-label="Navigation des étiquettes">
-              <img class="apercu-image apercu-image--voisine apercu-image--precedente" id="apercuPrecedent" alt="Aperçu étiquette précédente" data-direction-carrousel="-1" hidden />
+              <img class="apercu-image apercu-image--voisine apercu-image--precedente" id="apercuPrecedent" alt="Aperçu étiquette précédente" decoding="async" data-direction-carrousel="-1" hidden />
               <div class="carrousel-etiquettes__centre">
-                <img class="apercu-image" id="apercu" alt="Aperçu étiquette Canvas" data-apercu-etiquette="1" />
-                <img class="apercu-image apercu-secondaire" id="apercuSecondaire" alt="Aperçu étiquette secondaire Canvas" data-apercu-etiquette="2" hidden />
+                <img class="apercu-image" id="apercu" alt="Aperçu étiquette Canvas" decoding="async" data-apercu-etiquette="1" />
+                <img class="apercu-image apercu-secondaire" id="apercuSecondaire" alt="Aperçu étiquette secondaire Canvas" decoding="async" data-apercu-etiquette="2" hidden />
                 <div class="zones-apercu" id="zonesApercu" aria-label="Zones modifiables de l’étiquette"></div>
               </div>
-              <img class="apercu-image apercu-image--voisine apercu-image--suivante" id="apercuSuivant" alt="Aperçu étiquette suivante" data-direction-carrousel="1" hidden />
+              <img class="apercu-image apercu-image--voisine apercu-image--suivante" id="apercuSuivant" alt="Aperçu étiquette suivante" decoding="async" data-direction-carrousel="1" hidden />
             </div>
             <p class="etat compteur-etiquette" id="etat">Chargement...</p>
             <button class="indicateur-swipe indicateur-swipe--suivant" id="indicateurSwipeSuivant" type="button" aria-label="Étiquette suivante" hidden>→</button>

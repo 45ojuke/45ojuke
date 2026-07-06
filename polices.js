@@ -62,6 +62,7 @@ export const GROUPES_POLICES = [
 const POLICES_PAR_ID = new Map(
   GROUPES_POLICES.flatMap((groupe) => groupe.polices.map((police) => [police.id, police])),
 );
+const chargementsPolices = new Map();
 
 export function normaliserIdPolice(id, valeurParDefaut = "dactylo-ronde") {
   return POLICES_PAR_ID.has(id) ? id : valeurParDefaut;
@@ -98,6 +99,50 @@ export function famillePolice(id) {
 export function poidsPolice(id, poidsDemande) {
   const poidsMax = obtenirPolice(id).poidsMax;
   return poidsMax ? Math.min(poidsDemande, poidsMax) : poidsDemande;
+}
+
+function stylePoliceCss(style) {
+  return style === "italique" || style === "gras-italique" ? "italic" : "normal";
+}
+
+function poidsPoliceCss(id, style) {
+  return poidsPolice(id, style === "gras" || style === "gras-italique" ? 700 : 400);
+}
+
+function chargerPolice(id, style = "normal") {
+  if (!document.fonts?.load) {
+    return Promise.resolve();
+  }
+  const idNormalise = normaliserIdPolice(id);
+  const styleNormalise = normaliserStylePolice(idNormalise, style);
+  const cle = `${idNormalise}:${styleNormalise}`;
+  if (!chargementsPolices.has(cle)) {
+    const famille = famillePolice(idNormalise);
+    const styleCss = stylePoliceCss(styleNormalise);
+    const poidsCss = poidsPoliceCss(idNormalise, styleNormalise);
+    chargementsPolices.set(
+      cle,
+      document.fonts.load(`${styleCss} ${poidsCss} 24px ${famille}`).catch(() => undefined),
+    );
+  }
+  return chargementsPolices.get(cle);
+}
+
+export function chargerPolicesReglages(reglages) {
+  if (!reglages || typeof reglages !== "object") {
+    return Promise.resolve();
+  }
+  const demandes = [
+    [reglages.policeTitres, reglages.styleTitres],
+    [reglages.policeArtiste, reglages.styleArtiste],
+  ];
+  if (reglages.afficherMarques) {
+    demandes.push(
+      [reglages.policeMarqueGauche || reglages.policeMarques, reglages.styleMarqueGauche],
+      [reglages.policeMarqueDroite || reglages.policeMarques, reglages.styleMarqueDroite],
+    );
+  }
+  return Promise.all(demandes.map(([id, style]) => chargerPolice(id, style))).then(() => undefined);
 }
 
 export function remplirSelectPolice(select, valeurParDefaut = "dactylo-ronde") {

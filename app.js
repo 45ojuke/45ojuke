@@ -38,7 +38,7 @@ import {
   telechargerPdf as telechargerPdfModule,
 } from "./impression.js";
 import { envoyerJsonStyle } from "./analytics.js";
-import { chargerPolicesLocales, normaliserIdPolice, normaliserStylePolice, remplirSelectPolice, stylesPolice } from "./polices.js";
+import { chargerPolicesReglages, normaliserIdPolice, normaliserStylePolice, remplirSelectPolice, stylesPolice } from "./polices.js";
 
 const EMAIL_CONTACT = "contact@45ojuke.fr";
 const EPAISSEUR_BORDURE_MIN = 0;
@@ -410,6 +410,7 @@ let invitationInstallation = null;
 let dernierToucherZoom = 0;
 let zoomApercuPourcentage = null;
 let zoomApercuMaximum = 200;
+let sequenceMiseAJour = 0;
 const FACTEUR_ZOOM_APERCU_VOISIN = 0.76;
 const LIMITE_HISTORIQUE_REGLAGES = 40;
 const historiqueReglages = {
@@ -430,13 +431,13 @@ async function initialiser() {
   appliquerDimensionsEtiquetteDefaut();
   await chargerStylesEtiquettes();
   remplirMenusPolices();
-  await chargerPolicesLocales();
   remplirModelesTheme();
   synchroniserOptionsMotifSecondaire();
   initialiserReglagesDefautModeles();
   const modeleInitial = obtenirStylesEtiquettes("tout")[0]?.reglages?.modele || "ALICE";
   appliquerReglagesAuFormulaire(obtenirReglagesDefautModele(modeleInitial));
   reglagesParEtiquette[1] = lireReglagesFormulaire();
+  await chargerPolicesReglages(reglagesParEtiquette[1]);
   brancherEvenements();
   installerAidesOptions();
   mettreAJourBoutonsInstallation(true);
@@ -2520,6 +2521,9 @@ function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cib
   image.dataset.nomModele = libelle;
   image.alt = `${traduirePhrase("Aperçu")} ${libelle}`;
   image.src = dessinerEtiquette(ligneDemo, reglagesCarte).toDataURL("image/png");
+  chargerPolicesReglages(reglagesCarte).then(() => {
+    image.src = dessinerEtiquette(ligneDemo, reglagesCarte).toDataURL("image/png");
+  });
 
   const imageVariante = document.createElement("img");
   imageVariante.className = "carte-modele__image carte-modele__image--variante";
@@ -2528,7 +2532,11 @@ function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cib
 
   const cycleVariante = creerCycleVarianteSurvol(reglagesCarte);
   const mettreAJourVariante = () => {
-    imageVariante.src = dessinerEtiquette(ligneDemo, cycleVariante.prochaine()).toDataURL("image/png");
+    const reglagesVariante = cycleVariante.prochaine();
+    imageVariante.src = dessinerEtiquette(ligneDemo, reglagesVariante).toDataURL("image/png");
+    chargerPolicesReglages(reglagesVariante).then(() => {
+      imageVariante.src = dessinerEtiquette(ligneDemo, reglagesVariante).toDataURL("image/png");
+    });
   };
   mettreAJourVariante();
   let varianteDejaAffichee = false;
@@ -6936,6 +6944,9 @@ function creerCarteModeleJukebox({ id, nom, ligne, reglages, apresApplication = 
   const image = document.createElement("img");
   image.alt = nom;
   image.src = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
+  chargerPolicesReglages(reglages).then(() => {
+    image.src = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
+  });
   const libelle = document.createElement("span");
   libelle.textContent = nom;
   carte.append(image, libelle);
@@ -7512,7 +7523,8 @@ function annulerGesteApercu() {
   gesteApercu = null;
 }
 
-function mettreAJour() {
+async function mettreAJour() {
+  const sequenceCourante = ++sequenceMiseAJour;
   mettreAJourBoutonsHistorique();
   const lignes = obtenirLignes();
   const afficherIndicateursSwipe = false;
@@ -7595,6 +7607,21 @@ function mettreAJour() {
   const ligneSecondaire = obtenirLigneApercu(lignes, "2");
   const ligneEdition = obtenirLigneApercu(lignes);
   const reglagesPrincipaux = lireReglages("1", lignePrincipale);
+  const reglagesACharger = [reglagesPrincipaux];
+  if (deuxiemeActive && ligneSecondaire) {
+    reglagesACharger.push(lireReglages("2", ligneSecondaire));
+  }
+  if (lignes.length > 1) {
+    reglagesACharger.push(
+      lireReglages("1", lignes[obtenirIndexApercuVoisin(lignes, -1)]),
+      lireReglages("1", lignes[obtenirIndexApercuVoisin(lignes, 1)]),
+    );
+  }
+  await Promise.all(reglagesACharger.map(chargerPolicesReglages));
+  if (sequenceCourante !== sequenceMiseAJour) {
+    return;
+  }
+
   const canvasPrincipal = dessinerEtiquette(lignePrincipale, reglagesPrincipaux);
   elements.apercu.src = canvasPrincipal.toDataURL("image/png");
   const zoomApercu = obtenirZoomApercuCourant();
