@@ -6667,13 +6667,13 @@ function creerPanneauGrilleJukeboxInline() {
   const porteeSelection = document.createElement("fieldset");
   porteeSelection.className = "jukebox-selection__portee";
   const legendePortee = document.createElement("legend");
-  legendePortee.textContent = traduirePhrase("Modifier");
+  legendePortee.textContent = traduirePhrase("Appliquer le style à");
   const optionPorteeSelection = document.createElement("label");
   const radioPorteeSelection = document.createElement("input");
   radioPorteeSelection.type = "radio";
   radioPorteeSelection.name = "porteeModificationGrilleJukebox";
   radioPorteeSelection.value = "selection";
-  optionPorteeSelection.append(radioPorteeSelection, document.createTextNode(traduirePhrase("Étiquette")));
+  optionPorteeSelection.append(radioPorteeSelection, document.createTextNode(traduirePhrase("Cette étiquette")));
   const optionPorteePaires = document.createElement("label");
   const radioPorteePaires = document.createElement("input");
   radioPorteePaires.type = "radio";
@@ -6737,8 +6737,6 @@ function creerPanneauGrilleJukeboxInline() {
   boutonRetablir.title = traduirePhrase("Rétablir");
   actionsSelection.append(
     libelleSelection,
-    porteeSelection,
-    actionsRapides,
     boutonModifierStyle,
     boutonChangerEtiquette,
     boutonVarianteAuto,
@@ -6764,8 +6762,8 @@ function creerPanneauGrilleJukeboxInline() {
   apercuSurvol.append(repereSurvol, imageSurvol);
 
   outils.append(colonnes.label, lignes.label, boutonFermer);
-  entete.append(titre, outils);
-  panneauGrilleJukeboxInline.append(entete, aide, navigation, actionsSelection, modeles, grille, apercuSurvol);
+  entete.append(titre, aide, navigation, outils);
+  panneauGrilleJukeboxInline.append(entete, actionsSelection, modeles, grille, apercuSurvol);
   elements.scene.append(panneauGrilleJukeboxInline);
 
   const obtenirCapacite = () => {
