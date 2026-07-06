@@ -2832,7 +2832,7 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 .barre-actions--apercu {
   position: relative;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   gap: 6px;
   align-self: start;
@@ -2854,7 +2854,7 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 .portee-modification-apercu {
   display: inline-flex;
   flex: 0 0 100%;
-  justify-content: flex-start;
+  justify-content: center;
   order: 20;
   align-items: center;
   gap: 5px;
@@ -5031,7 +5031,7 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
     position: relative;
     z-index: 3;
     width: 100%;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 5px;
     padding-inline: 1px;
     background: rgba(255, 250, 241, 0.96);

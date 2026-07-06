@@ -356,7 +356,7 @@ const PALETTES_TEINTES = [
 let vinyles = [];
 let indexApercu = 0;
 let etiquetteActive = "1";
-let porteeModificationGrilleJukebox = "selection";
+let porteeModificationGrilleJukebox = "toutes";
 let stylesVerrouillesParLigne = {};
 let reglagesParLigne = {};
 let reglagesBrouillonParLigne = {};
@@ -800,7 +800,7 @@ function restaurerReglagesAutomatiques() {
     reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
     porteeModificationGrilleJukebox = ["selection", "paires", "impaires", "toutes"].includes(sauvegarde.porteeModificationEtiquettes)
       ? sauvegarde.porteeModificationEtiquettes
-      : "selection";
+      : "toutes";
     synchroniserPorteeModificationApercu();
     stylesVerrouillesParLigne = { ...(sauvegarde.stylesVerrouillesParLigne || {}) };
     reglagesParLigne = Object.fromEntries(
@@ -2197,9 +2197,12 @@ function obtenirClesLignesPourPorteeGrille(portee) {
 
 function enregistrerReglagesSurLignes(cles, reglages) {
   cles.forEach((cle) => {
-    stylesVerrouillesParLigne[cle] = true;
-    reglagesParLigne[cle] = clonerReglages(reglages);
-    delete reglagesBrouillonParLigne[cle];
+    if (stylesVerrouillesParLigne[cle]) {
+      reglagesParLigne[cle] = clonerReglages(reglages);
+    } else {
+      reglagesBrouillonParLigne[cle] = clonerReglages(reglages);
+      delete reglagesParLigne[cle];
+    }
   });
 }
 
@@ -4117,21 +4120,6 @@ function enregistrerReglagesActifs() {
   }
 }
 
-function verrouillerEtiquetteActiveAutomatiquement() {
-  if (porteeModificationGrilleJukebox !== "selection" || styleActifVerrouille()) {
-    return;
-  }
-  const cle = obtenirCleLigneApercu();
-  if (cle === null) {
-    return;
-  }
-  const reglages = reglagesBrouillonParLigne[cle] || lireReglagesFormulaire();
-  stylesVerrouillesParLigne[cle] = true;
-  reglagesParLigne[cle] = clonerReglages(reglages);
-  delete reglagesBrouillonParLigne[cle];
-  sauvegarderReglagesAutomatiques();
-}
-
 function enregistrerDimensionsEtiquettesVerrouillees(reglages) {
   const dimensions = {
     largeurEtiquette: reglages.largeurEtiquette,
@@ -4156,7 +4144,6 @@ function obtenirEditionActive() {
 
 function changerEtiquetteActive() {
   enregistrerReglagesActifs();
-  verrouillerEtiquetteActiveAutomatiquement();
   etiquetteActive = obtenirEditionActive();
   appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
   mettreAJour();
@@ -4471,7 +4458,6 @@ function selectionnerEtiquetteDepuisApercu(numero, { ouvrirEditeur = true } = {}
     return;
   }
   enregistrerReglagesActifs();
-  verrouillerEtiquetteActiveAutomatiquement();
   etiquetteActive = numero;
   elements.editionEtiquette.forEach((radio) => {
     radio.checked = radio.value === numero;
@@ -5183,7 +5169,7 @@ function restaurerSauvegardeSession(donnees) {
   reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
   porteeModificationGrilleJukebox = ["selection", "paires", "impaires", "toutes"].includes(session.porteeModificationEtiquettes)
     ? session.porteeModificationEtiquettes
-    : "selection";
+    : "toutes";
   synchroniserPorteeModificationApercu();
   stylesVerrouillesParLigne = { ...(session.stylesVerrouillesParLigne || {}) };
   reglagesParLigne = Object.fromEntries(
@@ -6518,10 +6504,12 @@ function appliquerVarianteEnAlternanceDepuisGrille() {
         return;
       }
       const cle = String(index);
-      const reglagesLigne = reglagesParLigne[cle];
+      if (stylesVerrouillesParLigne[cle]) {
+        return;
+      }
+      const reglagesLigne = reglagesBrouillonParLigne[cle];
       if (reglagesLigne && signatureStyleEnregistre(reglagesLigne) === varianteGrillePretePourAlternance.signature) {
-        delete stylesVerrouillesParLigne[cle];
-        delete reglagesParLigne[cle];
+        delete reglagesBrouillonParLigne[cle];
       }
     });
   };
@@ -6532,8 +6520,12 @@ function appliquerVarianteEnAlternanceDepuisGrille() {
       return;
     }
     const cle = String(index);
-    stylesVerrouillesParLigne[cle] = true;
-    reglagesParLigne[cle] = clonerReglages(reglages);
+    if (stylesVerrouillesParLigne[cle]) {
+      reglagesParLigne[cle] = clonerReglages(reglages);
+    } else {
+      reglagesBrouillonParLigne[cle] = clonerReglages(reglages);
+      delete reglagesParLigne[cle];
+    }
   });
   sauvegarderReglagesAutomatiques();
   mettreAJour();
@@ -6681,7 +6673,6 @@ function creerPanneauGrilleJukeboxInline() {
   radioPorteeSelection.type = "radio";
   radioPorteeSelection.name = "porteeModificationGrilleJukebox";
   radioPorteeSelection.value = "selection";
-  radioPorteeSelection.checked = true;
   optionPorteeSelection.append(radioPorteeSelection, document.createTextNode(traduirePhrase("Étiquette")));
   const optionPorteePaires = document.createElement("label");
   const radioPorteePaires = document.createElement("input");
@@ -6700,6 +6691,7 @@ function creerPanneauGrilleJukeboxInline() {
   radioPorteeToutes.type = "radio";
   radioPorteeToutes.name = "porteeModificationGrilleJukebox";
   radioPorteeToutes.value = "toutes";
+  radioPorteeToutes.checked = true;
   optionPorteeToutes.append(radioPorteeToutes, document.createTextNode(traduirePhrase("Toutes")));
   porteeSelection.append(legendePortee, optionPorteeSelection, optionPorteePaires, optionPorteeImpaires, optionPorteeToutes);
   const actionsRapides = document.createElement("div");
@@ -6798,9 +6790,10 @@ function creerPanneauGrilleJukeboxInline() {
   lignes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
   boutonModifierStyle.addEventListener("click", modifierStyleDepuisGrilleJukeboxInline);
   porteeSelection.addEventListener("change", () => {
-    porteeModificationGrilleJukebox = porteeSelection.querySelector('input[name="porteeModificationGrilleJukebox"]:checked')?.value || "selection";
+    porteeModificationGrilleJukebox = porteeSelection.querySelector('input[name="porteeModificationGrilleJukebox"]:checked')?.value || "toutes";
     synchroniserPorteeModificationApercu();
     mettreAJourActionsGrilleJukeboxInline();
+    sauvegarderReglagesAutomatiques();
   });
   boutonChangerEtiquette.addEventListener("click", ouvrirModeles);
   boutonFavori.addEventListener("click", () => {
@@ -7236,9 +7229,13 @@ function appliquerModeleJukebox(cible, modele) {
       completerVinylesJukebox(index + 1);
     }
     const reglages = obtenirReglagesModeleJukebox(index, modele);
-    stylesVerrouillesParLigne[cle] = true;
-    reglagesParLigne[cle] = clonerReglages(reglages);
-    delete reglagesBrouillonParLigne[cle];
+    if (stylesVerrouillesParLigne[cle]) {
+      reglagesParLigne[cle] = clonerReglages(reglages);
+      delete reglagesBrouillonParLigne[cle];
+    } else {
+      reglagesBrouillonParLigne[cle] = clonerReglages(reglages);
+      delete reglagesParLigne[cle];
+    }
   });
   indexApercu = cible;
   placerFenetreGrilleJukeboxSurIndex(indexApercu);
@@ -7694,7 +7691,6 @@ function changerApercu(delta) {
     return;
   }
   enregistrerReglagesActifs();
-  verrouillerEtiquetteActiveAutomatiquement();
   if (deuxiemeEtiquetteActive()) {
     const nombrePaires = Math.ceil(lignes.length / 2);
     const paireActive = Math.floor(indexApercu / 2);
