@@ -392,8 +392,6 @@ let elementsGrilleJukeboxInline = null;
 let selectionGrilleJukeboxInlineActive = false;
 let varianteGrillePretePourAlternance = null;
 let debutFenetreGrilleJukebox = 0;
-const NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE = 20;
-const NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE = 2;
 const LIMITE_CACHE_MINIATURES_GRILLE_JUKEBOX = 240;
 const cacheMiniaturesGrilleJukebox = new Map();
 let separateurVerticalAtelier = null;
@@ -420,6 +418,8 @@ const historiqueReglages = {
   restaurationEnCours: false,
 };
 const minuteriesMessageVerrouillage = new WeakMap();
+const travauxRenduNonCritiques = [];
+let renduNonCritiquePlanifie = false;
 
 initialiser();
 
@@ -1926,6 +1926,67 @@ function ajusterHauteurPanneauOptionsMobile() {
   });
 }
 
+function appliquerCanvasImage(image, canvas) {
+  image.width = canvas.width;
+  image.height = canvas.height;
+  image.src = canvas.toDataURL("image/png");
+}
+
+function appliquerDimensionsImageReglages(image, reglages) {
+  image.width = Math.round((Number(reglages.largeurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.largeur) * window.PX_PAR_MM);
+  image.height = Math.round((Number(reglages.hauteurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.hauteur) * window.PX_PAR_MM);
+}
+
+function programmerRenduNonCritique() {
+  if (renduNonCritiquePlanifie) {
+    return;
+  }
+  renduNonCritiquePlanifie = true;
+  const executer = (deadline = null) => {
+    renduNonCritiquePlanifie = false;
+    const debut = performance.now();
+    while (travauxRenduNonCritiques.length) {
+      const tempsRestant = deadline?.timeRemaining?.() ?? 0;
+      if (tempsRestant <= 4 && performance.now() - debut > 12) {
+        break;
+      }
+      travauxRenduNonCritiques.shift()?.();
+    }
+    if (travauxRenduNonCritiques.length) {
+      programmerRenduNonCritique();
+    }
+  };
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(executer, { timeout: 900 });
+  } else {
+    window.setTimeout(executer, 80);
+  }
+}
+
+function planifierTravailRenduNonCritique(tache) {
+  travauxRenduNonCritiques.push(tache);
+  programmerRenduNonCritique();
+}
+
+function planifierRenduEtiquetteImage(image, ligne, reglages) {
+  appliquerDimensionsImageReglages(image, reglages);
+  const jeton = Symbol("rendu-etiquette");
+  image._jetonRenduEtiquette = jeton;
+  planifierTravailRenduNonCritique(() => {
+    if (image._jetonRenduEtiquette !== jeton || !image.isConnected) {
+      return;
+    }
+    chargerPolicesReglages(reglages).then(() => {
+      planifierTravailRenduNonCritique(() => {
+        if (image._jetonRenduEtiquette !== jeton || !image.isConnected) {
+          return;
+        }
+        appliquerCanvasImage(image, dessinerEtiquette(ligne, reglages));
+      });
+    });
+  });
+}
+
 function definirEditionTexteMobile(ouverte) {
   placerEditeurTexteMobile(ouverte);
   document.body.classList.toggle("is-edition-texte-mobile", ouverte);
@@ -2034,10 +2095,12 @@ function revenirSelectionAccueil() {
     panneauGrilleJukeboxInline.hidden = true;
     panneauGrilleJukeboxInline.classList.add("is-replie");
   }
+  elements.ouvrirJukebox.hidden = true;
   definirSeparateursAtelierVisibles(false);
   document.body.classList.remove(
     "is-grille-jukebox-disponible",
     "is-grille-jukebox-ouverte",
+    "is-grille-jukebox-edition",
   );
   fermerEditionTexteMobile();
   document.body.classList.add("is-accueil-selection");
@@ -2362,7 +2425,6 @@ function remplirModelesTheme() {
   } else {
     elements.modeleSecondaire.selectedIndex = 0;
   }
-  mettreAJourGalerieModeles();
 }
 
 function mettreAJourGalerieModeles() {
@@ -2520,10 +2582,7 @@ function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cib
   image.className = "carte-modele__image carte-modele__image--base";
   image.dataset.nomModele = libelle;
   image.alt = `${traduirePhrase("Aperçu")} ${libelle}`;
-  image.src = dessinerEtiquette(ligneDemo, reglagesCarte).toDataURL("image/png");
-  chargerPolicesReglages(reglagesCarte).then(() => {
-    image.src = dessinerEtiquette(ligneDemo, reglagesCarte).toDataURL("image/png");
-  });
+  planifierRenduEtiquetteImage(image, ligneDemo, reglagesCarte);
 
   const imageVariante = document.createElement("img");
   imageVariante.className = "carte-modele__image carte-modele__image--variante";
@@ -2533,20 +2592,11 @@ function creerCarteModele({ valeur, libelle, styleId = "", ligneDemo, actif, cib
   const cycleVariante = creerCycleVarianteSurvol(reglagesCarte);
   const mettreAJourVariante = () => {
     const reglagesVariante = cycleVariante.prochaine();
-    imageVariante.src = dessinerEtiquette(ligneDemo, reglagesVariante).toDataURL("image/png");
-    chargerPolicesReglages(reglagesVariante).then(() => {
-      imageVariante.src = dessinerEtiquette(ligneDemo, reglagesVariante).toDataURL("image/png");
-    });
+    planifierRenduEtiquetteImage(imageVariante, ligneDemo, reglagesVariante);
   };
-  mettreAJourVariante();
-  let varianteDejaAffichee = false;
   bouton.addEventListener("pointerenter", () => {
     if (MEDIA_SURVOL_PRECIS.matches) {
-      if (varianteDejaAffichee) {
-        mettreAJourVariante();
-      } else {
-        varianteDejaAffichee = true;
-      }
+      mettreAJourVariante();
     }
   });
 
@@ -6249,9 +6299,6 @@ function actualiserEtatApercuRedimensionne(hauteur = elements.scene?.getBounding
 }
 
 function basculerGrilleJukebox() {
-  if (MEDIA_MOBILE.matches) {
-    return;
-  }
   if (grilleJukeboxInlineOuverte) {
     fermerGrilleJukeboxInline();
     return;
@@ -6260,24 +6307,25 @@ function basculerGrilleJukebox() {
 }
 
 function preparerGrilleJukeboxRepliee() {
-  if (MEDIA_MOBILE.matches || !modeleChoisi) {
+  if (!modeleChoisi) {
     return;
   }
   if (!panneauGrilleJukeboxInline) {
     creerPanneauGrilleJukeboxInline();
   }
-  panneauGrilleJukeboxInline.hidden = false;
+  panneauGrilleJukeboxInline.hidden = true;
   panneauGrilleJukeboxInline.classList.add("is-replie");
   grilleJukeboxInlineOuverte = false;
   document.body.classList.add("is-grille-jukebox-disponible");
-  document.body.classList.remove("is-grille-jukebox-ouverte");
-  definirSeparateursAtelierVisibles(true);
+  document.body.classList.remove("is-grille-jukebox-ouverte", "is-grille-jukebox-edition");
+  definirSeparateursAtelierVisibles(false);
+  elements.ouvrirJukebox.hidden = false;
   elements.ouvrirJukebox.classList.remove("is-actif");
   elements.ouvrirJukebox.setAttribute("aria-expanded", "false");
-  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Déplier la grille"));
-  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Déplier la grille"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Retour à la vue normale"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Retour à la vue normale"));
   if (elementsGrilleJukeboxInline?.boutonFermer) {
-    elementsGrilleJukeboxInline.boutonFermer.textContent = "⌄";
+    elementsGrilleJukeboxInline.boutonFermer.textContent = traduirePhrase("Retour");
   }
   panneauGrilleJukeboxInline.style.removeProperty("--decalage-grille-sticky");
 }
@@ -6292,19 +6340,19 @@ function ouvrirGrilleJukeboxInline() {
   panneauGrilleJukeboxInline.hidden = false;
   panneauGrilleJukeboxInline.classList.remove("is-replie");
   document.body.classList.add("is-grille-jukebox-disponible", "is-grille-jukebox-ouverte");
-  definirSeparateursAtelierVisibles(true);
+  document.body.classList.remove("is-grille-jukebox-edition");
+  definirSeparateursAtelierVisibles(false);
   elements.ouvrirJukebox.classList.add("is-actif");
   elements.ouvrirJukebox.setAttribute("aria-expanded", "true");
-  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Replier la grille"));
-  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Replier la grille"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Retour à la vue normale"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Retour à la vue normale"));
   if (elementsGrilleJukeboxInline?.boutonFermer) {
-    elementsGrilleJukeboxInline.boutonFermer.textContent = "⌃";
+    elementsGrilleJukeboxInline.boutonFermer.textContent = traduirePhrase("Retour");
   }
   placerFenetreGrilleJukeboxSurIndex(indexApercu);
   actualiserGrilleJukeboxInline();
   planifierPositionGrilleJukeboxInline();
   mettreAJourVisibiliteApercu();
-  obtenirAtelier()?.scrollIntoView({ block: "start" });
   window.requestAnimationFrame(() => appliquerZoomApercuCourant());
 }
 
@@ -6313,15 +6361,18 @@ function fermerGrilleJukeboxInline() {
   editionTexteMasqueeParGrille = false;
   selectionGrilleJukeboxInlineActive = false;
   panneauGrilleJukeboxInline?.classList.add("is-replie");
-  document.body.classList.remove("is-grille-jukebox-ouverte");
+  if (panneauGrilleJukeboxInline) {
+    panneauGrilleJukeboxInline.hidden = true;
+  }
+  document.body.classList.remove("is-grille-jukebox-ouverte", "is-grille-jukebox-edition");
   document.body.classList.add("is-grille-jukebox-disponible");
-  definirSeparateursAtelierVisibles(true);
+  definirSeparateursAtelierVisibles(false);
   elements.ouvrirJukebox.classList.remove("is-actif");
   elements.ouvrirJukebox.setAttribute("aria-expanded", "false");
-  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Déplier la grille"));
-  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Déplier la grille"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Retour à la vue normale"));
+  elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("title", traduirePhrase("Retour à la vue normale"));
   if (elementsGrilleJukeboxInline?.boutonFermer) {
-    elementsGrilleJukeboxInline.boutonFermer.textContent = "⌄";
+    elementsGrilleJukeboxInline.boutonFermer.textContent = traduirePhrase("Retour");
   }
   panneauGrilleJukeboxInline?.style.removeProperty("--decalage-grille-sticky");
   masquerApercuSurvolJukeboxInline();
@@ -6341,7 +6392,11 @@ function modifierStyleDepuisGrilleJukeboxInline() {
   fermerEditionTexteDepuisApercu();
   activerEtapeReglage("ruban");
   mettreAJourVisibiliteApercu();
-  elements.formulaire.scrollIntoView({ block: "start", behavior: "smooth" });
+  if (elementsGrilleJukeboxInline?.modeles) {
+    elementsGrilleJukeboxInline.modeles.hidden = true;
+  }
+  placerFenetreGrilleJukeboxSurIndex(indexApercu);
+  actualiserGrilleJukeboxInline();
 }
 
 function appliquerVarianteDepuisGrilleJukeboxInline() {
@@ -6436,6 +6491,7 @@ function mettreAJourActionsGrilleJukeboxInline() {
     return;
   }
   elementsGrilleJukeboxInline.libelleSelection.textContent = `${traduirePhrase("Étiquette")} ${ligne.numeroTableau} ${traduirePhrase("sélectionnée")}`;
+  mettreAJourActionsRapidesGrilleJukeboxInline();
   const parite = ligne.numeroTableau % 2;
   const actionAlternance = varianteGrillePretePourAlternance?.index === indexApercu ? varianteGrillePretePourAlternance : null;
   const paritesAppliquees = new Set(actionAlternance?.paritesAppliquees || []);
@@ -6452,6 +6508,39 @@ function mettreAJourActionsGrilleJukeboxInline() {
   const retablirDisponible = historiqueReglages.retablissements.length > 0;
   elementsGrilleJukeboxInline.boutonRetablir.disabled = !retablirDisponible;
   elementsGrilleJukeboxInline.boutonRetablir.hidden = !retablirDisponible;
+}
+
+function mettreAJourActionsRapidesGrilleJukeboxInline() {
+  if (!elementsGrilleJukeboxInline) {
+    return;
+  }
+  const verrouille = styleActifVerrouille();
+  const libelleVerrouillage = traduirePhrase(verrouille ? "Déverrouiller le style" : "Verrouiller le style");
+  const favoris = obtenirFavoris();
+  const idCourant = signatureFavoriDepuisReglages(lireReglagesFormulaire());
+  const estFavori = favoris.some((favori) => favori.id === idCourant);
+
+  elementsGrilleJukeboxInline.boutonFavori.setAttribute("aria-pressed", String(estFavori));
+  elementsGrilleJukeboxInline.boutonFavori.querySelector("span").textContent = estFavori ? "♥" : "♡";
+  elementsGrilleJukeboxInline.boutonFavori.setAttribute(
+    "aria-label",
+    estFavori ? traduirePhrase("Retirer des favoris") : traduirePhrase("Ajouter aux favoris"),
+  );
+  elementsGrilleJukeboxInline.boutonFavori.title = estFavori ? traduirePhrase("Retirer des favoris") : traduirePhrase("Ajouter aux favoris");
+
+  elementsGrilleJukeboxInline.boutonVerrouiller.setAttribute("aria-pressed", String(verrouille));
+  elementsGrilleJukeboxInline.boutonVerrouiller.querySelector("span").textContent = verrouille ? "🔒" : "🔓";
+  elementsGrilleJukeboxInline.boutonVerrouiller.setAttribute("aria-label", libelleVerrouillage);
+  elementsGrilleJukeboxInline.boutonVerrouiller.title = libelleVerrouillage;
+  elementsGrilleJukeboxInline.boutonVerrouiller.classList.toggle("is-verrouille", verrouille);
+
+  [
+    elementsGrilleJukeboxInline.boutonVariante,
+    elementsGrilleJukeboxInline.boutonTeinte,
+  ].forEach((bouton) => {
+    bouton.disabled = verrouille;
+  });
+  elementsGrilleJukeboxInline.boutonReset.disabled = verrouille || styleCourantEstStyleDefaut();
 }
 
 function creerPanneauGrilleJukeboxInline() {
@@ -6478,9 +6567,9 @@ function creerPanneauGrilleJukeboxInline() {
   const boutonFermer = document.createElement("button");
   boutonFermer.className = "jukebox-inline__fermer";
   boutonFermer.type = "button";
-  boutonFermer.textContent = "⌄";
-  boutonFermer.setAttribute("aria-label", traduirePhrase("Déplier la grille"));
-  boutonFermer.title = traduirePhrase("Déplier la grille");
+  boutonFermer.textContent = traduirePhrase("Retour");
+  boutonFermer.setAttribute("aria-label", traduirePhrase("Retour à la vue normale"));
+  boutonFermer.title = traduirePhrase("Retour à la vue normale");
 
   const aide = document.createElement("p");
   aide.className = "jukebox-aide jukebox-inline__aide";
@@ -6496,7 +6585,7 @@ function creerPanneauGrilleJukeboxInline() {
   plage.type = "range";
   plage.min = "0";
   plage.max = "0";
-  plage.step = String(NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
+  plage.step = "1";
   plage.value = "0";
   plage.setAttribute("aria-label", traduirePhrase("Faire défiler la grille"));
   const libellePlage = document.createElement("span");
@@ -6513,6 +6602,34 @@ function creerPanneauGrilleJukeboxInline() {
   actionsSelection.hidden = true;
   const libelleSelection = document.createElement("p");
   libelleSelection.className = "jukebox-selection__texte";
+  const actionsRapides = document.createElement("div");
+  actionsRapides.className = "jukebox-selection__rapides";
+  const boutonFavori = document.createElement("button");
+  boutonFavori.className = "bouton bouton-secondaire bouton-favori bouton-favori-icone jukebox-selection__icone";
+  boutonFavori.type = "button";
+  boutonFavori.setAttribute("aria-pressed", "false");
+  boutonFavori.setAttribute("aria-label", traduirePhrase("Ajouter aux favoris"));
+  boutonFavori.title = traduirePhrase("Ajouter aux favoris");
+  const iconeFavori = document.createElement("span");
+  iconeFavori.setAttribute("aria-hidden", "true");
+  iconeFavori.textContent = "♡";
+  boutonFavori.append(iconeFavori);
+  const boutonVerrouiller = document.createElement("button");
+  boutonVerrouiller.className = "bouton bouton-secondaire bouton-verrouillage jukebox-selection__icone";
+  boutonVerrouiller.type = "button";
+  boutonVerrouiller.setAttribute("aria-pressed", "false");
+  boutonVerrouiller.setAttribute("aria-label", traduirePhrase("Verrouiller le style"));
+  boutonVerrouiller.title = traduirePhrase("Verrouiller le style");
+  const iconeVerrouiller = document.createElement("span");
+  iconeVerrouiller.setAttribute("aria-hidden", "true");
+  iconeVerrouiller.textContent = "🔓";
+  boutonVerrouiller.append(iconeVerrouiller);
+  const boutonVariante = creerBoutonActionGrille(traduirePhrase("Variante"));
+  const boutonTeinte = creerBoutonActionGrille(traduirePhrase("Teinte"));
+  const boutonReset = creerBoutonActionGrille(traduirePhrase("Reset"));
+  boutonReset.setAttribute("aria-label", traduirePhrase("Revenir au style par défaut"));
+  boutonReset.title = traduirePhrase("Style par défaut");
+  actionsRapides.append(boutonFavori, boutonVerrouiller, boutonVariante, boutonTeinte, boutonReset);
   const boutonModifierStyle = creerBoutonActionGrille(traduirePhrase("Modifier le style"), "principal");
   const boutonChangerEtiquette = creerBoutonActionGrille(traduirePhrase("Changer d’étiquette"));
   const boutonVarianteAuto = creerBoutonActionGrille(traduirePhrase("Variante auto"));
@@ -6528,6 +6645,7 @@ function creerPanneauGrilleJukeboxInline() {
   boutonRetablir.title = traduirePhrase("Rétablir");
   actionsSelection.append(
     libelleSelection,
+    actionsRapides,
     boutonModifierStyle,
     boutonChangerEtiquette,
     boutonVarianteAuto,
@@ -6555,8 +6673,7 @@ function creerPanneauGrilleJukeboxInline() {
   outils.append(colonnes.label, lignes.label, boutonFermer);
   entete.append(titre, outils);
   panneauGrilleJukeboxInline.append(entete, aide, navigation, actionsSelection, modeles, grille, apercuSurvol);
-  elements.scene.after(panneauGrilleJukeboxInline);
-  installerSeparateursAtelier();
+  elements.scene.append(panneauGrilleJukeboxInline);
 
   const obtenirCapacite = () => {
     const totalColonnes = Math.max(1, Math.min(30, Number(colonnes.input.value) || 8));
@@ -6580,6 +6697,23 @@ function creerPanneauGrilleJukeboxInline() {
   lignes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
   boutonModifierStyle.addEventListener("click", modifierStyleDepuisGrilleJukeboxInline);
   boutonChangerEtiquette.addEventListener("click", ouvrirModeles);
+  boutonFavori.addEventListener("click", () => {
+    basculerFavori();
+    mettreAJourActionsRapidesGrilleJukeboxInline();
+  });
+  boutonVerrouiller.addEventListener("click", basculerVerrouillageStyle);
+  boutonVariante.addEventListener("click", () => {
+    inverserStyle();
+    actualiserGrilleJukeboxInline();
+  });
+  boutonTeinte.addEventListener("click", () => {
+    applyNextTint();
+    actualiserGrilleJukeboxInline();
+  });
+  boutonReset.addEventListener("click", () => {
+    reinitialiserStyleDefaut();
+    actualiserGrilleJukeboxInline();
+  });
   boutonVarianteAuto.addEventListener("click", appliquerVarianteDepuisGrilleJukeboxInline);
   boutonAlternance.addEventListener("click", appliquerVarianteEnAlternanceDepuisGrille);
   boutonAnnuler.addEventListener("click", () => {
@@ -6591,8 +6725,8 @@ function creerPanneauGrilleJukeboxInline() {
     actualiserGrilleJukeboxInline();
   });
   boutonFermer.addEventListener("click", basculerGrilleJukebox);
-  boutonPrecedent.addEventListener("click", () => deplacerFenetreGrilleJukebox(-NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE));
-  boutonSuivant.addEventListener("click", () => deplacerFenetreGrilleJukebox(NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE));
+  boutonPrecedent.addEventListener("click", () => deplacerFenetreGrilleJukebox(-obtenirNombreColonnesGrilleJukeboxVisible()));
+  boutonSuivant.addEventListener("click", () => deplacerFenetreGrilleJukebox(obtenirNombreColonnesGrilleJukeboxVisible()));
   plage.addEventListener("input", () => {
     debutFenetreGrilleJukebox = Number(plage.value) || 0;
     actualiserGrilleJukeboxInline();
@@ -6714,6 +6848,11 @@ function creerPanneauGrilleJukeboxInline() {
     aide,
     actionsSelection,
     libelleSelection,
+    boutonFavori,
+    boutonVerrouiller,
+    boutonVariante,
+    boutonTeinte,
+    boutonReset,
     boutonAnnuler,
     boutonRetablir,
     boutonAlternance,
@@ -6748,7 +6887,7 @@ function ajusterGrilleJukeboxInlineDepuisChamps() {
 }
 
 function ajusterHauteurGrilleJukeboxInline() {
-  if (!grilleJukeboxInlineOuverte || !panneauGrilleJukeboxInline || MEDIA_MOBILE.matches) {
+  if (!grilleJukeboxInlineOuverte || !panneauGrilleJukeboxInline) {
     return;
   }
   const atelier = obtenirAtelier();
@@ -6782,28 +6921,15 @@ function actualiserPositionGrilleJukeboxInline() {
   if (!panneauGrilleJukeboxInline) {
     return;
   }
-  if (!grilleJukeboxInlineOuverte || MEDIA_MOBILE.matches || panneauGrilleJukeboxInline.hidden) {
-    panneauGrilleJukeboxInline.style.removeProperty("--decalage-grille-sticky");
-    return;
-  }
-  const scene = elements.scene;
-  if (!scene) {
-    panneauGrilleJukeboxInline.style.removeProperty("--decalage-grille-sticky");
-    return;
-  }
-  const decalageActuel = Number.parseFloat(
-    panneauGrilleJukeboxInline.style.getPropertyValue("--decalage-grille-sticky"),
-  ) || 0;
-  const rectScene = scene.getBoundingClientRect();
-  const rectGrille = panneauGrilleJukeboxInline.getBoundingClientRect();
-  const hautGrilleSansDecalage = rectGrille.top - decalageActuel;
-  const marge = 12;
-  const decalage = Math.max(0, Math.ceil(rectScene.bottom + marge - hautGrilleSansDecalage));
-  panneauGrilleJukeboxInline.style.setProperty("--decalage-grille-sticky", `${decalage}px`);
+  panneauGrilleJukeboxInline.style.removeProperty("--decalage-grille-sticky");
+}
+
+function obtenirNombreColonnesGrilleJukeboxVisible() {
+  return 2;
 }
 
 function bornerDebutFenetreGrilleJukebox(total) {
-  const maximum = Math.max(0, total - NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
+  const maximum = Math.max(0, total - obtenirNombreColonnesGrilleJukeboxVisible());
   debutFenetreGrilleJukebox = Math.max(0, Math.min(maximum, debutFenetreGrilleJukebox));
   return debutFenetreGrilleJukebox;
 }
@@ -6814,8 +6940,8 @@ function placerFenetreGrilleJukeboxSurIndex(index) {
   }
   const { totalColonnes } = elementsGrilleJukeboxInline.obtenirCapacite();
   const colonne = index % totalColonnes;
-  debutFenetreGrilleJukebox = Math.floor(colonne / NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE)
-    * NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE;
+  const colonnesVisibles = obtenirNombreColonnesGrilleJukeboxVisible();
+  debutFenetreGrilleJukebox = Math.floor(colonne / colonnesVisibles) * colonnesVisibles;
   bornerDebutFenetreGrilleJukebox(totalColonnes);
 }
 
@@ -6833,19 +6959,20 @@ function mettreAJourNavigationGrilleJukebox(debutColonne, finColonne, totalColon
   if (!elementsGrilleJukeboxInline) {
     return;
   }
-  const maximum = Math.max(0, totalColonnes - NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
-  const navigationUtile = totalColonnes > NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE;
+  const colonnesVisibles = obtenirNombreColonnesGrilleJukeboxVisible();
+  const maximum = Math.max(0, totalColonnes - colonnesVisibles);
+  const navigationUtile = totalColonnes > colonnesVisibles;
   elementsGrilleJukeboxInline.navigation.hidden = !navigationUtile;
   elementsGrilleJukeboxInline.boutonPrecedent.disabled = debutColonne <= 0;
   elementsGrilleJukeboxInline.boutonSuivant.disabled = finColonne >= totalColonnes;
   elementsGrilleJukeboxInline.plage.max = String(maximum);
-  elementsGrilleJukeboxInline.plage.step = String(NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
+  elementsGrilleJukeboxInline.plage.step = String(colonnesVisibles);
   elementsGrilleJukeboxInline.plage.value = String(debutColonne);
   elementsGrilleJukeboxInline.libellePlage.textContent = `${traduirePhrase("Colonnes")} ${debutColonne + 1}-${finColonne} / ${totalColonnes}`;
 }
 
 function obtenirIndicesFenetreGrilleJukebox(debutColonne, totalColonnes, totalLignes) {
-  const finColonne = Math.min(totalColonnes, debutColonne + NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE);
+  const finColonne = Math.min(totalColonnes, debutColonne + obtenirNombreColonnesGrilleJukeboxVisible());
   const indices = [];
   for (let ligne = 0; ligne < totalLignes; ligne += 1) {
     for (let colonne = debutColonne; colonne < finColonne; colonne += 1) {
@@ -6859,13 +6986,14 @@ function actualiserGrilleJukeboxInline() {
   if (!grilleJukeboxInlineOuverte || !elementsGrilleJukeboxInline) {
     return;
   }
-  if (!modeleChoisi || MEDIA_MOBILE.matches) {
+  if (!modeleChoisi) {
     fermerGrilleJukeboxInline();
     return;
   }
   const { totalColonnes, totalLignes, total } = elementsGrilleJukeboxInline.obtenirCapacite();
   const debut = bornerDebutFenetreGrilleJukebox(totalColonnes);
   const { finColonne, indices } = obtenirIndicesFenetreGrilleJukebox(debut, totalColonnes, totalLignes);
+  const colonnesAffichees = finColonne - debut;
   elementsGrilleJukeboxInline.grille.style.setProperty("--colonnes-jukebox", String(finColonne - debut));
   elementsGrilleJukeboxInline.grille.dataset.debutJukebox = String(debut);
   elementsGrilleJukeboxInline.grille.dataset.finJukebox = String(finColonne);
@@ -6874,8 +7002,8 @@ function actualiserGrilleJukeboxInline() {
     elementsGrilleJukeboxInline.grille.append(creerEmplacementJukebox(index, totalColonnes));
   });
   mettreAJourNavigationGrilleJukebox(debut, finColonne, totalColonnes, total);
-  elementsGrilleJukeboxInline.aide.textContent = total > NOMBRE_CASES_GRILLE_JUKEBOX_VISIBLE
-    ? `${traduirePhrase("La grille affiche")} ${NOMBRE_COLONNES_GRILLE_JUKEBOX_VISIBLE} ${traduirePhrase("Colonnes").toLocaleLowerCase(localeCourante())} x ${totalLignes} ${traduirePhrase("Lignes").toLocaleLowerCase(localeCourante())}. ${traduirePhrase("Glissez le curseur pour voir les autres étiquettes.")}`
+  elementsGrilleJukeboxInline.aide.textContent = total > colonnesAffichees * totalLignes
+    ? `${traduirePhrase("La grille affiche")} ${colonnesAffichees} ${traduirePhrase("Colonnes").toLocaleLowerCase(localeCourante())} x ${totalLignes} ${traduirePhrase("Lignes").toLocaleLowerCase(localeCourante())}. ${traduirePhrase("Glissez le curseur pour voir les autres étiquettes.")}`
     : traduirePhrase("Glissez les étiquettes pour les déplacer. Cliquez une case pour la sélectionner, modifier son style ou appliquer une variante.");
   ajusterHauteurGrilleJukeboxInline();
   planifierPositionGrilleJukeboxInline();
@@ -6943,10 +7071,7 @@ function creerCarteModeleJukebox({ id, nom, ligne, reglages, apresApplication = 
   carte.dataset.modeleJukebox = id;
   const image = document.createElement("img");
   image.alt = nom;
-  image.src = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
-  chargerPolicesReglages(reglages).then(() => {
-    image.src = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
-  });
+  planifierRenduEtiquetteImage(image, ligne, reglages);
   const libelle = document.createElement("span");
   libelle.textContent = nom;
   carte.append(image, libelle);
@@ -7103,7 +7228,12 @@ function obtenirMiniatureJukebox(index, ligne, reglages) {
   if (miniatureEnCache) {
     return miniatureEnCache;
   }
-  const miniature = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
+  const canvas = dessinerEtiquette(ligne, reglages);
+  const miniature = {
+    src: canvas.toDataURL("image/png"),
+    width: canvas.width,
+    height: canvas.height,
+  };
   cacheMiniaturesGrilleJukebox.set(signature, miniature);
   limiterCacheMiniaturesGrilleJukebox();
   return miniature;
@@ -7112,11 +7242,13 @@ function obtenirMiniatureJukebox(index, ligne, reglages) {
 function creerEmplacementJukebox(index, totalColonnes) {
   const ligne = obtenirLignes()[index] || null;
   const carte = document.createElement("article");
+  const total = elementsGrilleJukeboxInline?.obtenirCapacite?.().total || vinyles.length;
   carte.className = "jukebox-emplacement";
   carte.dataset.indexJukebox = String(index);
   carte.classList.toggle("is-actif", index === indexApercu);
   carte.classList.toggle("is-vide", !ligne);
   carte.dataset.repereJukebox = creerRepereJukebox(index, totalColonnes, ligne);
+  carte.title = `${traduirePhrase("Étiquette")} ${index + 1} ${traduirePhrase("sur")} ${total}`;
   carte.draggable = Boolean(ligne);
 
   if (!ligne) {
@@ -7131,8 +7263,10 @@ function creerEmplacementJukebox(index, totalColonnes) {
   image.className = "jukebox-emplacement__image";
   image.alt = `Étiquette ${ligne.numeroTableau}`;
   const reglages = lireReglages("1", ligne);
-  image.src = obtenirMiniatureJukebox(index, ligne, reglages);
-  carte.title = [ligne.artiste, ligne.titreA, ligne.titreB].filter(Boolean).join(" - ");
+  const miniature = obtenirMiniatureJukebox(index, ligne, reglages);
+  image.width = miniature.width;
+  image.height = miniature.height;
+  image.src = miniature.src;
 
   carte.append(image);
   return carte;
@@ -7457,7 +7591,7 @@ function mettreAJourApercuVoisin(image, lignes, delta, zoomApercu) {
   }
   const ligne = lignes[obtenirIndexApercuVoisin(lignes, delta)];
   const reglages = lireReglages("1", ligne);
-  image.src = dessinerEtiquette(ligne, reglages).toDataURL("image/png");
+  appliquerCanvasImage(image, dessinerEtiquette(ligne, reglages));
   appliquerTailleApercu(image, reglages, zoomApercu * FACTEUR_ZOOM_APERCU_VOISIN);
   image.setAttribute("role", "button");
   image.setAttribute("tabindex", "0");
@@ -7623,7 +7757,7 @@ async function mettreAJour() {
   }
 
   const canvasPrincipal = dessinerEtiquette(lignePrincipale, reglagesPrincipaux);
-  elements.apercu.src = canvasPrincipal.toDataURL("image/png");
+  appliquerCanvasImage(elements.apercu, canvasPrincipal);
   const zoomApercu = obtenirZoomApercuCourant();
   appliquerTailleApercu(elements.apercu, reglagesPrincipaux, zoomApercu);
   mettreAJourApercuVoisin(elements.apercuPrecedent, lignes, -1, zoomApercu);
@@ -7633,7 +7767,7 @@ async function mettreAJour() {
   if (deuxiemeActive && ligneSecondaire) {
     const reglagesSecondaires = lireReglages("2", ligneSecondaire);
     canvasSecondaire = dessinerEtiquette(ligneSecondaire, reglagesSecondaires);
-    elements.apercuSecondaire.src = canvasSecondaire.toDataURL("image/png");
+    appliquerCanvasImage(elements.apercuSecondaire, canvasSecondaire);
     appliquerTailleApercu(elements.apercuSecondaire, reglagesSecondaires, zoomApercu);
     elements.apercuSecondaire.hidden = false;
   } else {

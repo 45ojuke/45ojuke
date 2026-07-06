@@ -1138,45 +1138,6 @@ body.is-accueil-selection .seo-accueil {
   align-items: start;
 }
 
-@media screen and (min-width: 861px) {
-  body.is-grille-jukebox-disponible:not(.is-accueil-selection) .atelier {
-    grid-template-columns: var(--largeur-reglages) 8px minmax(520px, 1fr);
-    grid-template-rows: var(--hauteur-apercu, fit-content(100%)) 8px auto;
-    gap: 4px 8px;
-    align-items: start;
-  }
-
-  body.is-grille-jukebox-disponible:not(.is-accueil-selection) .controles {
-    grid-column: 1;
-    grid-row: 1;
-    position: sticky;
-    top: var(--top-apercu-sticky);
-    align-self: start;
-    height: max-content;
-  }
-
-  body.is-grille-jukebox-disponible:not(.is-accueil-selection) .scene {
-    grid-column: 3;
-    grid-row: 1;
-    position: sticky;
-    z-index: 3;
-    top: var(--top-apercu-sticky);
-    min-height: 0;
-    height: var(--hauteur-apercu, fit-content);
-    overflow: visible;
-    padding-block: 10px 6px;
-  }
-
-  body.is-grille-jukebox-disponible:not(.is-accueil-selection) .carrousel-etiquettes {
-    align-self: start;
-  }
-
-  body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .pied-site,
-  body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .seo-accueil {
-    display: none;
-  }
-}
-
 .is-accueil-selection .atelier {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -2948,7 +2909,7 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 }
 
 #ouvrirJukebox {
-  display: none;
+  display: inline-flex;
 }
 
 .barre-actions--apercu #reinitialiserReglage:disabled {
@@ -3707,66 +3668,32 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   opacity: 0.88;
 }
 
+body.is-grille-jukebox-ouverte .scene .apercus,
+body.is-grille-jukebox-ouverte .scene .zoom-apercu,
+body.is-grille-jukebox-ouverte .scene .regle-apercu,
+body.is-grille-jukebox-ouverte .scene .edition-texte {
+  display: none;
+}
+
 .jukebox-inline {
-  grid-column: 2;
   width: 100%;
   min-height: 0;
   display: grid;
   grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
-  gap: 8px;
-  border: 1px solid rgba(138, 85, 53, 0.18);
+  gap: 10px;
+  border: 0;
   border-radius: 10px;
-  padding: 10px;
+  padding: 0;
+  overflow: visible;
   background:
     linear-gradient(90deg, rgba(138, 85, 53, 0.05) 1px, transparent 1px),
     linear-gradient(rgba(138, 85, 53, 0.05) 1px, transparent 1px),
-    rgba(255, 247, 223, 0.7);
+    rgba(255, 250, 241, 0.52);
   background-size: 24px 24px;
 }
 
 .jukebox-inline.is-replie {
-  grid-template-rows: auto;
-  padding: 8px 10px;
-}
-
-.jukebox-inline.is-replie .jukebox-inline__entete {
-  align-items: center;
-}
-
-.jukebox-inline.is-replie .jukebox-inline__outils {
-  grid-template-columns: 34px;
-}
-
-.jukebox-inline.is-replie .jukebox-inline__outils > :not(.jukebox-inline__fermer),
-.jukebox-inline.is-replie .jukebox-inline__aide,
-.jukebox-inline.is-replie .jukebox-navigation,
-.jukebox-inline.is-replie .jukebox-selection,
-.jukebox-inline.is-replie .jukebox-inline__modeles,
-.jukebox-inline.is-replie .jukebox-inline__grille {
   display: none;
-}
-
-@media screen and (min-width: 861px) {
-  body.is-grille-jukebox-disponible:not(.is-accueil-selection) .jukebox-inline {
-    position: relative;
-    z-index: 1;
-    grid-column: 3;
-    grid-row: 3;
-    align-self: start;
-    height: auto;
-    overflow: visible;
-  }
-
-  body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .jukebox-inline {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-
-  body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .jukebox-inline__grille {
-    min-height: 0;
-    overflow: visible;
-  }
 }
 
 .jukebox-inline[hidden] {
@@ -3777,20 +3704,25 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
-  align-items: end;
+  align-items: center;
+  border: 1px solid rgba(138, 85, 53, 0.16);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 250, 241, 0.9);
+  box-shadow: 0 10px 22px rgba(31, 21, 14, 0.08);
 }
 
 .jukebox-inline__entete h3 {
-  margin: 0 0 5px;
+  margin: 0;
   color: var(--accent-2);
-  font-size: 0.94rem;
+  font-size: clamp(1.1rem, 2vw, 1.55rem);
   font-weight: 950;
 }
 
 .jukebox-inline__outils {
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(72px, 96px)) 34px;
+  grid-template-columns: repeat(2, minmax(72px, 96px)) auto;
   justify-content: end;
   gap: 7px;
   align-items: end;
@@ -3813,18 +3745,18 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 }
 
 .jukebox-inline__fermer {
-  width: 34px;
-  min-width: 34px;
-  min-height: 30px;
+  width: auto;
+  min-width: 72px;
+  min-height: 38px;
   border: 1px solid rgba(138, 85, 53, 0.22);
   border-radius: 7px;
   background: rgba(255, 250, 241, 0.78);
   color: var(--accent-2);
   cursor: pointer;
   font: inherit;
-  font-size: 1.1rem;
+  font-size: 0.78rem;
   font-weight: 950;
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .jukebox-inline__fermer:hover {
@@ -3834,7 +3766,11 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 }
 
 .jukebox-inline__aide {
-  font-size: 0.72rem;
+  border: 1px solid rgba(138, 85, 53, 0.14);
+  border-radius: 9px;
+  padding: 9px 11px;
+  background: rgba(255, 250, 241, 0.78);
+  font-size: 0.8rem;
 }
 
 .jukebox-navigation {
@@ -3902,6 +3838,16 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   font-weight: 950;
 }
 
+.jukebox-selection__rapides {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+  padding-right: 7px;
+  border-right: 1px solid rgba(138, 85, 53, 0.18);
+}
+
 .jukebox-selection .bouton {
   min-height: 30px;
   padding: 0 10px;
@@ -3929,7 +3875,7 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 .jukebox-inline__grille {
   min-height: 0;
   max-height: none;
-  overflow: visible;
+  overflow: auto;
 }
 
 .jukebox-outils__champ {
@@ -4014,11 +3960,12 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   --couleur-drop-jukebox: rgba(145, 26, 16, 0.72);
   min-height: 280px;
   display: grid;
-  grid-template-columns: repeat(var(--colonnes-jukebox), minmax(96px, 1fr));
-  grid-auto-columns: minmax(96px, 1fr);
+  grid-template-columns: repeat(var(--colonnes-jukebox), minmax(112px, 1fr));
+  grid-auto-columns: minmax(112px, 1fr);
+  grid-auto-rows: max-content;
   align-items: start;
   gap: 8px;
-  overflow: visible;
+  overflow: auto;
   border: 1px solid rgba(138, 85, 53, 0.18);
   border-radius: 10px;
   padding: 10px;
@@ -4040,12 +3987,47 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
   --couleur-drop-jukebox: rgba(80, 116, 77, 0.78);
 }
 
+@media screen and (max-width: 720px) {
+  .jukebox-inline {
+    grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+    gap: 8px;
+    padding: 0;
+  }
+
+  .jukebox-inline__entete {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .jukebox-inline__outils {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    justify-content: stretch;
+  }
+
+  .jukebox-navigation {
+    grid-template-columns: 34px minmax(80px, 1fr) 34px;
+  }
+
+  .jukebox-navigation__texte {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  .jukebox-grille {
+    grid-template-columns: repeat(var(--colonnes-jukebox), minmax(86px, 1fr));
+    grid-auto-columns: minmax(86px, 1fr);
+    gap: 6px;
+    padding: 8px;
+  }
+}
+
 .jukebox-emplacement {
   position: relative;
   isolation: isolate;
   min-width: 0;
   display: grid;
   grid-template-rows: auto;
+  align-self: start;
   gap: 5px;
   align-content: start;
   border: 1px solid rgba(44, 35, 28, 0.14);
@@ -4117,6 +4099,7 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
 .jukebox-emplacement__image {
   display: block;
   width: 100%;
+  height: auto;
   aspect-ratio: var(--ratio-etiquette, 3 / 1);
   object-fit: contain;
   filter: drop-shadow(0 4px 6px rgba(31, 21, 14, 0.13));
@@ -5655,10 +5638,6 @@ body.is-edition-texte-mobile .controles > .edition-texte > .champ input {
     min-height: 38px;
     padding-block: 6px;
     font-size: 0.88rem;
-  }
-
-  #ouvrirJukebox {
-    display: none;
   }
 
   .bloc-fichier {
