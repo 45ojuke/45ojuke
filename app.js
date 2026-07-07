@@ -51,7 +51,7 @@ const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine
 const LIMITE_TAILLE_TITRES = 200;
 const LIMITE_TAILLE_ARTISTE = 200;
 const PIXELS_CSS_PAR_MM = 96 / 25.4;
-const PIXELS_APERCU_PAR_MM_MAX = 12;
+const PIXELS_APERCU_PAR_MM_MAX = 14;
 
 const elements = {
   intro: document.querySelector("#intro"),
@@ -403,7 +403,7 @@ let etapeAvantFavoris = null;
 let invitationInstallation = null;
 let dernierToucherZoom = 0;
 let zoomApercuPourcentage = null;
-let zoomApercuMaximum = 200;
+let zoomApercuMaximum = 300;
 let sequenceMiseAJour = 0;
 const FACTEUR_ZOOM_APERCU_VOISIN = 0.76;
 const LIMITE_HISTORIQUE_REGLAGES = 40;
@@ -7064,10 +7064,10 @@ function placerFenetreGrilleJukeboxSurIndex(index) {
   if (!Number.isInteger(index) || index < 0 || !elementsGrilleJukeboxInline) {
     return;
   }
-  const { totalColonnes } = elementsGrilleJukeboxInline.obtenirCapacite();
-  const colonne = index % totalColonnes;
+  const { totalColonnes, totalLignes } = elementsGrilleJukeboxInline.obtenirCapacite();
   const colonnesVisibles = obtenirNombreColonnesGrilleJukeboxVisible();
-  debutFenetreGrilleJukebox = Math.floor(colonne / colonnesVisibles) * colonnesVisibles;
+  const etiquettesParFenetre = colonnesVisibles * totalLignes;
+  debutFenetreGrilleJukebox = Math.floor(index / etiquettesParFenetre) * colonnesVisibles;
   bornerDebutFenetreGrilleJukebox(totalColonnes);
 }
 
@@ -7094,16 +7094,19 @@ function mettreAJourNavigationGrilleJukebox(debutColonne, finColonne, totalColon
   elementsGrilleJukeboxInline.plage.max = String(maximum);
   elementsGrilleJukeboxInline.plage.step = String(colonnesVisibles);
   elementsGrilleJukeboxInline.plage.value = String(debutColonne);
-  elementsGrilleJukeboxInline.libellePlage.textContent = `${traduirePhrase("Colonnes")} ${debutColonne + 1}-${finColonne} / ${totalColonnes}`;
+  const { totalLignes } = elementsGrilleJukeboxInline.obtenirCapacite();
+  const premierIndex = debutColonne * totalLignes;
+  const dernierIndex = Math.min(total, premierIndex + colonnesVisibles * totalLignes);
+  elementsGrilleJukeboxInline.libellePlage.textContent = `${traduirePhrase("Étiquettes")} ${premierIndex + 1}-${dernierIndex} / ${total}`;
 }
 
 function obtenirIndicesFenetreGrilleJukebox(debutColonne, totalColonnes, totalLignes) {
   const finColonne = Math.min(totalColonnes, debutColonne + obtenirNombreColonnesGrilleJukeboxVisible());
   const indices = [];
-  for (let ligne = 0; ligne < totalLignes; ligne += 1) {
-    for (let colonne = debutColonne; colonne < finColonne; colonne += 1) {
-      indices.push(ligne * totalColonnes + colonne);
-    }
+  const etiquettesParFenetre = (finColonne - debutColonne) * totalLignes;
+  const premierIndex = debutColonne * totalLignes;
+  for (let decalage = 0; decalage < etiquettesParFenetre; decalage += 1) {
+    indices.push(premierIndex + decalage);
   }
   return { finColonne, indices };
 }

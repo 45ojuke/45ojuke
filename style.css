@@ -4246,7 +4246,7 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 .jukebox-emplacement__image {
   display: block;
   width: 100%;
-  height: clamp(46px, 5.5vw, 88px);
+  height: clamp(86px, 9vw, 142px);
   aspect-ratio: var(--ratio-etiquette, 3 / 1);
   object-fit: contain;
   object-position: center;
@@ -5684,6 +5684,10 @@ body.is-grille-jukebox-ouverte .scene .edition-texte {
 
   .jukebox-emplacement {
     padding: 6px;
+  }
+
+  .jukebox-emplacement__image {
+    height: clamp(72px, 20vw, 112px);
   }
 
   .assistant-reglages {
