@@ -297,6 +297,14 @@ const elements = {
   ouvrirTableauCsv: document.querySelector("#ouvrirTableauCsv"),
   ouvrirTableauCsvApercu: document.querySelector("#ouvrirTableauCsvApercu"),
   ouvrirJukebox: document.querySelector("#ouvrirJukebox"),
+  menuActionsApercu: document.querySelector("#menuActionsApercu"),
+  ouvrirMenuActionsApercu: document.querySelector("#ouvrirMenuActionsApercu"),
+  listeMenuActionsApercu: document.querySelector("#listeMenuActionsApercu"),
+  copierStyleApercu: document.querySelector("#copierStyleApercu"),
+  collerStyleSelectionApercu: document.querySelector("#collerStyleSelectionApercu"),
+  collerStylePairesApercu: document.querySelector("#collerStylePairesApercu"),
+  collerStyleImpairesApercu: document.querySelector("#collerStyleImpairesApercu"),
+  collerStyleToutesApercu: document.querySelector("#collerStyleToutesApercu"),
   exporterCsv: document.querySelector("#exporterCsv"),
   exporterCsvSauvegarde: document.querySelector("#exporterCsvSauvegarde"),
   texteFaceA: document.querySelector("#texteFaceA"),
@@ -385,6 +393,10 @@ let rendreTableauCsvActif = null;
 let grilleJukeboxInlineOuverte = false;
 let panneauGrilleJukeboxInline = null;
 let elementsGrilleJukeboxInline = null;
+let menuModelesApercu = null;
+let styleCopieApercu = null;
+let confirmationCopieStyleApercu = false;
+let temporisateurConfirmationCopieStyleApercu = null;
 let selectionGrilleJukeboxInlineActive = false;
 let varianteGrillePretePourAlternance = null;
 let debutFenetreGrilleJukebox = 0;
@@ -459,6 +471,12 @@ function brancherEvenements() {
   document.addEventListener("click", (evenement) => {
     if (!evenement.target.closest(".aide-option, .aide-bulle")) {
       fermerBulleAide();
+    }
+    if (!evenement.target.closest("#menuActionsApercu")) {
+      fermerMenuActionsApercu();
+    }
+    if (menuModelesApercu && !menuModelesApercu.contains(evenement.target)) {
+      fermerMenuModelesApercu();
     }
     if (!evenement.target.closest("#topActions")) {
       fermerMenuActionsMobile();
@@ -624,6 +642,12 @@ function brancherEvenements() {
   elements.ouvrirTableauCsv.addEventListener("click", ouvrirTableauCsv);
   elements.ouvrirTableauCsvApercu.addEventListener("click", ouvrirTableauCsv);
   elements.ouvrirJukebox.addEventListener("click", basculerGrilleJukebox);
+  elements.ouvrirMenuActionsApercu.addEventListener("click", basculerMenuActionsApercu);
+  elements.copierStyleApercu.addEventListener("click", copierStyleDepuisApercu);
+  elements.collerStyleSelectionApercu.addEventListener("click", () => collerStyleDepuisApercu("selection"));
+  elements.collerStylePairesApercu.addEventListener("click", () => collerStyleDepuisApercu("paires"));
+  elements.collerStyleImpairesApercu.addEventListener("click", () => collerStyleDepuisApercu("impaires"));
+  elements.collerStyleToutesApercu.addEventListener("click", () => collerStyleDepuisApercu("toutes"));
   [elements.texteFaceA, elements.texteArtiste, elements.texteFaceB].forEach((champ) => {
     champ.addEventListener("input", modifierTexteApercu);
   });
@@ -652,6 +676,8 @@ function brancherEvenements() {
   elements.zonesApercu.addEventListener("click", gererClicApercuIntelligent);
   elements.apercu.addEventListener("click", gererClicApercuIntelligent);
   elements.apercuSecondaire.addEventListener("click", gererClicApercuIntelligent);
+  elements.apercu.addEventListener("contextmenu", (evenement) => ouvrirMenuModelesDepuisApercu(evenement, "1"));
+  elements.apercuSecondaire.addEventListener("contextmenu", (evenement) => ouvrirMenuModelesDepuisApercu(evenement, "2"));
   elements.apercuPrecedent.addEventListener("click", () => changerApercu(-1));
   elements.apercuSuivant.addEventListener("click", () => changerApercu(1));
   elements.changerEtiquetteMobile.addEventListener("click", () => {
@@ -2173,6 +2199,130 @@ function synchroniserPorteeModificationApercu() {
     elementsGrilleJukeboxInline.radioPorteeImpaires.checked = porteeModificationGrilleJukebox === "impaires";
     elementsGrilleJukeboxInline.radioPorteeToutes.checked = porteeModificationGrilleJukebox === "toutes";
   }
+}
+
+function basculerMenuActionsApercu(evenement) {
+  evenement.preventDefault();
+  evenement.stopPropagation();
+  const ouvrir = elements.listeMenuActionsApercu.hidden;
+  elements.listeMenuActionsApercu.hidden = !ouvrir;
+  elements.ouvrirMenuActionsApercu.setAttribute("aria-expanded", String(ouvrir));
+  if (ouvrir) {
+    fermerMenuModelesApercu();
+    mettreAJourMenuActionsApercu();
+  }
+}
+
+function fermerMenuActionsApercu() {
+  elements.listeMenuActionsApercu.hidden = true;
+  elements.ouvrirMenuActionsApercu.setAttribute("aria-expanded", "false");
+}
+
+function mettreAJourMenuActionsApercu() {
+  const source = obtenirLigneApercu(obtenirLignes(), etiquetteActive);
+  const peutCopier = Boolean(modeleChoisi && source);
+  const peutColler = Boolean(styleCopieApercu && modeleChoisi);
+  elements.copierStyleApercu.disabled = !peutCopier;
+  elements.copierStyleApercu.textContent = confirmationCopieStyleApercu
+    ? traduirePhrase("Style copié")
+    : traduirePhrase("Copier le style");
+  elements.copierStyleApercu.classList.toggle("is-confirme", confirmationCopieStyleApercu);
+  [
+    elements.collerStyleSelectionApercu,
+    elements.collerStylePairesApercu,
+    elements.collerStyleImpairesApercu,
+    elements.collerStyleToutesApercu,
+  ].forEach((bouton) => {
+    bouton.disabled = !peutColler;
+  });
+}
+
+function copierStyleDepuisApercu() {
+  const lignes = obtenirLignes();
+  const ligneSource = obtenirLigneApercu(lignes, etiquetteActive);
+  if (!ligneSource) {
+    return;
+  }
+  styleCopieApercu = {
+    reglages: clonerReglages(lireReglagesFormulaire()),
+    source: String(ligneSource.index),
+  };
+  confirmationCopieStyleApercu = true;
+  clearTimeout(temporisateurConfirmationCopieStyleApercu);
+  mettreAJourMenuActionsApercu();
+  temporisateurConfirmationCopieStyleApercu = window.setTimeout(() => {
+    confirmationCopieStyleApercu = false;
+    if (!elements.listeMenuActionsApercu.hidden) {
+      mettreAJourMenuActionsApercu();
+    }
+  }, 1200);
+}
+
+function collerStyleDepuisApercu(portee) {
+  if (!styleCopieApercu?.reglages) {
+    mettreAJourMenuActionsApercu();
+    return;
+  }
+  const reglages = clonerReglages(styleCopieApercu.reglages);
+  const source = styleCopieApercu.source;
+  const cles = obtenirClesLignesPourPorteeGrille(portee)
+    .filter((cle) => portee === "selection" || cle !== source);
+  if (!cles.length) {
+    mettreAJourMenuActionsApercu();
+    return;
+  }
+  enregistrerHistoriqueAvantAction();
+  enregistrerReglagesSurLignes(cles, reglages);
+  if (cles.includes(obtenirCleLigneApercu())) {
+    appliquerReglagesAuFormulaire(reglages);
+  }
+  sauvegarderReglagesAutomatiques();
+  fermerMenuActionsApercu();
+  mettreAJour();
+}
+
+function obtenirMenuModelesApercu() {
+  if (menuModelesApercu) {
+    return menuModelesApercu;
+  }
+  menuModelesApercu = document.createElement("div");
+  menuModelesApercu.className = "jukebox-modeles jukebox-inline__modeles menu-modeles-apercu";
+  menuModelesApercu.hidden = true;
+  elements.scene.append(menuModelesApercu);
+  return menuModelesApercu;
+}
+
+function ouvrirMenuModelesDepuisApercu(evenement, numeroEtiquette) {
+  if (!modeleChoisi || (numeroEtiquette === "2" && !deuxiemeEtiquetteActive())) {
+    return;
+  }
+  evenement.preventDefault();
+  evenement.stopPropagation();
+  fermerMenuActionsApercu();
+  const cible = obtenirIndexLigneApercu(numeroEtiquette);
+  const lignes = obtenirLignes();
+  if (!lignes[cible]) {
+    return;
+  }
+  const menu = obtenirMenuModelesApercu();
+  menu.hidden = false;
+  rendreModelesJukebox(menu, fermerMenuModelesApercu, cible);
+  window.requestAnimationFrame(() => {
+    const rectScene = elements.scene.getBoundingClientRect();
+    const rectMenu = menu.getBoundingClientRect();
+    const marge = 8;
+    const x = Math.max(marge, Math.min(evenement.clientX - rectScene.left, rectScene.width - rectMenu.width - marge));
+    const y = Math.max(marge, Math.min(evenement.clientY - rectScene.top, rectScene.height - rectMenu.height - marge));
+    menu.style.setProperty("--menu-x", `${Math.round(x)}px`);
+    menu.style.setProperty("--menu-y", `${Math.round(y)}px`);
+  });
+}
+
+function fermerMenuModelesApercu() {
+  if (!menuModelesApercu) {
+    return;
+  }
+  menuModelesApercu.hidden = true;
 }
 
 function obtenirClesLignesPourPorteeGrille(portee) {
@@ -7146,9 +7296,9 @@ function masquerApercuSurvolJukeboxInline() {
   elementsGrilleJukeboxInline.apercuSurvol.hidden = true;
 }
 
-function rendreModelesJukebox(conteneur, apresApplication = null) {
+function rendreModelesJukebox(conteneur, apresApplication = null, cible = indexApercu) {
   const lignes = obtenirLignes();
-  const ligne = lignes[indexApercu] || lignes[0] || null;
+  const ligne = lignes[cible] || lignes[0] || null;
   const reglagesBase = lireReglages("1", ligne);
   const cartes = [];
   obtenirStylesEtiquettes("tout").forEach((style) => {
@@ -7173,13 +7323,14 @@ function rendreModelesJukebox(conteneur, apresApplication = null) {
         largeurEtiquette: reglagesBase.largeurEtiquette,
         hauteurEtiquette: reglagesBase.hauteurEtiquette,
       },
+      cible,
       apresApplication,
     }));
   });
   conteneur.replaceChildren(...cartes);
 }
 
-function creerCarteModeleJukebox({ id, nom, ligne, reglages, apresApplication = null }) {
+function creerCarteModeleJukebox({ id, nom, ligne, reglages, cible = indexApercu, apresApplication = null }) {
   const carte = document.createElement("button");
   carte.className = "jukebox-modele";
   carte.type = "button";
@@ -7196,8 +7347,8 @@ function creerCarteModeleJukebox({ id, nom, ligne, reglages, apresApplication = 
     evenement.dataTransfer.effectAllowed = "copy";
   });
   carte.addEventListener("click", () => {
-    appliquerModeleJukebox(indexApercu, id);
-    preparerAlternanceGrilleJukeboxInline(indexApercu, id === "variante" ? "variante" : "style");
+    appliquerModeleJukebox(cible, id);
+    preparerAlternanceGrilleJukeboxInline(cible, id === "variante" ? "variante" : "style");
     apresApplication?.();
   });
   return carte;

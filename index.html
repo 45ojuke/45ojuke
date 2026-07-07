@@ -737,6 +737,16 @@
             <button class="bouton bouton-secondaire" id="inverser" type="button">Variante</button>
             <button class="bouton bouton-secondaire" id="teinte" type="button">Teinte</button>
             <button class="bouton bouton-secondaire" id="reinitialiserReglage" type="button" aria-label="Revenir au style par défaut" title="Style par défaut">Reset</button>
+            <div class="menu-actions-apercu" id="menuActionsApercu">
+              <button class="bouton bouton-secondaire menu-actions-apercu__bouton" id="ouvrirMenuActionsApercu" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Copier ou coller un style" title="Copier / coller le style">⧉</button>
+              <div class="menu-actions-apercu__liste" id="listeMenuActionsApercu" role="menu" hidden>
+                <button id="copierStyleApercu" type="button" role="menuitem">Copier le style</button>
+                <button id="collerStyleSelectionApercu" type="button" role="menuitem">Coller à cette étiquette</button>
+                <button id="collerStylePairesApercu" type="button" role="menuitem">Coller aux étiquettes paires</button>
+                <button id="collerStyleImpairesApercu" type="button" role="menuitem">Coller aux étiquettes impaires</button>
+                <button id="collerStyleToutesApercu" type="button" role="menuitem">Coller à toutes les étiquettes</button>
+              </div>
+            </div>
             <button class="bouton bouton-secondaire bouton-afficher-favoris" id="ouvrirFavoris" type="button" aria-expanded="false" hidden>Favoris</button>
             <button class="bouton bouton-secondaire" id="ouvrirJukebox" type="button" hidden>Prévisualisation</button>
             <button class="bouton bouton-principal" id="imprimer" type="button">Imprimer</button>
