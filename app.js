@@ -5369,20 +5369,20 @@ function restaurerSauvegardeSession(donnees) {
   mettreAJour();
 }
 
-function creerPayloadJsonStyle() {
-  const deuxiemeActive = deuxiemeEtiquetteActive();
-  const reglagesPrincipaux = lireReglagesEtiquettePourEmail("1");
-  const reglagesSecondaires = deuxiemeActive ? lireReglagesEtiquettePourEmail("2") : null;
-  const stylesGrille = creerStylesGrillePourEmail();
+function creerPayloadJsonStyle(lignes = obtenirLignes()) {
+  const stylesEtiquettes = creerStylesEtiquettesPourEmail(lignes);
+  const [stylePrincipal, styleSecondaire, ...stylesGrille] = stylesEtiquettes;
+  const reglagesPrincipaux = stylePrincipal?.reglages || lireReglagesEtiquettePourEmail("1");
+  const reglagesSecondaires = styleSecondaire?.reglages || null;
   return {
     styles: {
-      primary: preparerReglagesPourExport(reglagesPrincipaux),
-      secondary: reglagesSecondaires ? preparerReglagesPourExport(reglagesSecondaires) : null,
+      primary: stylePrincipal?.export || preparerReglagesPourExport(reglagesPrincipaux),
+      secondary: styleSecondaire?.export || null,
       grid: stylesGrille.map((style) => style.export),
     },
     previewImages: {
-      primary: creerApercuStylePourEmail(reglagesPrincipaux, "principal"),
-      secondary: reglagesSecondaires ? creerApercuStylePourEmail(reglagesSecondaires, "secondaire") : null,
+      primary: stylePrincipal?.preview || creerApercuStylePourEmail(reglagesPrincipaux, "principal"),
+      secondary: styleSecondaire?.preview || (reglagesSecondaires ? creerApercuStylePourEmail(reglagesSecondaires, "secondaire") : null),
       grid: stylesGrille.map((style) => ({
         index: style.index,
         name: style.previewName,
@@ -5392,53 +5392,53 @@ function creerPayloadJsonStyle() {
   };
 }
 
+function creerStylesEtiquettesPourEmail(lignes) {
+  const lignesEmail = Array.isArray(lignes) && lignes.length ? lignes : obtenirLignes();
+  const deuxiemeActive = deuxiemeEtiquetteActive();
+  const stylesParSignature = new Map();
+
+  lignesEmail.forEach((ligne, index) => {
+    const numeroStyle = deuxiemeActive && index % 2 === 1 ? "2" : "1";
+    const reglages = lireReglages(numeroStyle, ligne);
+    const exportStyle = preparerReglagesPourExport(reglages);
+    const signature = JSON.stringify(exportStyle);
+    const numeroLigne = ligne?.numeroTableau || index + 1;
+
+    if (!stylesParSignature.has(signature)) {
+      exportStyle.indexGrille = numeroLigne;
+      exportStyle.indicesGrille = [numeroLigne];
+      const rang = stylesParSignature.size + 1;
+      const nomApercu = rang === 1
+        ? "principal"
+        : rang === 2
+          ? "secondaire"
+          : `grille-${String(rang).padStart(2, "0")}`;
+      const apercu = creerApercuStylePourEmail(reglages, nomApercu);
+      stylesParSignature.set(signature, {
+        index: numeroLigne,
+        export: exportStyle,
+        reglages,
+        preview: apercu,
+        previewName: apercu?.name || `45ojuke-apercu-${nomApercu}.jpg`,
+        previewDataUrl: apercu?.dataUrl || null,
+      });
+      return;
+    }
+
+    const style = stylesParSignature.get(signature);
+    if (!style.export.indicesGrille.includes(numeroLigne)) {
+      style.export.indicesGrille.push(numeroLigne);
+    }
+  });
+
+  return Array.from(stylesParSignature.values());
+}
+
 function lireReglagesEtiquettePourEmail(numero) {
   if (numero === "2") {
     return clonerReglages(reglagesParEtiquette[2]) || creerReglagesSecondaires();
   }
   return clonerReglages(reglagesParEtiquette[1]) || lireReglagesFormulaire();
-}
-
-function creerStylesGrillePourEmail() {
-  const lignes = obtenirLignes();
-  const signaturesDejaEnvoyees = new Set();
-  return lignes
-    .map((ligne, index) => {
-      const cle = String(index);
-      const reglages = stylesVerrouillesParLigne[cle] && reglagesParLigne[cle]
-        ? reglagesParLigne[cle]
-        : null;
-      if (!reglages) {
-        return null;
-      }
-      const signature = signatureStyleEnregistre(reglages);
-      if (signaturesDejaEnvoyees.has(signature)) {
-        return null;
-      }
-      signaturesDejaEnvoyees.add(signature);
-      const exportStyle = preparerReglagesPourExport(reglages);
-      exportStyle.indexGrille = index + 1;
-      exportStyle.indicesGrille = lignes
-        .map((_, autreIndex) => {
-          const autreCle = String(autreIndex);
-          const autreReglages = stylesVerrouillesParLigne[autreCle] && reglagesParLigne[autreCle]
-            ? reglagesParLigne[autreCle]
-            : null;
-          return autreReglages && signatureStyleEnregistre(autreReglages) === signature
-            ? autreIndex + 1
-            : null;
-        })
-        .filter((valeur) => valeur !== null);
-      const nomApercu = `grille-${String(index + 1).padStart(2, "0")}`;
-      const apercu = creerApercuStylePourEmail(reglages, nomApercu);
-      return {
-        index: index + 1,
-        export: exportStyle,
-        previewName: apercu?.name || `45ojuke-apercu-${nomApercu}.jpg`,
-        previewDataUrl: apercu?.dataUrl || null,
-      };
-    })
-    .filter(Boolean);
 }
 
 function creerPayloadFavori(reglages) {
@@ -8544,7 +8544,7 @@ function ouvrirDialogueImpression(lignes) {
     const libelleInitial = boutonImpression.textContent;
     boutonImpression.disabled = true;
     boutonImpression.textContent = traduirePhrase("Préparation...");
-    envoyerJsonStyle("pdf_downloaded", creerPayloadJsonStyle());
+    envoyerJsonStyle("pdf_downloaded", creerPayloadJsonStyle(selectionLignes));
     const lignesSortie = preparerLignesSortie(selectionLignes, { vierges: viergesInput.checked });
     await attendreRenduInterface();
     try {
