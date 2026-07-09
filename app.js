@@ -7403,6 +7403,7 @@ function appliquerModeleJukebox(cible, modele) {
   indexApercu = cible;
   placerFenetreGrilleJukeboxSurIndex(indexApercu);
   sauvegarderReglagesAutomatiques();
+  appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
   mettreAJour();
 }
 
