@@ -467,6 +467,9 @@ function appliquerDimensionsEtiquetteDefaut() {
 
 function brancherEvenements() {
   brancherAccueilIntro();
+  if (new URLSearchParams(window.location.search).get("informations-legales") === "1") {
+    ouvrirConfidentialite();
+  }
   brancherRestaurationAccueil();
   document.addEventListener("click", (evenement) => {
     if (!evenement.target.closest(".aide-option, .aide-bulle")) {
