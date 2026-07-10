@@ -1243,6 +1243,11 @@ function installerFondIntroMobile() {
 }
 
 function quitterIntro() {
+  elements.boutonCommencer.blur();
+  const comportementDefilement = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
   elements.intro.classList.add("disparait");
   document.body.classList.remove("is-intro-active");
   fermerMenuActionsMobile();
@@ -1251,6 +1256,15 @@ function quitterIntro() {
   if (!modeleChoisi) {
     proposerRestaurationReglagesAutomatiques();
   }
+  requestAnimationFrame(() => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    requestAnimationFrame(() => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      document.documentElement.style.scrollBehavior = comportementDefilement;
+    });
+  });
 }
 
 function afficherIntroInitiale() {
