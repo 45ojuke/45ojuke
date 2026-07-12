@@ -7979,7 +7979,7 @@ async function mettreAJour() {
   const sequenceCourante = ++sequenceMiseAJour;
   mettreAJourBoutonsHistorique();
   const lignes = obtenirLignes();
-  const afficherIndicateursSwipe = false;
+  const afficherIndicateursSwipe = MEDIA_MOBILE.matches && lignes.length > 1;
   elements.indicateurSwipePrecedent.hidden = !afficherIndicateursSwipe;
   elements.indicateurSwipeSuivant.hidden = !afficherIndicateursSwipe;
   const deuxiemeActive = deuxiemeEtiquetteActive();
@@ -8099,7 +8099,7 @@ async function mettreAJour() {
   synchroniserControleZoomApercu(zoomApercu);
   elements.reglageRetourLigneTitres.hidden = canvasEtiquetteActive.dataset.retourLigneTitresPossible !== "true";
   elements.etat.textContent = MEDIA_MOBILE.matches
-    ? ""
+    ? `${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau}/${lignes.length}`
     : `${traduirePhrase("Étiquette")} ${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau} ${traduirePhrase("sur")} ${lignes.length}`;
   elements.editionTexteEtat.textContent = `${ligneEdition?.numeroTableau || lignePrincipale.numeroTableau}/${lignes.length}`;
   mettreAJourEditeurTexte(ligneEdition);
