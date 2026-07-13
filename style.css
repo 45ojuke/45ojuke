@@ -730,7 +730,7 @@ body:not(.is-accueil-selection) .controles{order:2;width:calc(100% - 10px);overf
 .barre-actions--apercu .bouton{flex:0 0 auto;min-height:28px;padding-inline:8px;font-size:0.68rem}
 .barre-actions--apercu .bouton-historique{width:28px}
 #ouvrirJukebox{display:none}
-.apercus{order:2;gap:10px;padding-bottom:16px;touch-action:pan-y}
+.apercus{order:2;gap:10px;padding-bottom:30px;touch-action:pan-y}
 .apercus--carrousel .compteur-etiquette{position:absolute;bottom:0;left:50%;z-index:4;min-width:48px;height:18px;display:flex;align-items:center;justify-content:center;transform:translateX(-50%);color:rgba(74,43,24,.76);font-size:.68rem;font-weight:900;line-height:1}
 .indicateur-swipe:not([hidden]){position:absolute;bottom:0;z-index:4;width:32px;height:18px;display:flex;align-items:center;justify-content:center;border:0;padding:0;background:transparent;color:var(--accent-2);font-size:0;line-height:1;cursor:pointer;touch-action:manipulation}
 .indicateur-swipe::before{font-size:1.15rem;font-weight:700}
