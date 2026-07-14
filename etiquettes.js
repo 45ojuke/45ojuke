@@ -54,6 +54,12 @@ export function dessinerEtiquette(ligne, reglages) {
     return canvas;
   }
 
+  if (reglages.modele === "ADRIEN") {
+    dessinerEtiquetteAdrien(ctx, ligne, reglages, largeur, hauteur, bordure);
+    finaliserEtiquette(ctx, reglages, largeur, hauteur);
+    return canvas;
+  }
+
   if (reglages.modele === "MANU") {
     dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, rubanX, rubanY, rubanW, rubanH, bandeH, bandeY);
     finaliserEtiquette(ctx, reglages, largeur, hauteur);
@@ -1030,6 +1036,131 @@ function dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure) 
   );
   dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, yBas - yHaut, reglages, fondArtiste);
 
+}
+
+function dessinerEtiquetteAdrien(ctx, ligne, reglages, largeur, hauteur, bordure) {
+  const traitBordure = bordure > 0 ? Math.max(1, bordure) : 0;
+  const fondHaut = reglages.couleur2 || "#f6dfe2";
+  const fondBas = reglages.couleur3 || fondHaut;
+  const couleurFilets = reglages.couleurRuban || "#2a2424";
+  const centreY = hauteur / 2;
+
+  ctx.fillStyle = fondHaut;
+  ctx.fillRect(0, 0, largeur, centreY);
+  ctx.fillStyle = fondBas;
+  ctx.fillRect(0, centreY, largeur, hauteur - centreY);
+  dessinerMotif(ctx, reglages, largeur, hauteur);
+  dessinerTraitsModernes(ctx, reglages, largeur, hauteur);
+  if (reglages.modeVignette === "fond" || reglages.modeVignette === "global") {
+    dessinerVignette(ctx, reglages, largeur, hauteur);
+  }
+
+  if (traitBordure > 0) {
+    dessinerBordureInterieureArrondie(
+      ctx,
+      0,
+      0,
+      largeur,
+      hauteur,
+      traitBordure,
+      reglages.couleur1,
+      reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      reglages,
+    );
+  }
+
+  const margeTexte = Math.max(largeur * 0.045, traitBordure + largeur * 0.018);
+  const largeurTitres = Math.max(largeur * 0.35, largeur - margeTexte * 2);
+  dessinerTitre(
+    ctx,
+    ligne.titreA,
+    largeur / 2,
+    centreEntreTraits(traitBordure, centreY),
+    largeurTitres,
+    reglages,
+    fondHaut,
+    reglages.couleurTitreFaceA,
+    reglages.couleurTitreFaceAManuelle,
+    "titreA",
+  );
+  dessinerTitre(
+    ctx,
+    ligne.titreB,
+    largeur / 2,
+    centreEntreTraits(centreY, hauteur - traitBordure),
+    largeurTitres,
+    reglages,
+    fondBas,
+    reglages.couleurTitreFaceB,
+    reglages.couleurTitreFaceBManuelle,
+    "titreB",
+  );
+
+  const largeurMaxArtiste = largeur * 0.62;
+  const mesureArtiste = mesurerArtistePourFilets(ctx, ligne.artiste, largeurMaxArtiste, reglages);
+  const decalageManuel = calculerDecalageManuelTexte(ctx, reglages, "artiste");
+  const transformation = transformerArtisteRetro(modeDecalageRetro(reglages), mesureArtiste.taille);
+  const centreArtisteX = largeur / 2 + decalageManuel.x + (transformation.decalageX || 0);
+  const centreArtisteY = centreY + decalageManuel.y + (transformation.decalageY || 0);
+  const espaceFilet = Math.max(largeur * 0.018, mesureArtiste.taille * 0.55);
+  const debutGauche = margeTexte;
+  const finGauche = centreArtisteX - mesureArtiste.largeur / 2 - espaceFilet;
+  const debutDroite = centreArtisteX + mesureArtiste.largeur / 2 + espaceFilet;
+  const finDroite = largeur - margeTexte;
+
+  ctx.save();
+  ctx.strokeStyle = couleurFilets;
+  ctx.lineWidth = Math.max(1, Number(reglages.epaisseurTraitsSeparateurs) || 1.5);
+  ctx.lineCap = "butt";
+  ctx.beginPath();
+  if (finGauche > debutGauche) {
+    ctx.moveTo(debutGauche, centreArtisteY);
+    ctx.lineTo(finGauche, centreArtisteY);
+  }
+  if (finDroite > debutDroite) {
+    ctx.moveTo(debutDroite, centreArtisteY);
+    ctx.lineTo(finDroite, centreArtisteY);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  dessinerArtiste(
+    ctx,
+    ligne.artiste,
+    largeur / 2,
+    centreY,
+    largeurMaxArtiste,
+    reglages,
+    fondHaut,
+  );
+
+  if (reglages.afficherMarques) {
+    dessinerMarques(ctx, reglages, largeur, hauteur, centreY, 0, 0);
+  }
+}
+
+function mesurerArtistePourFilets(ctx, texte, largeurMax, reglages) {
+  const valeurTaille = Number(reglages.tailleArtiste) || 100;
+  let taille = 32 * Math.min(200, valeurTaille) / 100;
+  const espacementLettres = valeurTaille > 200
+    ? taille * ((Math.min(240, valeurTaille) - 200) / 40) * 0.13
+    : 0;
+  const style = normaliserStylePolice(reglages.policeArtiste, reglages.styleArtiste);
+  const poids = poidsPolice(reglages.policeArtiste, styleTexteEnGras(style) ? 700 : 400);
+  const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
+
+  ctx.save();
+  ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
+  ctx.letterSpacing = `${espacementLettres}px`;
+  const contenu = choisirTexteArtiste(ctx, texte, largeurMax).toLocaleUpperCase("fr-FR");
+  let largeurTexte = ctx.measureText(contenu).width;
+  if (largeurTexte > largeurMax) {
+    taille *= Math.max(0.5, largeurMax / largeurTexte);
+    ctx.font = `${italique}${poids} ${taille}px ${policeCanvas(reglages.policeArtiste)}`;
+    largeurTexte = ctx.measureText(contenu).width;
+  }
+  ctx.restore();
+  return { largeur: Math.min(largeurMax, largeurTexte), taille };
 }
 
 function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages, couleurFond) {

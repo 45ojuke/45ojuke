@@ -426,7 +426,7 @@
               <label class="champ" data-decor-panel="motif" data-motif-reglage><span class="champ__libelle">Opacité <span class="valeur-range" data-range-value="motif" data-range-unit="%"></span></span><input id="motif" type="range" min="0" max="100" step="1" /></label>
               <label class="champ" data-decor-panel="motif" data-motif-reglage><span class="champ__libelle">Angle <span class="valeur-range" data-range-value="angleMotif"></span></span><input id="angleMotif" type="range" min="-80" max="80" step="1" /></label>
               <div class="separateur-reglages" data-decor-panel="motif"></div>
-              <div class="champ champ-large options-bordure" data-decor-panel="motif">
+              <div class="champ champ-large options-bordure" data-decor-panel="motif" data-option-decor-ruban>
                 <div class="options-bordure__choix options-bordure__choix--simple">
                   <label class="option-case">Ruban <input id="motifRuban" type="checkbox" /></label>
                 </div>
@@ -467,7 +467,7 @@
                 <span class="champ__libelle">Motif secondaire appliqué</span>
                 <div class="options-bordure__choix">
                   <label class="option-case">Fond <input id="motifSecondaireFond" type="checkbox" checked /></label>
-                  <label class="option-case">Ruban <input id="motifSecondaireRuban" type="checkbox" /></label>
+                  <label class="option-case" data-option-decor-ruban>Ruban <input id="motifSecondaireRuban" type="checkbox" /></label>
                 </div>
               </div>
               <label class="champ" data-decor-panel="motif" data-traits-modernes-reglage>Couleur secondaire <input id="couleurTraitsModernes" type="color" /></label>
@@ -490,11 +490,11 @@
 
           <section class="groupe onglet-panneau" data-tab-panel="ruban" hidden>
             <div class="grille">
-              <label class="champ">Cadre <input id="couleur1" type="color" /></label>
+              <label class="champ"><span id="libelleCouleurContour">Cadre</span> <input id="couleur1" type="color" /></label>
               <label class="champ" data-modele-masque="CELESTE">Fond supérieur <input id="couleur2" type="color" /></label>
               <label class="champ" data-modele-masque="CELESTE">Fond inférieur <input id="couleur3" type="color" /></label>
               <label class="champ" data-modele-visible="CELESTE">Fond moderne <input id="couleurFondModerne" type="color" /></label>
-              <label class="champ">Ruban / zone artiste <input id="couleurRuban" type="color" /></label>
+              <label class="champ"><span id="libelleCouleurRuban">Ruban / zone artiste</span> <input id="couleurRuban" type="color" /></label>
               <label class="champ" data-modele-visible="CELESTE">Bande gauche <input id="couleurBandeGauche" type="color" /></label>
               <label class="champ" data-modele-visible="CELESTE">Bande droite <input id="couleurBandeDroite" type="color" /></label>
               <div class="separateur-reglages"></div>
@@ -563,7 +563,7 @@
               <label class="champ" data-modele-visible="CELESTE"><span class="champ__libelle">Orientation gauche <span class="valeur-range" data-range-value="angleBandeGauche"></span></span><input id="angleBandeGauche" type="range" min="-80" max="80" step="1" /></label>
               <label class="champ" data-modele-visible="CELESTE"><span class="champ__libelle">Taille bande droite <span class="valeur-range" data-range-value="tailleBandeDroite" data-range-unit="%"></span></span><input id="tailleBandeDroite" type="range" min="0" max="60" step="1" /></label>
               <label class="champ" data-modele-visible="CELESTE"><span class="champ__libelle">Orientation droite <span class="valeur-range" data-range-value="angleBandeDroite"></span></span><input id="angleBandeDroite" type="range" min="-80" max="80" step="1" /></label>
-              <label class="champ" data-modele-visible="LEON JEAN"><span class="champ__libelle">Épaisseur traits <span class="valeur-range" data-range-value="epaisseurTraitsSeparateurs"></span></span><input id="epaisseurTraitsSeparateurs" type="range" min="1" max="12" step="0.5" /></label>
+              <label class="champ" data-modele-visible="LEON JEAN ADRIEN"><span class="champ__libelle">Épaisseur traits <span class="valeur-range" data-range-value="epaisseurTraitsSeparateurs"></span></span><input id="epaisseurTraitsSeparateurs" type="range" min="1" max="12" step="0.5" /></label>
               <label class="champ" data-modele-visible="LEON JEAN"><span class="champ__libelle">Position traits <span class="valeur-range" data-range-value="positionTraitsSeparateurs" data-range-unit="%"></span></span><input id="positionTraitsSeparateurs" type="range" min="25" max="75" step="1" /></label>
               <label class="champ" data-modele-visible="LEON JEAN"><span class="champ__libelle">Espace entre traits <span class="valeur-range" data-range-value="ecartTraitsSeparateurs" data-range-unit="%"></span></span><input id="ecartTraitsSeparateurs" type="range" min="10" max="42" step="1" /></label>
               <label class="champ champ-large" data-modele-visible="JEAN"><span class="champ__libelle">Taille des triangles <span class="valeur-range" data-range-value="tailleTrianglesJEAN" data-range-unit="%"></span></span><input id="tailleTrianglesJEAN" type="range" min="0" max="100" step="1" /></label>

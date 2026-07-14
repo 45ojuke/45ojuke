@@ -156,6 +156,7 @@ export const modelesParTheme = {
     ["STELLA", "STELLA"],
     ["LEON", "LEON"],
     ["JEAN", "JEAN"],
+    ["ADRIEN", "ADRIEN"],
   ],
   classique: [
     ["ALICE", "ALICE"],
@@ -166,6 +167,7 @@ export const modelesParTheme = {
     ["LUCIEN", "LUCIEN"],
     ["LEON", "LEON"],
     ["JEAN", "JEAN"],
+    ["ADRIEN", "ADRIEN"],
   ],
   moderne: [
     ["CELESTE", "CELESTE"],
@@ -318,6 +320,13 @@ export const capacitesModeles = {
     bandeCentrale: false,
   },
   JEAN: {
+    marques: true,
+    ruban: false,
+    bandeCentrale: false,
+  },
+  ADRIEN: {
+    // Les mentions latérales ne sont jamais imposées par le modèle : elles
+    // restent disponibles, mais seul l'utilisateur choisit de les afficher.
     marques: true,
     ruban: false,
     bandeCentrale: false,

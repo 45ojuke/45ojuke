@@ -137,6 +137,8 @@ const elements = {
   editionEtiquette: document.querySelectorAll('input[name="editionEtiquette"]'),
   modele: document.querySelector("#modele"),
   modeleSecondaire: document.querySelector("#modeleSecondaire"),
+  libelleCouleurContour: document.querySelector("#libelleCouleurContour"),
+  libelleCouleurRuban: document.querySelector("#libelleCouleurRuban"),
   couleur1: document.querySelector("#couleur1"),
   couleur2: document.querySelector("#couleur2"),
   couleur3: document.querySelector("#couleur3"),
@@ -242,6 +244,7 @@ const elements = {
   reglagesVignette: document.querySelectorAll("[data-vignette-reglage]"),
   reglagesMotifRuban: document.querySelectorAll("[data-motif-ruban-reglage]"),
   reglagesMotifRubanDetails: document.querySelectorAll("[data-motif-ruban-details]"),
+  optionsDecorRuban: document.querySelectorAll("[data-option-decor-ruban]"),
   champsModele: document.querySelectorAll("[data-modele-visible]"),
   champsMasquesModele: document.querySelectorAll("[data-modele-masque]"),
   champsCapaciteModele: document.querySelectorAll("[data-capacite-modele]"),
@@ -2917,6 +2920,9 @@ function creerVarianteCouleur(reglages) {
   if (reglages.modele === "CELESTE") {
     return creerVarianteModerne(reglages);
   }
+  if (reglages.modele === "ADRIEN") {
+    return creerVarianteAdrien(reglages);
+  }
   return creerVarianteClassique(reglages);
 }
 
@@ -2976,6 +2982,9 @@ function creerSurprisePourApercuVariante(reglages) {
   }
   if (reglages.modele === "LEON") {
     return creerSurpriseLeon(reglages);
+  }
+  if (reglages.modele === "ADRIEN") {
+    return creerVarianteAdrien(reglages);
   }
   return creerVarianteClassiqueAleatoire(reglages);
 }
@@ -5725,7 +5734,9 @@ function appliquerPaletteTeinte(reglages, palette) {
   const couleurTitreFaceA = couleurTexteTeintee(reglages.couleurTitreFaceA, palette.titre, fondHaut);
   const couleurTitreFaceB = couleurTexteTeintee(reglages.couleurTitreFaceB, palette.titre, fondBas);
   const couleurArtisteSource = estCouleurClaire(ruban) ? palette.cadre : palette.artiste;
-  const couleurArtiste = couleurTexteTeintee(reglages.couleurArtiste, couleurArtisteSource, ruban);
+  const couleurArtiste = reglages.modele === "ADRIEN"
+    ? couleurTexteContrasteDeuxFonds(fondHaut, fondBas)
+    : couleurTexteTeintee(reglages.couleurArtiste, couleurArtisteSource, ruban);
   const couleurMarques = reglages.couleurMarquesManuelle
     ? reglages.couleurMarques
     : couleurFondTeintee(reglages.couleurMarques, palette.marques);
@@ -5977,6 +5988,44 @@ function creerVarianteClassique(reglages) {
     couleurTitreFaceBManuelle: false,
     couleurArtiste: couleurLisible(ruban, reglages.couleurArtiste),
   };
+}
+
+function creerVarianteAdrien(reglages) {
+  const palettesPossibles = PALETTES_TEINTES.filter((palette) => (
+    !couleursEgales(palette.cadre, reglages.couleur1)
+    || !couleursEgales(palette.fondHaut, reglages.couleur2)
+    || !couleursEgales(palette.fondBas, reglages.couleur3)
+    || !couleursEgales(palette.secondaire, reglages.couleurRuban)
+  ));
+  const palette = choisirAleatoire(palettesPossibles.length ? palettesPossibles : PALETTES_TEINTES);
+  return {
+    ...reglages,
+    couleur1: palette.cadre,
+    couleur2: palette.fondHaut,
+    couleur3: palette.fondBas,
+    couleurRuban: palette.secondaire,
+    couleurVignette: palette.vignette,
+    couleurMotif: palette.motif,
+    couleurTitreFaceA: couleurTexteContraste(palette.fondHaut),
+    couleurTitreFaceB: couleurTexteContraste(palette.fondBas),
+    couleurTitreFaceAManuelle: false,
+    couleurTitreFaceBManuelle: false,
+    couleurArtiste: couleurTexteContrasteDeuxFonds(palette.fondHaut, palette.fondBas),
+    couleurArtisteManuelle: false,
+    // Une génération automatique ne décide jamais d'afficher les mentions :
+    // elle ne fait que conserver une activation explicite de l'utilisateur.
+    afficherMarques: reglages.afficherMarques === true,
+  };
+}
+
+function couleurTexteContrasteDeuxFonds(fondA, fondB) {
+  return ["#16120d", "#fffdf8"].reduce((meilleure, couleur) => {
+    const contraste = Math.min(
+      ratioContrasteTeinte(fondA, couleur),
+      ratioContrasteTeinte(fondB, couleur),
+    );
+    return contraste > meilleure.contraste ? { couleur, contraste } : meilleure;
+  }, { couleur: "#16120d", contraste: -Infinity }).couleur;
 }
 
 function creerVarianteManu(reglages) {
@@ -8148,6 +8197,15 @@ function champDimensionHorsLimites(element, cle) {
 function mettreAJourInterfaceConditionnelle(reglages) {
   const modele = reglages.modele;
   const capacites = capacitesModeles[modele] || {};
+  const actualiserLibelleCouleur = (element, cle) => {
+    if (!element) {
+      return;
+    }
+    element.__cleI18n = cle;
+    element.textContent = traduirePhrase(cle);
+  };
+  actualiserLibelleCouleur(elements.libelleCouleurContour, modele === "ADRIEN" ? "Contour" : "Cadre");
+  actualiserLibelleCouleur(elements.libelleCouleurRuban, modele === "ADRIEN" ? "Traits fins" : "Ruban / zone artiste");
   const appliquerVisibiliteModele = () => elements.champsModele.forEach((champ) => {
     const modelesVisibles = String(champ.dataset.modeleVisible || "").split(/\s+/);
     champ.classList.toggle("champ-masque", !modelesVisibles.includes(modele));
@@ -8218,13 +8276,14 @@ function mettreAJourInterfaceConditionnelle(reglages) {
   elements.reglagesMotifRuban.forEach((champ) => {
     champ.classList.toggle(
       "champ-masque",
-      panelDecor !== "motif" || !motifActif || !reglages.motifRuban,
+      modele === "ADRIEN" || panelDecor !== "motif" || !motifActif || !reglages.motifRuban,
     );
   });
   elements.reglagesMotifRubanDetails.forEach((champ) => {
     champ.classList.toggle(
       "champ-masque",
-      panelDecor !== "motif"
+      modele === "ADRIEN"
+        || panelDecor !== "motif"
         || !motifActif
         || !reglages.motifRuban
         || reglages.motifRubanType === "aucun",
@@ -8241,6 +8300,9 @@ function mettreAJourInterfaceConditionnelle(reglages) {
       "champ-masque",
       panelDecor !== "vignette" || !vignettageActif || reglages.modeVignette === "aucun",
     );
+  });
+  elements.optionsDecorRuban.forEach((option) => {
+    option.classList.toggle("champ-masque", modele === "ADRIEN");
   });
   elements.reglagesDeplacementTextes.hidden = !reglages.deplacementTextesManuel;
   mettreAJourReglagesTexteMiseEnPage();
