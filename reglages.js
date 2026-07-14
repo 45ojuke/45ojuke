@@ -11,6 +11,7 @@ export const CLE_CSV_LOCAL = "45ojuke.etiquettesPersonnalisees.csv";
 export const CLE_LANGUE = "45ojuke.langue";
 export const CLE_REGLAGES_AUTOMATIQUES = "45ojuke.etiquettesPersonnalisees.reglagesAuto";
 export const LIEN_PAYPAL_SOUTIEN = "https://www.paypal.com/paypalme/45oJuke";
+export const LIEN_PAGE_SOUTIEN = "https://45ojuke.fr/?soutien=1";
 export const COLONNES_CSV = ["artiste", "titre_face_a", "titre_face_b"];
 export const MAX_MODELES_SECONDAIRES = 10;
 export const MAX_MODELES_ACCUEIL = 15;

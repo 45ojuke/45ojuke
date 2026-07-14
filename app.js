@@ -473,6 +473,9 @@ function brancherEvenements() {
   if (new URLSearchParams(window.location.search).get("informations-legales") === "1") {
     ouvrirConfidentialite();
   }
+  if (new URLSearchParams(window.location.search).get("soutien") === "1") {
+    ouvrirSoutien();
+  }
   brancherRestaurationAccueil();
   document.addEventListener("click", (evenement) => {
     if (!evenement.target.closest(".aide-option, .aide-bulle")) {
@@ -8569,7 +8572,21 @@ function ouvrirDialogueImpression(lignes) {
   viergesDetail.textContent = traduirePhrase("Imprime le style sans artiste ni titres.");
   viergesTexte.append(viergesNom, viergesDetail);
   vierges.append(viergesInput, viergesTexte);
-  optionsSortie.append(optionsTitre, vierges);
+
+  const reperes = document.createElement("label");
+  reperes.className = "sortie-option";
+  const reperesInput = document.createElement("input");
+  reperesInput.type = "checkbox";
+  reperesInput.checked = true;
+  const reperesTexte = document.createElement("span");
+  const reperesNom = document.createElement("strong");
+  reperesNom.textContent = traduirePhrase("Repères de coupe");
+  const reperesDetail = document.createElement("small");
+  reperesDetail.textContent = traduirePhrase("Ajoute de fins traits autour des étiquettes, sans changer leurs dimensions.");
+  reperesTexte.append(reperesNom, reperesDetail);
+  reperes.append(reperesInput, reperesTexte);
+
+  optionsSortie.append(optionsTitre, vierges, reperes);
 
   const actionsSortie = document.createElement("div");
   actionsSortie.className = "sortie-actions";
@@ -8633,7 +8650,9 @@ function ouvrirDialogueImpression(lignes) {
     const lignesSortie = preparerLignesSortie(selectionLignes, { vierges: viergesInput.checked });
     await attendreRenduInterface();
     try {
-      await telechargerPdf(lignesSortie);
+      await telechargerPdf(lignesSortie, {
+        traitsDecoupe: reperesInput.checked,
+      });
       dialogue.close();
     } catch {
       message.hidden = false;
@@ -8671,8 +8690,17 @@ function ouvrirDialogueImpression(lignes) {
   dialogue.showModal();
 }
 
-function telechargerPdf(lignes) {
-  return telechargerPdfModule(lignes, { deuxiemeEtiquetteActive, lireReglages });
+function telechargerPdf(lignes, options = {}) {
+  return telechargerPdfModule(lignes, {
+    deuxiemeEtiquetteActive,
+    lireReglages,
+    ...options,
+    libellesSignature: {
+      titre: traduirePhrase("Un jeton pour 45'O'Juke ?"),
+      detail: traduirePhrase("Scannez pour soutenir le projet"),
+      adresse: "45ojuke.fr",
+    },
+  });
 }
 
 function attendreRenduInterface() {
