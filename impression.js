@@ -230,7 +230,7 @@ function creerCommandesSignature({
   const detail = libelles?.detail || "Scannez pour soutenir le projet";
   const adresse = libelles?.adresse || "45ojuke.fr";
   const xTexte = (xQrMm + tailleQrMm + 4) * POINTS_PAR_MM;
-  const yTitre = (HAUTEUR_PAGE_MM - yBlocMm - 3.2) * POINTS_PAR_MM;
+  const yTitre = (HAUTEUR_PAGE_MM - yBlocMm - 5.5) * POINTS_PAR_MM;
   commandes.push(
     `q 0.16 0.25 0.27 rg BT /F2 8 Tf 1 0 0 1 ${formatPdfNombre(xTexte)} ${formatPdfNombre(yTitre)} Tm (${echapperTextePdf(titre)}) Tj ET Q`,
     `q 0.28 g BT /F1 6.5 Tf 1 0 0 1 ${formatPdfNombre(xTexte)} ${formatPdfNombre(yTitre - 10)} Tm (${echapperTextePdf(detail)}) Tj ET Q`,
