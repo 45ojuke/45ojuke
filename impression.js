@@ -8,9 +8,10 @@ import {
 import { dessinerEtiquette } from "./etiquettes.js";
 
 const POINTS_PAR_MM = 72 / 25.4;
-const MARGE_HABILLAGE_PAGE_MM = 21;
+const MARGE_HABILLAGE_PAGE_MM = 23.5;
 const LONGUEUR_REPERE_MM = 2.15;
 const RETRAIT_REPERE_MM = 0.65;
+const TAILLE_QR_IMPRESSION_MM = 17;
 const VERSION_QR = 3;
 const TAILLE_QR = 17 + VERSION_QR * 4;
 const CAPACITE_QR_OCTETS = 55;
@@ -136,6 +137,7 @@ export function construirePdfEtiquettes(imagesParPage, disposition, reglages, op
     commandes.push(creerCommandesSignature({
       departYMm,
       hauteurGrilleMm,
+      ratioLogo: options.logo.largeurPx / options.logo.hauteurPx,
       modulesQr,
       libelles: options.libellesSignature,
     }));
@@ -197,6 +199,7 @@ function segmentPdf(x1, y1, x2, y2) {
 function creerCommandesSignature({
   departYMm,
   hauteurGrilleMm,
+  ratioLogo,
   modulesQr,
   libelles,
 }) {
@@ -208,14 +211,17 @@ function creerCommandesSignature({
   }
 
   const commandes = [];
-  const tailleLogoMm = 13;
-  const xLogoMm = (LARGEUR_PAGE_MM - tailleLogoMm) / 2;
-  const yLogoMm = (espaceHautMm - tailleLogoMm) / 2;
+  const hauteurLogoMaxMm = 13;
+  const largeurLogoMaxMm = 80;
+  const largeurLogoMm = Math.min(largeurLogoMaxMm, hauteurLogoMaxMm * ratioLogo);
+  const hauteurLogoMm = largeurLogoMm / ratioLogo;
+  const xLogoMm = (LARGEUR_PAGE_MM - largeurLogoMm) / 2;
+  const yLogoMm = (espaceHautMm - hauteurLogoMm) / 2;
   commandes.push(
-    `q ${formatPdfNombre(tailleLogoMm * POINTS_PAR_MM)} 0 0 ${formatPdfNombre(tailleLogoMm * POINTS_PAR_MM)} ${formatPdfNombre(xLogoMm * POINTS_PAR_MM)} ${formatPdfNombre((HAUTEUR_PAGE_MM - yLogoMm - tailleLogoMm) * POINTS_PAR_MM)} cm /Logo Do Q`,
+    `q ${formatPdfNombre(largeurLogoMm * POINTS_PAR_MM)} 0 0 ${formatPdfNombre(hauteurLogoMm * POINTS_PAR_MM)} ${formatPdfNombre(xLogoMm * POINTS_PAR_MM)} ${formatPdfNombre((HAUTEUR_PAGE_MM - yLogoMm - hauteurLogoMm) * POINTS_PAR_MM)} cm /Logo Do Q`,
   );
 
-  const tailleQrMm = 11;
+  const tailleQrMm = TAILLE_QR_IMPRESSION_MM;
   const yBlocMm = basGrilleMm + (espaceBasMm - tailleQrMm) / 2;
   const xQrMm = LARGEUR_PAGE_MM / 2 - 28;
   commandes.push(creerCommandesQrPdf(modulesQr, xQrMm, yBlocMm, tailleQrMm));
@@ -261,18 +267,21 @@ function echapperTextePdf(texte) {
 }
 
 async function chargerLogoImpression() {
-  const image = await chargerImage("./Images/Original/logo45.png");
-  const taille = 420;
+  const image = await chargerImage("./Images/impression.webp");
+  const tailleMaximale = 1200;
+  const echelle = tailleMaximale / Math.max(image.naturalWidth, image.naturalHeight);
+  const largeur = Math.max(1, Math.round(image.naturalWidth * echelle));
+  const hauteur = Math.max(1, Math.round(image.naturalHeight * echelle));
   const canvas = document.createElement("canvas");
-  canvas.width = taille;
-  canvas.height = taille;
+  canvas.width = largeur;
+  canvas.height = hauteur;
   const contexte = canvas.getContext("2d");
   contexte.fillStyle = "#ffffff";
-  contexte.fillRect(0, 0, taille, taille);
-  contexte.drawImage(image, 0, 0, taille, taille);
+  contexte.fillRect(0, 0, largeur, hauteur);
+  contexte.drawImage(image, 0, 0, largeur, hauteur);
   return {
-    largeurPx: taille,
-    hauteurPx: taille,
+    largeurPx: largeur,
+    hauteurPx: hauteur,
     donnees: extraireDonneesBase64(canvas.toDataURL("image/jpeg", 0.9)),
   };
 }
