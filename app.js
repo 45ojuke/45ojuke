@@ -6984,7 +6984,11 @@ function creerPanneauGrilleJukeboxInline() {
 
   outils.append(colonnes.label, lignes.label);
   entete.append(titre, navigation, outils);
-  panneauGrilleJukeboxInline.append(entete, modeles, grille, apercuSurvol);
+  const bandeau = document.createElement("div");
+  bandeau.className = "jukebox-inline__bandeau";
+  elements.actionsApercu.before(bandeau);
+  bandeau.append(elements.actionsApercu, entete);
+  panneauGrilleJukeboxInline.append(modeles, grille, apercuSurvol);
   elements.scene.append(panneauGrilleJukeboxInline);
 
   const obtenirCapacite = () => {
@@ -7204,6 +7208,7 @@ function creerPanneauGrilleJukeboxInline() {
     boutonSuivant,
     plage,
     libellePlage,
+    bandeau,
     grille,
     modeles,
     ouvrirModeles: () => {},
