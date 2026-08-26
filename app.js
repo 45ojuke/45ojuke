@@ -1738,12 +1738,14 @@ function recentrerDefilementCarrouselApercu() {
 }
 
 function remplirMenusPolices() {
-  remplirSelectPolice(elements.policeTitres, "dactylo-ronde");
-  remplirSelectPolice(elements.policeArtiste, "dactylo-ronde");
-  remplirSelectPolice(elements.policeMarques, "compacte");
-  remplirSelectPolice(elements.policeMarqueGauche, "compacte");
-  remplirSelectPolice(elements.policeMarqueDroite, "compacte");
+  remplirSelectPolice(elements.policeTitres, "dactylo-seche");
+  remplirSelectPolice(elements.policeArtiste, "dactylo-seche");
+  remplirSelectPolice(elements.policeMarques, "sans-serree");
+  remplirSelectPolice(elements.policeMarqueGauche, "sans-serree");
+  remplirSelectPolice(elements.policeMarqueDroite, "sans-serree");
   synchroniserTousStylesPolices();
+  traduireTextesVisibles();
+  traduireAttributsVisibles();
 }
 
 function synchroniserTousStylesPolices() {
@@ -3512,9 +3514,9 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.policeMarqueDroite = reglagesNormalises.policeMarqueDroite || reglagesNormalises.policeMarques;
   reglagesNormalises.policeTitres = normaliserIdPolice(reglagesNormalises.policeTitres);
   reglagesNormalises.policeArtiste = normaliserIdPolice(reglagesNormalises.policeArtiste);
-  reglagesNormalises.policeMarques = normaliserIdPolice(reglagesNormalises.policeMarques, "compacte");
-  reglagesNormalises.policeMarqueGauche = normaliserIdPolice(reglagesNormalises.policeMarqueGauche, "compacte");
-  reglagesNormalises.policeMarqueDroite = normaliserIdPolice(reglagesNormalises.policeMarqueDroite, "compacte");
+  reglagesNormalises.policeMarques = normaliserIdPolice(reglagesNormalises.policeMarques, "sans-serree");
+  reglagesNormalises.policeMarqueGauche = normaliserIdPolice(reglagesNormalises.policeMarqueGauche, "sans-serree");
+  reglagesNormalises.policeMarqueDroite = normaliserIdPolice(reglagesNormalises.policeMarqueDroite, "sans-serree");
   reglagesNormalises.styleMarqueGauche = reglagesNormalises.styleMarqueGauche || "gras";
   reglagesNormalises.styleMarqueDroite = reglagesNormalises.styleMarqueDroite || "gras";
   reglagesNormalises.styleTitres = normaliserStylePolice(reglagesNormalises.policeTitres, reglagesNormalises.styleTitres || "normal");
@@ -4222,7 +4224,7 @@ function appliquerReglagesMarquesALActivation(champ) {
   elements.presetMarques.value = "45-rpm";
   elements.marqueGauche.value = "45";
   elements.marqueDroite.value = "RPM";
-  elements.policeMarques.value = "compacte";
+  elements.policeMarques.value = "sans-serree";
   elements.tailleMarques.value = "175";
   elements.marquesVerticales.checked = elements.modele.value === "JEAN";
   elements.angleMarques.value = "-90";
@@ -4863,8 +4865,8 @@ function creerSurpriseLeon(base) {
     styleArtiste: "gras",
     guillemetsTitres: Math.random() > 0.18,
     decalageRetro: choisirDecalageRetroSurprise(base, ["titres-leger", "titre-face-a", "titre-face-b", "artiste-leger", "tout-leger", "artiste-bas"]),
-    policeTitres: choisirAleatoire(["dactylo-seche", "dactylo-ronde", "journal-ancien", "terminal-carre"]),
-    policeArtiste: choisirAleatoire(["mono-moderne", "compacte", "dactylo-seche", "terminal-carre"]),
+    policeTitres: choisirAleatoire(["dactylo-seche", "journal-ancien", "terminal-carre"]),
+    policeArtiste: choisirAleatoire(["sans-serree", "dactylo-seche", "terminal-carre"]),
     afficherMarques: false,
   };
 }
@@ -5004,14 +5006,14 @@ function creerSurpriseManu(base) {
     tailleMarques: nombreAleatoire(145, 185, 5),
     tailleMarqueGauche: nombreAleatoire(145, 185, 5),
     tailleMarqueDroite: nombreAleatoire(145, 185, 5),
-    policeMarques: choisirAleatoire(["sans-serree", "elegante", "compacte", "mono-moderne"]),
+    policeMarques: choisirAleatoire(["sans-serree", "bodoni-fin"]),
     policeMarqueGauche: base.policeMarqueGauche || "sans-serree",
     policeMarqueDroite: base.policeMarqueDroite || "sans-serree",
     styleMarqueGauche: "gras",
     styleMarqueDroite: "gras",
     limiterMarquesBandeSurprise: false,
-    policeTitres: choisirAleatoire(["swing-50", "sans-serree", "mono-moderne", "rock-affiche"]),
-    policeArtiste: choisirAleatoire(["sans-serree", "elegante", "compacte", "mono-moderne"]),
+    policeTitres: choisirAleatoire(["swing-50", "sans-serree", "rock-affiche"]),
+    policeArtiste: choisirAleatoire(["sans-serree", "bodoni-fin"]),
     tailleTitres: nombreAleatoire(118, 160, 2),
     tailleArtiste: nombreAleatoire(118, 145, 2),
     styleTitres: Math.random() < 0.35 ? "gras" : "normal",

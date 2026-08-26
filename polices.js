@@ -9,95 +9,160 @@ export const GROUPES_POLICES = [
     id: "dactylo",
     libelle: "Machines à écrire",
     polices: [
-      { id: "dactylo-ronde", libelle: "Dactylo ronde", famille: '"Cutive Mono", monospace', styles: STYLE_REGULIER },
-      { id: "dactylo-seche", libelle: "Dactylo sèche", famille: '"Courier Prime", monospace' },
-      { id: "special-elite", libelle: "Special Elite", famille: '"Special Elite", monospace', styles: STYLE_REGULIER },
-      { id: "lekton", libelle: "Lekton", famille: 'Lekton, monospace', styles: STYLES_REGULIER_GRAS_ITALIQUE },
-      { id: "xanh-mono", libelle: "Xanh Mono", famille: '"Xanh Mono", monospace', styles: STYLES_REGULIER_ITALIQUE },
+      { id: "dactylo-seche", libelle: "Dactylo sèche — classique", famille: '"Courier Prime", monospace' },
+      { id: "special-elite", libelle: "Special Elite — machine usée", famille: '"Special Elite", monospace', styles: STYLE_REGULIER },
+      { id: "lekton", libelle: "Lekton — technique fine", famille: 'Lekton, monospace', styles: STYLES_REGULIER_GRAS_ITALIQUE },
+      { id: "xanh-mono", libelle: "Xanh Mono — élégante", famille: '"Xanh Mono", monospace', styles: STYLES_REGULIER_ITALIQUE },
     ],
   },
   {
     id: "ancien",
     libelle: "Anciennes et patinées",
     polices: [
-      { id: "journal-ancien", libelle: "Journal ancien", famille: '"Libre Baskerville", serif' },
-      { id: "dactylo-usee", libelle: "Dactylo rongée", famille: '"45OJuke Dactylo usee", monospace', effet: "usee", styles: STYLE_REGULIER },
-      { id: "journal-efface", libelle: "Rapport 1942 effacé", famille: '"45OJuke Journal efface", monospace', effet: "efface", styles: STYLE_REGULIER },
-      { id: "imprimerie-usee", libelle: "Imprimerie usée", famille: '"45OJuke Imprimerie usee", serif', effet: "usee", styles: STYLE_REGULIER },
-      { id: "ancienne-machine-noire", libelle: "Ancienne machine noire", famille: '"45OJuke Ancienne machine noire", monospace', effet: "encre-noire", styles: STYLE_REGULIER },
-      { id: "machine-veteran", libelle: "Machine vétéran", famille: '"45OJuke Machine veteran", monospace', effet: "veteran", styles: STYLE_REGULIER },
-      { id: "smith-5-usee", libelle: "Smith 5 usée", famille: '"45OJuke Smith 5 usee", serif', effet: "smith", styles: STYLE_REGULIER },
-      { id: "machine-fantome", libelle: "Machine fantôme", famille: '"45OJuke Machine fantome", monospace', effet: "fantome", styles: STYLE_REGULIER },
-      { id: "tampon-machine", libelle: "Tampon machine", famille: '"45OJuke Tampon machine", monospace', effet: "tampon", styles: STYLE_REGULIER },
-      { id: "terminal-carre", libelle: "Terminal carré", famille: '"IBM Plex Mono", monospace', styles: STYLES_REGULIER_GRAS },
-      { id: "rock-affiche", libelle: "Rock affiche", famille: 'Limelight, sans-serif', styles: STYLE_REGULIER },
-      { id: "swing-50", libelle: "Swing 50", famille: '"Josefin Sans", sans-serif' },
-      { id: "western-retro", libelle: "Western rétro", famille: 'Rye, serif', styles: STYLE_REGULIER },
+      { id: "journal-ancien", libelle: "Journal ancien — presse classique", famille: '"Libre Baskerville", serif' },
+      { id: "dactylo-usee", libelle: "Dactylo rongée — encre usée", famille: '"45OJuke Dactylo usee", monospace', effet: "usee", styles: STYLE_REGULIER },
+      { id: "journal-efface", libelle: "Rapport 1942 — document effacé", famille: '"45OJuke Journal efface", monospace', effet: "efface", styles: STYLE_REGULIER },
+      { id: "imprimerie-usee", libelle: "Imprimerie usée — caractères érodés", famille: '"45OJuke Imprimerie usee", serif', effet: "usee", styles: STYLE_REGULIER },
+      { id: "ancienne-machine-noire", libelle: "Ancienne machine — encre dense", famille: '"45OJuke Ancienne machine noire", monospace', effet: "encre-noire", styles: STYLE_REGULIER },
+      { id: "machine-veteran", libelle: "Machine vétéran — frappe irrégulière", famille: '"45OJuke Machine veteran", monospace', effet: "veteran", styles: STYLE_REGULIER },
+      { id: "smith-5-usee", libelle: "Smith 5 — vieille imprimerie", famille: '"45OJuke Smith 5 usee", serif', effet: "smith", styles: STYLE_REGULIER },
+      { id: "machine-fantome", libelle: "Machine fantôme — frappe pâle", famille: '"45OJuke Machine fantome", monospace', effet: "fantome", styles: STYLE_REGULIER },
+      { id: "tampon-machine", libelle: "Tampon machine — encre tamponnée", famille: '"45OJuke Tampon machine", monospace', effet: "tampon", styles: STYLE_REGULIER },
+      { id: "terminal-carre", libelle: "Terminal carré — industriel", famille: '"IBM Plex Mono", monospace', styles: STYLES_REGULIER_GRAS },
+      { id: "rock-affiche", libelle: "Rock affiche — Art déco", famille: 'Limelight, sans-serif', styles: STYLE_REGULIER },
+      { id: "swing-50", libelle: "Swing 50 — années 1950", famille: '"Josefin Sans", sans-serif' },
+      { id: "western-retro", libelle: "Western rétro — saloon", famille: 'Rye, serif', styles: STYLE_REGULIER },
     ],
   },
   {
-    id: "elegante",
-    libelle: "Fines et élégantes",
+    id: "serifs",
+    libelle: "Sérifs",
     polices: [
-      { id: "classique-livre", libelle: "Classique livre", famille: 'Lora, serif' },
-      { id: "elegante", libelle: "Élégante", famille: '"Cormorant Garamond", serif', poidsMax: 500, styles: STYLES_REGULIER_ITALIQUE },
-      { id: "luxe-fin", libelle: "Luxe fin", famille: '"Playfair Display", serif', poidsMax: 500, styles: STYLES_REGULIER_ITALIQUE },
-      { id: "gravure", libelle: "Gravure", famille: 'Cinzel, serif', styles: STYLES_REGULIER_GRAS },
-      { id: "bodoni-fin", libelle: "Bodoni fin", famille: '"Bodoni Moda", serif', poidsMax: 500, styles: STYLES_REGULIER_ITALIQUE },
-      { id: "baskerville-fin", libelle: "Baskerville fin", famille: 'Merriweather, serif', styles: STYLES_COMPLETS },
-      { id: "caslon-ancien", libelle: "Caslon ancien", famille: '"Libre Caslon Text", serif', styles: STYLES_COMPLETS },
-    ],
-  },
-  {
-    id: "affiche",
-    libelle: "Affiche",
-    polices: [
-      { id: "compacte", libelle: "Compacte nette", famille: '"Archivo Narrow", sans-serif' },
-      { id: "sans-serree", libelle: "Sans serrée", famille: '"Source Sans 3", sans-serif' },
-      { id: "mono-moderne", libelle: "Mono moderne", famille: '"Roboto Mono", monospace', styles: STYLES_REGULIER_GRAS },
+      { id: "bodoni-fin", libelle: "Bodoni — didone", famille: '"Bodoni Moda", serif', poidsMax: 500, styles: STYLES_REGULIER_ITALIQUE },
+      { id: "alfa-slab-one", libelle: "Alfa Slab One — slab massive", famille: '"Alfa Slab One", serif', styles: STYLE_REGULIER },
+      { id: "eczar", libelle: "Eczar — calligraphique", famille: 'Eczar, serif', styles: STYLES_REGULIER_GRAS },
+      { id: "fredericka", libelle: "Fredericka — crayon gravé", famille: '"Fredericka the Great", serif', styles: STYLE_REGULIER },
+      { id: "bree-serif", libelle: "Bree Serif — douce", famille: '"Bree Serif", serif', styles: STYLE_REGULIER },
     ],
   },
   {
     id: "moderne",
-    libelle: "Modernes et créatives",
+    libelle: "Moderne sobre",
     polices: [
-      { id: "montserrat", libelle: "Montserrat", famille: 'Montserrat, sans-serif' },
-      { id: "raleway", libelle: "Raleway", famille: 'Raleway, sans-serif' },
-      { id: "bebas-neue", libelle: "Bebas Neue", famille: '"Bebas Neue", sans-serif', styles: STYLE_REGULIER },
-      { id: "space-grotesk", libelle: "Space Grotesk", famille: '"Space Grotesk", sans-serif', styles: STYLES_REGULIER_GRAS },
-      { id: "orbitron", libelle: "Orbitron", famille: 'Orbitron, sans-serif', styles: STYLES_REGULIER_GRAS },
-      { id: "bungee", libelle: "Bungee", famille: 'Bungee, sans-serif', styles: STYLE_REGULIER },
-      { id: "permanent-marker", libelle: "Permanent Marker", famille: '"Permanent Marker", cursive', styles: STYLE_REGULIER },
-      { id: "unbounded", libelle: "Unbounded", famille: 'Unbounded, sans-serif', styles: STYLES_REGULIER_GRAS },
-      { id: "syne", libelle: "Syne", famille: 'Syne, sans-serif', styles: STYLES_REGULIER_GRAS },
-      { id: "chakra-petch", libelle: "Chakra Petch", famille: '"Chakra Petch", sans-serif' },
+      { id: "sans-serree", libelle: "Source Sans — humaniste", famille: '"Source Sans 3", sans-serif' },
+      { id: "poiret-one", libelle: "Poiret One — géométrique fine", famille: '"Poiret One", sans-serif', styles: STYLE_REGULIER },
+      { id: "syncopate", libelle: "Syncopate — capitales larges", famille: 'Syncopate, sans-serif', styles: STYLE_REGULIER },
+      { id: "saira-condensed", libelle: "Saira Condensed — condensée", famille: '"Saira Condensed", sans-serif', styles: STYLE_REGULIER },
+      { id: "lexend", libelle: "Lexend — lecture large", famille: 'Lexend, sans-serif', styles: STYLES_REGULIER_GRAS },
     ],
   },
   {
-    id: "arrondie-manuscrite",
-    libelle: "Arrondies et manuscrites",
+    id: "affiches",
+    libelle: "Affiches très typées",
     polices: [
-      { id: "nunito", libelle: "Nunito", famille: 'Nunito, sans-serif' },
-      { id: "quicksand", libelle: "Quicksand", famille: 'Quicksand, sans-serif', styles: STYLES_REGULIER_GRAS },
-      { id: "varela-round", libelle: "Varela Round", famille: '"Varela Round", sans-serif', styles: STYLE_REGULIER },
-      { id: "kalam", libelle: "Kalam", famille: 'Kalam, cursive', styles: STYLES_REGULIER_GRAS },
-      { id: "caveat", libelle: "Caveat", famille: 'Caveat, cursive', styles: STYLES_REGULIER_GRAS },
-      { id: "kaushan-script", libelle: "Kaushan Script", famille: '"Kaushan Script", cursive', styles: STYLE_REGULIER },
-      { id: "dancing-script", libelle: "Dancing Script", famille: '"Dancing Script", cursive', styles: STYLES_REGULIER_GRAS },
-      { id: "fredoka", libelle: "Fredoka", famille: 'Fredoka, sans-serif', styles: STYLES_REGULIER_GRAS },
-      { id: "baloo-2", libelle: "Baloo 2", famille: '"Baloo 2", sans-serif', styles: STYLES_REGULIER_GRAS },
-      { id: "comfortaa", libelle: "Comfortaa", famille: 'Comfortaa, sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "bungee", libelle: "Bungee — bloc", famille: 'Bungee, sans-serif', styles: STYLE_REGULIER },
+      { id: "black-ops-one", libelle: "Black Ops One — pochoir", famille: '"Black Ops One", sans-serif', styles: STYLE_REGULIER },
+      { id: "bangers", libelle: "Bangers — bande dessinée", famille: 'Bangers, sans-serif', styles: STYLE_REGULIER },
+      { id: "abril-fatface", libelle: "Abril Fatface — éditoriale", famille: '"Abril Fatface", serif', styles: STYLE_REGULIER },
+      { id: "faster-one", libelle: "Faster One — vitesse", famille: '"Faster One", sans-serif', styles: STYLE_REGULIER },
+    ],
+  },
+  {
+    id: "techno",
+    libelle: "Techno et pixel",
+    polices: [
+      { id: "orbitron", libelle: "Orbitron — futuriste", famille: 'Orbitron, sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "press-start-2p", libelle: "Press Start 2P — pixel", famille: '"Press Start 2P", monospace', styles: STYLE_REGULIER },
+      { id: "audiowide", libelle: "Audiowide — techno ronde", famille: 'Audiowide, sans-serif', styles: STYLE_REGULIER },
+      { id: "share-tech-mono", libelle: "Share Tech Mono — terminal", famille: '"Share Tech Mono", monospace', styles: STYLE_REGULIER },
+      { id: "bruno-ace-sc", libelle: "Bruno Ace SC — automobile", famille: '"Bruno Ace SC", sans-serif', styles: STYLE_REGULIER },
+    ],
+  },
+  {
+    id: "decoratives",
+    libelle: "Décoratives",
+    polices: [
+      { id: "pirata-one", libelle: "Pirata One — gothique", famille: '"Pirata One", serif', styles: STYLE_REGULIER },
+      { id: "monoton", libelle: "Monoton — inline", famille: 'Monoton, sans-serif', styles: STYLE_REGULIER },
+      { id: "ewert", libelle: "Ewert — western ajourée", famille: 'Ewert, serif', styles: STYLE_REGULIER },
+      { id: "rubik-glitch", libelle: "Rubik Glitch — glitch", famille: '"Rubik Glitch", sans-serif', styles: STYLE_REGULIER },
+      { id: "foldit", libelle: "Foldit — rubans pliés", famille: 'Foldit, sans-serif', styles: STYLES_REGULIER_GRAS },
+    ],
+  },
+  {
+    id: "tres-arrondies",
+    libelle: "Très arrondie / Blobby",
+    polices: [
+      { id: "modak", libelle: "Modak — bulle", famille: 'Modak, sans-serif', styles: STYLE_REGULIER },
+      { id: "coiny", libelle: "Coiny — cartoon", famille: 'Coiny, sans-serif', styles: STYLE_REGULIER },
+      { id: "dynapuff", libelle: "DynaPuff — gonflée", famille: 'DynaPuff, sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "rubik-bubbles", libelle: "Rubik Bubbles — bulles évidées", famille: '"Rubik Bubbles", sans-serif', styles: STYLE_REGULIER },
+      { id: "sniglet", libelle: "Sniglet — ronde légère", famille: 'Sniglet, sans-serif', styles: STYLE_REGULIER },
+    ],
+  },
+  {
+    id: "manuscrites",
+    libelle: "Écritures manuelles",
+    polices: [
+      { id: "ephesis", libelle: "Ephesis — calligraphie fine", famille: 'Ephesis, cursive', styles: STYLE_REGULIER },
+      { id: "permanent-marker", libelle: "Permanent Marker — feutre", famille: '"Permanent Marker", cursive', styles: STYLE_REGULIER },
+      { id: "rock-salt", libelle: "Rock Salt — griffonnée", famille: '"Rock Salt", cursive', styles: STYLE_REGULIER },
+      { id: "homemade-apple", libelle: "Homemade Apple — crayon", famille: '"Homemade Apple", cursive', styles: STYLE_REGULIER },
+      { id: "pacifico", libelle: "Pacifico — pinceau rétro", famille: 'Pacifico, cursive', styles: STYLE_REGULIER },
+    ],
+  },
+  {
+    id: "saisons",
+    libelle: "Saisons",
+    polices: [
+      { id: "creepster", libelle: "Creepster — Halloween", famille: 'Creepster, fantasy', styles: STYLE_REGULIER },
+      { id: "codystar", libelle: "Codystar — Noël lumineux", famille: 'Codystar, sans-serif', styles: STYLE_REGULIER },
+      { id: "snowburst-one", libelle: "Snowburst One — hiver", famille: '"Snowburst One", fantasy', styles: STYLE_REGULIER },
+      { id: "emilys-candy", libelle: "Emilys Candy — Saint-Valentin", famille: '"Emilys Candy", fantasy', styles: STYLE_REGULIER },
+      { id: "hanalei-fill", libelle: "Hanalei Fill — été tropical", famille: '"Hanalei Fill", fantasy', styles: STYLE_REGULIER },
     ],
   },
 ];
+
+const ALIASES_POLICES = new Map([
+  ["dactylo-ronde", "dactylo-seche"],
+  ["classique-livre", "bodoni-fin"],
+  ["elegante", "bodoni-fin"],
+  ["luxe-fin", "bodoni-fin"],
+  ["baskerville-fin", "bodoni-fin"],
+  ["caslon-ancien", "bodoni-fin"],
+  ["gravure", "bodoni-fin"],
+  ["bebas-neue", "sans-serree"],
+  ["compacte", "sans-serree"],
+  ["mono-moderne", "sans-serree"],
+  ["montserrat", "sans-serree"],
+  ["raleway", "swing-50"],
+  ["space-grotesk", "sans-serree"],
+  ["unbounded", "bungee"],
+  ["syne", "swing-50"],
+  ["chakra-petch", "orbitron"],
+  ["fredoka", "sans-serree"],
+  ["nunito", "sans-serree"],
+  ["quicksand", "sans-serree"],
+  ["varela-round", "sans-serree"],
+  ["baloo-2", "sans-serree"],
+  ["comfortaa", "sans-serree"],
+  ["kalam", "permanent-marker"],
+  ["caveat", "permanent-marker"],
+  ["kaushan-script", "ephesis"],
+  ["dancing-script", "ephesis"],
+  ["butcherman", "creepster"],
+  ["mountains-of-christmas", "codystar"],
+]);
 
 const POLICES_PAR_ID = new Map(
   GROUPES_POLICES.flatMap((groupe) => groupe.polices.map((police) => [police.id, police])),
 );
 const chargementsPolices = new Map();
 
-export function normaliserIdPolice(id, valeurParDefaut = "dactylo-ronde") {
-  return POLICES_PAR_ID.has(id) ? id : valeurParDefaut;
+export function normaliserIdPolice(id, valeurParDefaut = "dactylo-seche") {
+  const idNormalise = ALIASES_POLICES.get(id) || id;
+  return POLICES_PAR_ID.has(idNormalise) ? idNormalise : valeurParDefaut;
 }
 
 export function obtenirPolice(id) {
@@ -177,7 +242,7 @@ export function chargerPolicesReglages(reglages) {
   return Promise.all(demandes.map(([id, style]) => chargerPolice(id, style))).then(() => undefined);
 }
 
-export function remplirSelectPolice(select, valeurParDefaut = "dactylo-ronde") {
+export function remplirSelectPolice(select, valeurParDefaut = "dactylo-seche") {
   if (!select) {
     return;
   }
@@ -189,6 +254,7 @@ export function remplirSelectPolice(select, valeurParDefaut = "dactylo-ronde") {
       const option = document.createElement("option");
       option.value = police.id;
       option.textContent = police.libelle;
+      option.style.fontFamily = police.famille;
       return option;
     }));
     return optgroup;
