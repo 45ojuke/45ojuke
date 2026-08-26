@@ -184,6 +184,8 @@ const elements = {
   bordureVerticale: document.querySelector("#bordureVerticale"),
   arrondiInterieurBordure: document.querySelector("#arrondiInterieurBordure"),
   reglageArrondiBordure: document.querySelector("[data-reglage-arrondi-bordure]"),
+  arrondiInterieurBordureTaille: document.querySelector("#arrondiInterieurBordureTaille"),
+  reglageArrondiBordureTaille: document.querySelector("[data-reglage-arrondi-bordure-taille]"),
   largeurRuban: document.querySelector("#largeurRuban"),
   hauteurRuban: document.querySelector("#hauteurRuban"),
   formeRuban: document.querySelector("#formeRuban"),
@@ -3441,6 +3443,10 @@ function appliquerReglagesAuFormulaire(reglages) {
   reglagesNormalises.arrondiInterieurBordure = reglagesNormalises.modele === "LUCIEN"
     ? false
     : reglagesNormalises.arrondiInterieurBordure ?? false;
+  const tailleArrondiInterieur = Number(reglagesNormalises.arrondiInterieurBordureTaille ?? 50);
+  reglagesNormalises.arrondiInterieurBordureTaille = Number.isFinite(tailleArrondiInterieur)
+    ? Math.max(0, Math.min(100, tailleArrondiInterieur))
+    : 50;
   reglagesNormalises.pointeRubanAlice = Math.max(0, Math.min(100, Number(reglagesNormalises.pointeRubanAlice ?? 50)));
   reglagesNormalises.pointeRubanMartin = Math.max(0, Math.min(100, Number(reglagesNormalises.pointeRubanMartin ?? 50)));
   reglagesNormalises.formeRuban = ["rectangle", "rectangle-arrondi", "concave", "convexe"].includes(reglagesNormalises.formeRuban)
@@ -4106,6 +4112,7 @@ function lireReglagesFormulaire() {
     bordureHorizontale: elements.bordureHorizontale.checked,
     bordureVerticale: elements.modele.value === "JEAN" ? false : elements.bordureVerticale.checked,
     arrondiInterieurBordure: elements.arrondiInterieurBordure.checked,
+    arrondiInterieurBordureTaille: Number(elements.arrondiInterieurBordureTaille.value),
     largeurRuban: Number(elements.largeurRuban.value),
     hauteurRuban: Number(elements.hauteurRuban.value),
     formeRuban: elements.formeRuban.value,
@@ -8257,6 +8264,13 @@ function mettreAJourInterfaceConditionnelle(reglages) {
   elements.reglageArrondiBordure.classList.toggle(
     "champ-masque",
     modele === "JEAN" || !reglages.bordureHorizontale || !reglages.bordureVerticale,
+  );
+  elements.reglageArrondiBordureTaille.classList.toggle(
+    "champ-masque",
+    modele === "JEAN"
+      || !reglages.bordureHorizontale
+      || !reglages.bordureVerticale
+      || !reglages.arrondiInterieurBordure,
   );
   const motifActif = elements.activerMotif.checked;
   const vignettageActif = elements.activerVignettage.checked;

@@ -275,7 +275,7 @@ export function preparerReglagesPourExport(reglages) {
     copierChamps(exportNettoye, reglages, CHAMPS_BANDE_CENTRALE);
   }
   if (!["JEAN", "LUCIEN"].includes(modele)) {
-    copierChamps(exportNettoye, reglages, ["bordureVerticale", "arrondiInterieurBordure"]);
+    copierChamps(exportNettoye, reglages, ["bordureVerticale", "arrondiInterieurBordure", "arrondiInterieurBordureTaille"]);
   }
   if (modele === "LUCIEN") {
     copierChamps(exportNettoye, reglages, ["bordureVerticale"]);

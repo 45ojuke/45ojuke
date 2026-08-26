@@ -128,7 +128,7 @@ export function dessinerEtiquette(ligne, reglages) {
       hauteur,
       Math.max(1, bordure),
       reglages.couleur1,
-      reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      rayonArrondiInterieur(reglages, largeur, hauteur, 0.16, 0.035),
       reglages,
     );
   }
@@ -521,7 +521,7 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
 
   let traitRuban = 0;
   if (rubanW > 0.5 && rubanH > 0.5) {
-    const rayon = reglages.arrondiInterieurBordure ? Math.min(rubanH * 0.46, largeur * 0.035) : 0;
+    const rayon = rayonArrondiInterieur(reglages, rubanW, rubanH, 0.46, 0.035);
     ctx.save();
     ctx.shadowColor = convertirHexEnRgba(reglages.couleur1, 0.16);
     ctx.shadowBlur = Math.max(6, hauteur * 0.045);
@@ -550,7 +550,7 @@ function dessinerEtiquetteModerne(ctx, ligne, reglages, largeur, hauteur, bordur
       hauteur,
       traitBordure,
       convertirHexEnRgba(reglages.couleur1, 0.88),
-      reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      rayonArrondiInterieur(reglages, largeur, hauteur, 0.16, 0.035),
       reglages,
     );
   }
@@ -603,7 +603,7 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
   }
 
   if (rubanWManu > 0.5 && rubanH > 0.5) {
-    const rayon = reglages.arrondiInterieurBordure ? Math.min(rubanH * 0.25, largeur * 0.02) : 0;
+    const rayon = rayonArrondiInterieur(reglages, rubanWManu, rubanH, 0.25, 0.02);
     ctx.fillStyle = reglages.couleurRuban;
     ctx.beginPath();
     tracerFormeRuban(ctx, reglages, rubanXManu, rubanY, rubanWManu, rubanH, rayon);
@@ -635,7 +635,7 @@ function dessinerEtiquetteManu(ctx, ligne, reglages, largeur, hauteur, bordure, 
       hauteur,
       traitBordure,
       reglages.couleur1,
-      reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.1, largeur * 0.025) : 0,
+      rayonArrondiInterieur(reglages, largeur, hauteur, 0.1, 0.025),
       reglages,
     );
   }
@@ -881,7 +881,7 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
       hauteur,
       traitBordure,
       convertirHexEnRgba(reglages.couleur1, 0.9),
-      reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      rayonArrondiInterieur(reglages, largeur, hauteur, 0.16, 0.035),
       reglages,
     );
   }
@@ -970,7 +970,7 @@ function dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure) 
       hauteur,
       traitBordure,
       reglages.couleur1,
-      reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      rayonArrondiInterieur(reglages, largeur, hauteur, 0.16, 0.035),
       reglages,
     );
   }
@@ -1064,7 +1064,7 @@ function dessinerEtiquetteAdrien(ctx, ligne, reglages, largeur, hauteur, bordure
       hauteur,
       traitBordure,
       reglages.couleur1,
-      reglages.arrondiInterieurBordure ? Math.min(hauteur * 0.16, largeur * 0.035) : 0,
+      rayonArrondiInterieur(reglages, largeur, hauteur, 0.16, 0.035),
       reglages,
     );
   }
@@ -1498,6 +1498,19 @@ function dessinerBordureInterieureArrondie(ctx, x, y, largeur, hauteur, epaisseu
     ctx.fill();
   }
   ctx.restore();
+}
+
+function rayonArrondiInterieur(reglages, largeur, hauteur, proportionHauteur, proportionLargeur) {
+  if (!reglages.arrondiInterieurBordure) {
+    return 0;
+  }
+  const taille = Math.max(0, Math.min(100, Number(reglages.arrondiInterieurBordureTaille ?? 50)));
+  // Le curseur doit agir sur une plage réellement visible, et non seulement
+  // sur une petite variation autour du rayon historique.
+  const rayonMaximum = proportionLargeur === 0.035
+    ? Math.min(hauteur * 0.42, largeur * 0.12)
+    : Math.min(hauteur * proportionHauteur, largeur * proportionLargeur);
+  return rayonMaximum * (taille / 100);
 }
 
 function dessinerFlechesAlice(ctx, reglages, largeur, rubanX, rubanY, rubanW, rubanH) {

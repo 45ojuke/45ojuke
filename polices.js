@@ -57,6 +57,38 @@ export const GROUPES_POLICES = [
       { id: "mono-moderne", libelle: "Mono moderne", famille: '"Roboto Mono", monospace', styles: STYLES_REGULIER_GRAS },
     ],
   },
+  {
+    id: "moderne",
+    libelle: "Modernes et créatives",
+    polices: [
+      { id: "montserrat", libelle: "Montserrat", famille: 'Montserrat, sans-serif' },
+      { id: "raleway", libelle: "Raleway", famille: 'Raleway, sans-serif' },
+      { id: "bebas-neue", libelle: "Bebas Neue", famille: '"Bebas Neue", sans-serif', styles: STYLE_REGULIER },
+      { id: "space-grotesk", libelle: "Space Grotesk", famille: '"Space Grotesk", sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "orbitron", libelle: "Orbitron", famille: 'Orbitron, sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "bungee", libelle: "Bungee", famille: 'Bungee, sans-serif', styles: STYLE_REGULIER },
+      { id: "permanent-marker", libelle: "Permanent Marker", famille: '"Permanent Marker", cursive', styles: STYLE_REGULIER },
+      { id: "unbounded", libelle: "Unbounded", famille: 'Unbounded, sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "syne", libelle: "Syne", famille: 'Syne, sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "chakra-petch", libelle: "Chakra Petch", famille: '"Chakra Petch", sans-serif' },
+    ],
+  },
+  {
+    id: "arrondie-manuscrite",
+    libelle: "Arrondies et manuscrites",
+    polices: [
+      { id: "nunito", libelle: "Nunito", famille: 'Nunito, sans-serif' },
+      { id: "quicksand", libelle: "Quicksand", famille: 'Quicksand, sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "varela-round", libelle: "Varela Round", famille: '"Varela Round", sans-serif', styles: STYLE_REGULIER },
+      { id: "kalam", libelle: "Kalam", famille: 'Kalam, cursive', styles: STYLES_REGULIER_GRAS },
+      { id: "caveat", libelle: "Caveat", famille: 'Caveat, cursive', styles: STYLES_REGULIER_GRAS },
+      { id: "kaushan-script", libelle: "Kaushan Script", famille: '"Kaushan Script", cursive', styles: STYLE_REGULIER },
+      { id: "dancing-script", libelle: "Dancing Script", famille: '"Dancing Script", cursive', styles: STYLES_REGULIER_GRAS },
+      { id: "fredoka", libelle: "Fredoka", famille: 'Fredoka, sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "baloo-2", libelle: "Baloo 2", famille: '"Baloo 2", sans-serif', styles: STYLES_REGULIER_GRAS },
+      { id: "comfortaa", libelle: "Comfortaa", famille: 'Comfortaa, sans-serif', styles: STYLES_REGULIER_GRAS },
+    ],
+  },
 ];
 
 const POLICES_PAR_ID = new Map(
