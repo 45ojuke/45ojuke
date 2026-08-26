@@ -157,6 +157,7 @@ const elements = {
   boutonMotif: document.querySelector("#boutonMotif"),
   boutonVignettage: document.querySelector("#boutonVignettage"),
   boutonPatine: document.querySelector("#boutonPatine"),
+  boutonDesactiverDecor: document.querySelector("#boutonDesactiverDecor"),
   intensitePatine: document.querySelector("#intensitePatine"),
   angle: document.querySelector("#angle"),
   intensite: document.querySelector("#intensite"),
@@ -600,6 +601,7 @@ function brancherEvenements() {
   elements.boutonMotif.addEventListener("click", () => basculerDecor("motif"));
   elements.boutonVignettage.addEventListener("click", () => basculerDecor("vignette"));
   elements.boutonPatine.addEventListener("click", () => basculerDecor("patine"));
+  elements.boutonDesactiverDecor.addEventListener("click", desactiverDecorSelectionne);
   elements.intensitePatine.addEventListener("input", synchroniserPatineDepuisIntensite);
   elements.afficherTraitsModernes.addEventListener("change", () => {
     if (
@@ -5105,11 +5107,8 @@ function ajusterVignetteVisible() {
 
 function basculerDecor(type) {
   enregistrerHistoriqueAvantAction();
-  const panelDejaOuvert = elements.decorPanel.value === type;
   if (type === "motif") {
-    elements.activerMotif.checked = panelDejaOuvert
-      ? !elements.activerMotif.checked
-      : true;
+    elements.activerMotif.checked = true;
     elements.decorPanel.value = "motif";
     if (elements.activerMotif.checked) {
       if (elements.motifType.value === "aucun") {
@@ -5131,9 +5130,7 @@ function basculerDecor(type) {
     }
   }
   if (type === "vignette") {
-    elements.activerVignettage.checked = panelDejaOuvert
-      ? !elements.activerVignettage.checked
-      : true;
+    elements.activerVignettage.checked = true;
     elements.decorPanel.value = "vignette";
     if (elements.activerVignettage.checked) {
       if (elements.modeVignette.value === "aucun") {
@@ -5147,13 +5144,27 @@ function basculerDecor(type) {
     }
   }
   if (type === "patine") {
-    elements.activerPatine.checked = panelDejaOuvert
-      ? !elements.activerPatine.checked
-      : true;
+    elements.activerPatine.checked = true;
     elements.decorPanel.value = "patine";
     if (elements.activerPatine.checked && Number(elements.intensitePatine.value) < 1) {
       elements.intensitePatine.value = "55";
     }
+  }
+  mettreAJourBoutonsDecor();
+  mettreAJourInterfaceConditionnelle(lireReglagesFormulaire());
+  enregistrerReglagesActifs();
+  mettreAJour();
+}
+
+function desactiverDecorSelectionne() {
+  enregistrerHistoriqueAvantAction();
+  const panel = elements.decorPanel.value;
+  if (panel === "motif") {
+    elements.activerMotif.checked = !elements.activerMotif.checked;
+  } else if (panel === "vignette") {
+    elements.activerVignettage.checked = !elements.activerVignettage.checked;
+  } else if (panel === "patine") {
+    elements.activerPatine.checked = !elements.activerPatine.checked;
   }
   mettreAJourBoutonsDecor();
   mettreAJourInterfaceConditionnelle(lireReglagesFormulaire());
@@ -5188,6 +5199,14 @@ function mettreAJourBoutonsDecor() {
   elements.boutonMotif.setAttribute("aria-pressed", String(elements.activerMotif.checked));
   elements.boutonVignettage.setAttribute("aria-pressed", String(elements.activerVignettage.checked));
   elements.boutonPatine.setAttribute("aria-pressed", String(elements.activerPatine.checked));
+  const panel = elements.decorPanel.value || "motif";
+  const actif = panel === "motif"
+    ? elements.activerMotif.checked
+    : panel === "vignette"
+      ? elements.activerVignettage.checked
+      : elements.activerPatine.checked;
+  elements.boutonDesactiverDecor.textContent = actif ? "Désactiver cet effet" : "Activer cet effet";
+  elements.boutonDesactiverDecor.setAttribute("aria-pressed", String(!actif));
 }
 
 function synchroniserPatineDepuisIntensite() {
@@ -8280,10 +8299,10 @@ function mettreAJourInterfaceConditionnelle(reglages) {
     const panel = champ.dataset.decorPanel;
     champ.classList.toggle(
       "champ-masque",
-      panel !== panelDecor
+        panel !== panelDecor
         || (panel === "motif" && !motifActif)
         || (panel === "vignette" && !vignettageActif)
-        || (panel === "patine" && !patineActive && panelDecor !== "patine"),
+        || (panel === "patine" && !patineActive),
     );
   });
   elements.reglagesMotif.forEach((champ) => {
