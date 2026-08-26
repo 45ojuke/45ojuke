@@ -6,7 +6,7 @@ Créez gratuitement et imprimez vos étiquettes de jukebox personnalisées (titl
 
 Le projet est destiné à être utilisé depuis le site officiel 45'O'Juke. Le dépôt n'accorde aucun droit de copie, d'hébergement séparé, de redistribution ou d'exploitation indépendante.
 
-Le site n'est pas encore optimisé pour mobile.
+Le site est utilisable sur ordinateur, tablette et mobile.
 
 ## Données
 

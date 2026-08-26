@@ -408,8 +408,6 @@ let varianteGrillePretePourAlternance = null;
 let debutFenetreGrilleJukebox = 0;
 const LIMITE_CACHE_MINIATURES_GRILLE_JUKEBOX = 240;
 const cacheMiniaturesGrilleJukebox = new Map();
-let separateurVerticalAtelier = null;
-let separateurHorizontalAtelier = null;
 let editionTexteMasqueeParGrille = false;
 let editionTexteDemandee = false;
 let ordreOriginalVinyles = [];
@@ -1723,7 +1721,6 @@ function synchroniserGeometrieCarrouselApercu(zoom = obtenirZoomApercuCourant())
       Math.max(Math.ceil(hauteurApercu + 215), 315),
       Math.max(315, (window.visualViewport?.height || window.innerHeight) * 0.68),
     );
-    atelier.style.setProperty("--hauteur-apercu", `${hauteurScene}px`);
     actualiserEtatApercuRedimensionne(hauteurScene);
   }
 }
@@ -2181,7 +2178,6 @@ function revenirSelectionAccueil() {
     panneauGrilleJukeboxInline.classList.add("is-replie");
   }
   elements.ouvrirJukebox.hidden = true;
-  definirSeparateursAtelierVisibles(false);
   document.body.classList.remove(
     "is-grille-jukebox-disponible",
     "is-grille-jukebox-ouverte",
@@ -5207,7 +5203,9 @@ function mettreAJourBoutonsDecor() {
     : panel === "vignette"
       ? elements.activerVignettage.checked
       : elements.activerPatine.checked;
-  elements.boutonDesactiverDecor.textContent = actif ? "Désactiver cet effet" : "Activer cet effet";
+  elements.boutonDesactiverDecor.textContent = actif
+    ? traduirePhrase("Désactiver cet effet")
+    : traduirePhrase("Activer cet effet");
   elements.boutonDesactiverDecor.setAttribute("aria-pressed", String(!actif));
 }
 
@@ -6504,97 +6502,6 @@ function obtenirAtelier() {
   return elements.scene.closest(".atelier");
 }
 
-function installerSeparateursAtelier() {
-  const atelier = obtenirAtelier();
-  if (!atelier || separateurVerticalAtelier) {
-    return;
-  }
-  separateurVerticalAtelier = document.createElement("div");
-  separateurVerticalAtelier.className = "atelier-separateur atelier-separateur--vertical";
-  separateurVerticalAtelier.hidden = true;
-  separateurVerticalAtelier.setAttribute("role", "separator");
-  separateurVerticalAtelier.setAttribute("aria-orientation", "vertical");
-  separateurVerticalAtelier.setAttribute("aria-label", traduirePhrase("Redimensionner les réglages"));
-
-  separateurHorizontalAtelier = document.createElement("div");
-  separateurHorizontalAtelier.className = "atelier-separateur atelier-separateur--horizontal";
-  separateurHorizontalAtelier.hidden = true;
-  separateurHorizontalAtelier.setAttribute("role", "separator");
-  separateurHorizontalAtelier.setAttribute("aria-orientation", "horizontal");
-  separateurHorizontalAtelier.setAttribute("aria-label", traduirePhrase("Redimensionner la prévisualisation"));
-
-  atelier.insertBefore(separateurVerticalAtelier, elements.scene);
-  atelier.insertBefore(separateurHorizontalAtelier, panneauGrilleJukeboxInline);
-  separateurVerticalAtelier.addEventListener("pointerdown", demarrerRedimensionnementReglages);
-  separateurHorizontalAtelier.addEventListener("pointerdown", demarrerRedimensionnementApercu);
-}
-
-function definirSeparateursAtelierVisibles(visible) {
-  if (!separateurVerticalAtelier || !separateurHorizontalAtelier) {
-    return;
-  }
-  separateurVerticalAtelier.hidden = !visible;
-  separateurHorizontalAtelier.hidden = !visible;
-}
-
-function demarrerRedimensionnementReglages(evenement) {
-  if (MEDIA_MOBILE.matches) {
-    return;
-  }
-  const atelier = obtenirAtelier();
-  if (!atelier) {
-    return;
-  }
-  evenement.preventDefault();
-  separateurVerticalAtelier.setPointerCapture(evenement.pointerId);
-  document.body.classList.add("is-redimensionnement-atelier");
-  const deplacer = (mouvement) => {
-    const rect = atelier.getBoundingClientRect();
-    const maximum = Math.min(560, rect.width * 0.48);
-    const largeur = Math.max(260, Math.min(maximum, mouvement.clientX - rect.left - 4));
-    atelier.style.setProperty("--largeur-reglages", `${Math.round(largeur)}px`);
-    appliquerZoomApercuCourant();
-  };
-  const terminer = () => {
-    document.body.classList.remove("is-redimensionnement-atelier");
-    separateurVerticalAtelier.removeEventListener("pointermove", deplacer);
-    separateurVerticalAtelier.removeEventListener("pointerup", terminer);
-    separateurVerticalAtelier.removeEventListener("pointercancel", terminer);
-  };
-  separateurVerticalAtelier.addEventListener("pointermove", deplacer);
-  separateurVerticalAtelier.addEventListener("pointerup", terminer);
-  separateurVerticalAtelier.addEventListener("pointercancel", terminer);
-}
-
-function demarrerRedimensionnementApercu(evenement) {
-  if (MEDIA_MOBILE.matches || !panneauGrilleJukeboxInline || !elements.scene) {
-    return;
-  }
-  evenement.preventDefault();
-  separateurHorizontalAtelier.setPointerCapture(evenement.pointerId);
-  document.body.classList.add("is-redimensionnement-atelier");
-  const atelier = obtenirAtelier();
-  const hauteurDepart = elements.scene.getBoundingClientRect().height;
-  const hauteurMinimum = 180;
-  const hauteurMaximum = Math.min(window.innerHeight * 0.82, Math.max(hauteurDepart + 180, 360));
-  const yDepart = evenement.clientY;
-  const deplacer = (mouvement) => {
-    const delta = mouvement.clientY - yDepart;
-    const hauteur = Math.max(hauteurMinimum, Math.min(hauteurMaximum, hauteurDepart + delta));
-    atelier?.style.setProperty("--hauteur-apercu", `${Math.round(hauteur)}px`);
-    actualiserEtatApercuRedimensionne(hauteur);
-  };
-  const terminer = () => {
-    document.body.classList.remove("is-redimensionnement-atelier");
-    separateurHorizontalAtelier.removeEventListener("pointermove", deplacer);
-    separateurHorizontalAtelier.removeEventListener("pointerup", terminer);
-    separateurHorizontalAtelier.removeEventListener("pointercancel", terminer);
-  };
-  separateurHorizontalAtelier.addEventListener("pointermove", deplacer);
-  separateurHorizontalAtelier.addEventListener("pointerup", terminer);
-  separateurHorizontalAtelier.addEventListener("pointercancel", terminer);
-}
-
 function actualiserEtatApercuRedimensionne(hauteur = elements.scene?.getBoundingClientRect().height || 0) {
   if (!elements.scene) {
     return;
@@ -6623,7 +6530,6 @@ function preparerGrilleJukeboxRepliee() {
   grilleJukeboxInlineOuverte = false;
   document.body.classList.add("is-grille-jukebox-disponible");
   document.body.classList.remove("is-grille-jukebox-ouverte", "is-grille-jukebox-edition");
-  definirSeparateursAtelierVisibles(false);
   elements.ouvrirJukebox.hidden = false;
   elements.ouvrirJukebox.classList.remove("is-actif");
   elements.ouvrirJukebox.setAttribute("aria-expanded", "false");
@@ -6646,7 +6552,6 @@ function ouvrirGrilleJukeboxInline() {
   panneauGrilleJukeboxInline.classList.remove("is-replie");
   document.body.classList.add("is-grille-jukebox-disponible", "is-grille-jukebox-ouverte");
   document.body.classList.remove("is-grille-jukebox-edition");
-  definirSeparateursAtelierVisibles(false);
   elements.ouvrirJukebox.classList.add("is-actif");
   elements.ouvrirJukebox.setAttribute("aria-expanded", "true");
   elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Retour à la vue normale"));
@@ -6671,7 +6576,6 @@ function fermerGrilleJukeboxInline() {
   }
   document.body.classList.remove("is-grille-jukebox-ouverte", "is-grille-jukebox-edition");
   document.body.classList.add("is-grille-jukebox-disponible");
-  definirSeparateursAtelierVisibles(false);
   elements.ouvrirJukebox.classList.remove("is-actif");
   elements.ouvrirJukebox.setAttribute("aria-expanded", "false");
   elementsGrilleJukeboxInline?.boutonFermer?.setAttribute("aria-label", traduirePhrase("Retour à la vue normale"));
@@ -6701,18 +6605,6 @@ function modifierStyleDepuisGrilleJukeboxInline() {
     elementsGrilleJukeboxInline.modeles.hidden = true;
   }
   placerFenetreGrilleJukeboxSurIndex(indexApercu);
-  actualiserGrilleJukeboxInline();
-}
-
-function appliquerVarianteDepuisGrilleJukeboxInline() {
-  const lignes = obtenirLignes();
-  if (!lignes[indexApercu]) {
-    return;
-  }
-  enregistrerHistoriqueAvantAction();
-  appliquerModeleJukebox(indexApercu, "variante");
-  selectionGrilleJukeboxInlineActive = true;
-  preparerAlternanceGrilleJukeboxInline(indexApercu, "variante");
   actualiserGrilleJukeboxInline();
 }
 
@@ -8072,7 +7964,7 @@ async function mettreAJour() {
   if (!modeleChoisi) {
     elements.etat.textContent = traduirePhrase("En attente");
     elements.editionTexteEtat.textContent = "";
-    elements.statutPlanche.textContent = "0 page";
+    elements.statutPlanche.textContent = traduirePhrase("0 page");
     effacerApercuImage(elements.apercu);
     effacerApercuImage(elements.apercuPrecedent);
     effacerApercuImage(elements.apercuSuivant);
@@ -8128,7 +8020,7 @@ async function mettreAJour() {
     elements.apercuSecondaire.hidden = true;
     mettreAJourZonesApercu({}, deuxiemeActive);
     elements.reglageRetourLigneTitres.hidden = true;
-    elements.statutPlanche.textContent = "0 page";
+    elements.statutPlanche.textContent = traduirePhrase("0 page");
     mettreAJourEditeurTexte(null);
     afficherFavoris();
     ajusterHauteurPanneauOptionsMobile();

@@ -93,7 +93,7 @@ body.is-accueil-selection .seo-accueil{display:block}
 .seo-accueil p{margin:0 0 10px;font-size:clamp(0.86rem,1.2vw,0.96rem);font-weight:600;line-height:1.6}
 .seo-accueil__lien{display:inline-block;margin-top:4px;color:var(--accent);font-size:0.82rem;font-weight:800;text-underline-offset:3px}
 .seo-accueil__lien:hover,.seo-accueil__lien:focus-visible{color:var(--accent-2)}
-.page-guide{min-height:100vh;background:linear-gradient(rgba(255,247,223,0.88),rgba(255,243,216,0.94)),url("Images/fond-45ojuke.webp") center top / cover no-repeat}
+.page-guide{min-height:100vh;padding-bottom:72px;background:linear-gradient(rgba(255,247,223,0.88),rgba(255,243,216,0.94)),url("Images/fond-45ojuke.webp") center top / cover no-repeat}
 .guide-retour-fixe{position:fixed;top:max(14px,env(safe-area-inset-top,0));left:max(14px,env(safe-area-inset-left,0));z-index:5;min-height:40px;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--bordure);border-radius:999px;padding:8px 13px;background:rgba(255,250,238,0.94);color:var(--accent-2);font-size:0.76rem;font-weight:850;text-decoration:none;box-shadow:0 8px 20px rgba(37,27,20,0.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .guide-retour-fixe svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.8}
 .guide-retour-fixe:hover,.guide-retour-fixe:focus-visible{border-color:rgba(122,47,29,0.3);background:var(--surface)}
@@ -118,8 +118,9 @@ body.is-accueil-selection .seo-accueil{display:block}
 .guide-conseil{margin:22px 0;border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:16px 18px;background:rgba(138,85,53,0.08);color:var(--accent-2)}
 .guide-conseil p{margin:6px 0 0!important}
 .guide-etapes{display:grid;gap:10px;margin:18px 0 24px;padding-left:24px}
-.guide-action{min-height:44px;display:inline-flex;align-items:center;justify-content:center;margin-top:8px;border:1px solid transparent;border-radius:999px;padding:11px 20px;background:var(--accent-2);color:#fff;font-weight:900;text-decoration:none;box-shadow:0 8px 18px rgba(122,47,29,0.18)}
+.guide-action{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:6;min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:999px;padding:11px 20px;background:var(--accent-2);color:#fff;font-weight:900;text-decoration:none;box-shadow:0 10px 24px rgba(37,27,20,0.24)}
 .guide-action:hover,.guide-action:focus-visible{background:var(--accent)}
+@media screen and (min-width:1450px){.guide-action{top:50%;bottom:auto;transform:translateY(-50%)}}
 .guide-faq{display:grid;gap:10px}
 .guide-faq details{border:1px solid var(--bordure);border-radius:10px;background:rgba(255,247,223,0.52)}
 .guide-faq summary{padding:14px 16px;color:var(--texte);cursor:pointer;font-weight:850}
@@ -137,7 +138,7 @@ body.is-accueil-selection .seo-accueil{display:block}
 .guide-article{border-radius:12px;padding:24px 19px}
 .guide-sommaire{grid-template-columns:1fr;padding:16px}
 .guide-sommaire strong{grid-column:1}
-.guide-action{width:100%}
+.guide-action{left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:max(10px,env(safe-area-inset-bottom,0px));width:auto}
 }
 .bouton{min-width:0;min-height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;padding:8px 12px;background:var(--surface);color:var(--accent);border:1px solid var(--bordure);text-decoration:none;cursor:pointer;box-shadow:none;font-weight:800;text-align:center;white-space:normal;overflow-wrap:anywhere}
 .bouton-principal{color:#fff;border-color:transparent;background:var(--accent-2)}
@@ -154,22 +155,12 @@ body.is-accueil-selection .seo-accueil{display:block}
 .menu-actions-apercu__liste button.is-confirme{background:rgba(80,116,77,0.14);color:#31522d}
 .menu-actions-apercu__liste button:disabled{color:rgba(103,70,50,0.58);cursor:not-allowed}
 .menu-actions-apercu__liste button:first-child{border-bottom:1px solid rgba(138,85,53,0.14);border-radius:7px 7px 4px 4px}
-.atelier{--largeur-reglages:minmax(310px,430px);--top-apercu-sticky:clamp(12px,1.5vw,24px);--hauteur-grille:clamp(420px,56vh,760px);display:grid;grid-template-columns:minmax(310px,430px) minmax(520px,1fr);gap:clamp(14px,1.6vw,24px);align-items:start}
+.atelier{--hauteur-grille:clamp(420px,56vh,760px);display:grid;grid-template-columns:minmax(310px,430px) minmax(520px,1fr);gap:clamp(14px,1.6vw,24px);align-items:start}
 .is-accueil-selection .atelier{grid-template-columns:minmax(0,1fr)}
 .is-accueil-selection .controles{display:none}
 .panneau{border:1px solid var(--bordure);border-radius:12px;background:var(--panneau);box-shadow:var(--ombre)}
 .controles{position:relative;display:block;padding:12px 14px 14px}
-.atelier-separateur{display:none}
 @media screen and (min-width:861px){body.is-grille-jukebox-ouverte:not(.is-accueil-selection) .controles{position:sticky;top:12px;z-index:8;max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
-body.is-grille-jukebox-disponible:not(.is-accueil-selection) .atelier-separateur{position:relative;display:block;border:0;background:transparent;touch-action:none}
-body.is-grille-jukebox-disponible:not(.is-accueil-selection) .atelier-separateur[hidden]{display:none}
-.atelier-separateur--vertical{grid-column:2;grid-row:1 / -1;align-self:stretch;min-height:100%;cursor:col-resize}
-.atelier-separateur--horizontal{grid-column:3;grid-row:2;z-index:1;align-self:stretch;min-height:8px;cursor:row-resize}
-.atelier-separateur::before{position:absolute;border-radius:999px;background:rgba(138,85,53,0.18);content:"";transition:background 160ms ease,transform 160ms ease}
-.atelier-separateur--vertical::before{inset:12px 2px}
-.atelier-separateur--horizontal::before{inset:2px 12px}
-.atelier-separateur:hover::before,body.is-redimensionnement-atelier .atelier-separateur::before{background:rgba(138,85,53,0.42)}
-body.is-redimensionnement-atelier{cursor:grabbing;user-select:none}
 }
 .assistant-reglages{display:grid;gap:5px;padding-bottom:12px}
 .assistant-reglages__etape{margin:0;color:var(--accent);font-size:0.66rem;font-weight:950;text-transform:uppercase}
