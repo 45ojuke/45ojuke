@@ -5735,6 +5735,16 @@ function normaliserReglagesImportes(donnees) {
       return;
     }
 
+    if (["largeurEtiquette", "hauteurEtiquette"].includes(cle)) {
+      const limites = LIMITES_DIMENSIONS[cle];
+      const nombre = Number(valeur);
+      if (!Number.isFinite(nombre)) {
+        return;
+      }
+      reglages[cle] = Number(Math.max(limites.min, Math.min(limites.max, nombre)).toFixed(1));
+      return;
+    }
+
     if (champ.type === "range" || champ.type === "number") {
       const nombre = Number(valeur);
       if (!Number.isFinite(nombre)) {
