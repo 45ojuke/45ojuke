@@ -45,7 +45,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
     <link rel="apple-touch-icon" href="/Images/icons/apple-touch-icon.png" />
     <link rel="preload" as="image" href="./Images/fond-45ojuke.webp" fetchpriority="high" />
-    <link rel="stylesheet" href="./polices-locales.css?v=20260827-7" />
+    <link rel="stylesheet" href="./polices-locales.css" />
     <link rel="stylesheet" href="./style.css" />
     <script type="application/ld+json">
       {
@@ -279,12 +279,19 @@
 
           <section class="groupe onglet-panneau" data-tab-panel="reglages" hidden>
             <div class="grille">
+              <label class="champ champ-large" for="uniteDimensions">
+                Unité des dimensions
+                <select id="uniteDimensions">
+                  <option value="mm">Millimètres (mm)</option>
+                  <option value="in">Pouces (in)</option>
+                </select>
+              </label>
               <label class="champ">
-                Largeur étiquette (mm)
+                <span id="libelleLargeurEtiquette">Largeur étiquette (mm)</span>
                 <input id="largeurEtiquette" type="number" min="50" max="100" step="0.1" inputmode="decimal" aria-describedby="messageDimensions" />
               </label>
               <label class="champ">
-                Hauteur étiquette (mm)
+                <span id="libelleHauteurEtiquette">Hauteur étiquette (mm)</span>
                 <input id="hauteurEtiquette" type="number" min="20" max="40" step="0.1" inputmode="decimal" aria-describedby="messageDimensions" />
               </label>
               <p class="message-validation champ-large" id="messageDimensions" aria-live="polite" hidden></p>
@@ -885,6 +892,6 @@
       </noscript>
     </footer>
 
-    <script type="module" src="./app.js?v=20260827-7"></script>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>

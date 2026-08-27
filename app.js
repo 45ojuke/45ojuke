@@ -16,6 +16,7 @@ import {
   CLE_CSV_LOCAL,
   CLE_FAVORIS,
   CLE_LANGUE,
+  CLE_UNITE_DIMENSIONS,
   CLE_REGLAGES_AUTOMATIQUES,
   DIMENSIONS_ETIQUETTE_DEFAUT,
   ETAPES_ASSISTANT,
@@ -292,6 +293,9 @@ const elements = {
   limiterMarquesBandeSurprise: document.querySelector("#limiterMarquesBandeSurprise"),
   largeurEtiquette: document.querySelector("#largeurEtiquette"),
   hauteurEtiquette: document.querySelector("#hauteurEtiquette"),
+  uniteDimensions: document.querySelector("#uniteDimensions"),
+  libelleLargeurEtiquette: document.querySelector("#libelleLargeurEtiquette"),
+  libelleHauteurEtiquette: document.querySelector("#libelleHauteurEtiquette"),
   messageDimensions: document.querySelector("#messageDimensions"),
   importFichierUnique: document.querySelector("#importFichierUnique"),
   exporterSauvegardeDonnees: document.querySelector("#exporterSauvegardeDonnees"),
@@ -413,6 +417,7 @@ let editionTexteDemandee = false;
 let ordreOriginalVinyles = [];
 let vinylesReferenceOrganisation = [];
 let langueActive = lireLangueMemorisee() || detecterLangueNavigateur() || document.documentElement.lang || "fr";
+let uniteDimensionsActive = lireUniteDimensionsMemorisee() || (langueActive === "us" ? "in" : "mm");
 let bulleAideActive = null;
 let favorisOuverts = false;
 let etapeAvantFavoris = null;
@@ -462,15 +467,84 @@ async function initialiser() {
 
 function appliquerDimensionsEtiquetteDefaut() {
   const { largeur, hauteur } = DIMENSIONS_ETIQUETTE_DEFAUT;
-  elements.largeurEtiquette.value = String(largeur);
-  elements.hauteurEtiquette.value = String(hauteur);
+  actualiserInterfaceUniteDimensions();
+  afficherDimensionsDepuisMm(largeur, hauteur);
   document.documentElement.style.setProperty("--ratio-etiquette", `${largeur} / ${hauteur}`);
   document.documentElement.style.setProperty("--largeur-etiquette-defaut-mm", `${largeur}mm`);
   document.documentElement.style.setProperty("--hauteur-etiquette-defaut-mm", `${hauteur}mm`);
 }
 
+function lireUniteDimensionsMemorisee() {
+  try {
+    const unite = localStorage.getItem(CLE_UNITE_DIMENSIONS);
+    return ["mm", "in"].includes(unite) ? unite : null;
+  } catch {
+    return null;
+  }
+}
+
+function memoriserUniteDimensions(unite) {
+  try {
+    localStorage.setItem(CLE_UNITE_DIMENSIONS, unite);
+  } catch {
+    // La préférence reste valable pour la session si le stockage est indisponible.
+  }
+}
+
+function convertirMmVersUnite(valeurMm) {
+  return uniteDimensionsActive === "in" ? valeurMm / 25.4 : valeurMm;
+}
+
+function convertirUniteVersMm(valeur) {
+  return uniteDimensionsActive === "in" ? valeur * 25.4 : valeur;
+}
+
+function formatDimensionAffichee(valeurMm) {
+  const valeur = convertirMmVersUnite(valeurMm);
+  const decimales = uniteDimensionsActive === "in" ? 3 : 1;
+  return String(Number(valeur.toFixed(decimales)));
+}
+
+function afficherDimensionsDepuisMm(largeurMm, hauteurMm) {
+  if (!elements.largeurEtiquette || !elements.hauteurEtiquette) {
+    return;
+  }
+  elements.largeurEtiquette.value = formatDimensionAffichee(largeurMm);
+  elements.hauteurEtiquette.value = formatDimensionAffichee(hauteurMm);
+}
+
+function actualiserInterfaceUniteDimensions() {
+  if (!elements.uniteDimensions) {
+    return;
+  }
+  elements.uniteDimensions.value = uniteDimensionsActive;
+  elements.uniteDimensions.setAttribute("aria-label", traduirePhrase("Unité des dimensions"));
+  elements.uniteDimensions.options[0].textContent = traduirePhrase("Millimètres (mm)");
+  elements.uniteDimensions.options[1].textContent = traduirePhrase("Pouces (in)");
+  elements.libelleLargeurEtiquette.textContent = traduirePhrase("Largeur étiquette (mm)").replace("(mm)", uniteDimensionsActive === "in" ? "(in)" : "(mm)");
+  elements.libelleHauteurEtiquette.textContent = traduirePhrase("Hauteur étiquette (mm)").replace("(mm)", uniteDimensionsActive === "in" ? "(in)" : "(mm)");
+  const facteur = uniteDimensionsActive === "in" ? 1 / 25.4 : 1;
+  elements.largeurEtiquette.min = String((LIMITES_DIMENSIONS.largeurEtiquette.min * facteur).toFixed(uniteDimensionsActive === "in" ? 3 : 1));
+  elements.largeurEtiquette.max = String((LIMITES_DIMENSIONS.largeurEtiquette.max * facteur).toFixed(uniteDimensionsActive === "in" ? 3 : 1));
+  elements.largeurEtiquette.step = uniteDimensionsActive === "in" ? "0.001" : "0.1";
+  elements.hauteurEtiquette.min = String((LIMITES_DIMENSIONS.hauteurEtiquette.min * facteur).toFixed(uniteDimensionsActive === "in" ? 3 : 1));
+  elements.hauteurEtiquette.max = String((LIMITES_DIMENSIONS.hauteurEtiquette.max * facteur).toFixed(uniteDimensionsActive === "in" ? 3 : 1));
+  elements.hauteurEtiquette.step = uniteDimensionsActive === "in" ? "0.001" : "0.1";
+}
+
+function changerUniteDimensions() {
+  const largeurMm = lireDimensionEtiquette(elements.largeurEtiquette, "largeurEtiquette");
+  const hauteurMm = lireDimensionEtiquette(elements.hauteurEtiquette, "hauteurEtiquette");
+  uniteDimensionsActive = elements.uniteDimensions.value === "in" ? "in" : "mm";
+  memoriserUniteDimensions(uniteDimensionsActive);
+  actualiserInterfaceUniteDimensions();
+  afficherDimensionsDepuisMm(largeurMm, hauteurMm);
+  mettreAJourMessageDimensions();
+}
+
 function brancherEvenements() {
   brancherAccueilIntro();
+  elements.uniteDimensions.addEventListener("change", changerUniteDimensions);
   if (new URLSearchParams(window.location.search).get("informations-legales") === "1") {
     ouvrirConfidentialite();
   }
@@ -1517,7 +1591,17 @@ function texteAideOption(cle) {
 
 function appliquerLangueSite(langue, options = {}) {
   const { memoriser = true } = options;
+  const dimensionsAvantChangement = elements.largeurEtiquette?.value && elements.hauteurEtiquette?.value
+    ? {
+      largeurMm: lireDimensionEtiquette(elements.largeurEtiquette, "largeurEtiquette"),
+      hauteurMm: lireDimensionEtiquette(elements.hauteurEtiquette, "hauteurEtiquette"),
+    }
+    : null;
   langueActive = traductions[langue] ? langue : "fr";
+  if (memoriser && langueActive === "us" && uniteDimensionsActive !== "in") {
+    uniteDimensionsActive = "in";
+    memoriserUniteDimensions(uniteDimensionsActive);
+  }
   if (memoriser) {
     memoriserLangueChoisie(langueActive);
   }
@@ -1548,6 +1632,10 @@ function appliquerLangueSite(langue, options = {}) {
   elements.ouvrirFavoris.textContent = traduirePhrase("Favoris");
   traduireTextesVisibles();
   traduireAttributsVisibles();
+  actualiserInterfaceUniteDimensions();
+  if (dimensionsAvantChangement) {
+    afficherDimensionsDepuisMm(dimensionsAvantChangement.largeurMm, dimensionsAvantChangement.hauteurMm);
+  }
   traduireApercusModeles();
   if (!elements.restaurationAccueil.hidden) {
     mettreAJourTexteRestauration();
@@ -3558,6 +3646,11 @@ function appliquerReglagesAuFormulaire(reglages) {
     elements.decorPanel.value = decorActif;
   }
   mettreAJourBoutonsDecor();
+  actualiserInterfaceUniteDimensions();
+  afficherDimensionsDepuisMm(
+    Number(reglagesNormalises.largeurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.largeur,
+    Number(reglagesNormalises.hauteurEtiquette) || DIMENSIONS_ETIQUETTE_DEFAUT.hauteur,
+  );
   synchroniserTousStylesPolices();
   chargementReglages = false;
   synchroniserValeursMarquesDepuisCommun(false);
@@ -4273,7 +4366,8 @@ function lireDimensionEtiquette(element, cle) {
     return limites.defaut;
   }
 
-  return Number(Math.max(limites.min, Math.min(limites.max, valeur)).toFixed(1));
+  const valeurMm = convertirUniteVersMm(valeur);
+  return Number(Math.max(limites.min, Math.min(limites.max, valeurMm)).toFixed(1));
 }
 
 function lireReglages(numero = etiquetteActive, ligne = null) {
@@ -8119,7 +8213,8 @@ function mettreAJourMessageDimensions() {
 function champDimensionHorsLimites(element, cle) {
   const limites = LIMITES_DIMENSIONS[cle];
   const valeur = Number(String(element?.value || "").replace(",", "."));
-  return Number.isFinite(valeur) && (valeur < limites.min || valeur > limites.max);
+  const valeurMm = Number.isFinite(valeur) ? convertirUniteVersMm(valeur) : valeur;
+  return Number.isFinite(valeurMm) && (valeurMm < limites.min || valeurMm > limites.max);
 }
 
 function mettreAJourInterfaceConditionnelle(reglages) {

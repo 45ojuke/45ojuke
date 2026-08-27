@@ -9,6 +9,7 @@ export const ECART_MM = 6;
 export const CLE_FAVORIS = "45ojuke.etiquettesPersonnalisees.favoris";
 export const CLE_CSV_LOCAL = "45ojuke.etiquettesPersonnalisees.csv";
 export const CLE_LANGUE = "45ojuke.langue";
+export const CLE_UNITE_DIMENSIONS = "45ojuke.uniteDimensions";
 export const CLE_REGLAGES_AUTOMATIQUES = "45ojuke.etiquettesPersonnalisees.reglagesAuto";
 export const LIEN_PAYPAL_SOUTIEN = "https://www.paypal.com/paypalme/45oJuke";
 export const LIEN_PAGE_SOUTIEN = "https://45ojuke.fr/?soutien=1";
