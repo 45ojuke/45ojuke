@@ -371,6 +371,18 @@ const PALETTES_TEINTES = [
   { nom: "ardoise", cadre: "#4d5865", fondHaut: "#fff5df", fondBas: "#d1bb7b", ruban: "#5d6876", vignette: "#3b444f", motif: "#4d5865", secondaire: "#a78643", titre: "#343c45", artiste: "#fff7df", marques: "#ead088" },
 ];
 
+const FAMILLES_TEINTES = [
+  { id: "rouge", libelle: "Rouge", couleur: "#d71920", palettes: ["rouge", "rouge-vif", "rouge-electrique", "bordeaux"] },
+  { id: "orange", libelle: "Orange", couleur: "#f97316", palettes: ["orange", "orange-vif", "orange-electrique", "corail"] },
+  { id: "jaune", libelle: "Jaune", couleur: "#f2c500", palettes: ["jaune", "jaune-vif", "jaune-electrique", "olive"] },
+  { id: "vert", libelle: "Vert", couleur: "#00a86b", palettes: ["vert", "vert-vif", "vert-electrique", "menthe"] },
+  { id: "turquoise", libelle: "Turquoise", couleur: "#00a9b4", palettes: ["turquoise", "turquoise-vif", "turquoise-electrique"] },
+  { id: "bleu", libelle: "Bleu", couleur: "#087ff5", palettes: ["bleu", "bleu-vif", "bleu-electrique", "indigo", "marine"] },
+  { id: "violet", libelle: "Violet", couleur: "#9635e8", palettes: ["violet", "violet-vif", "violet-electrique", "prune"] },
+  { id: "rose", libelle: "Rose", couleur: "#ec238a", palettes: ["rose", "rose-vif", "rose-electrique"] },
+  { id: "neutre", libelle: "Neutre", couleur: "#5d6876", palettes: ["ardoise"] },
+];
+
 let vinyles = [];
 let indexApercu = 0;
 let etiquetteActive = "1";
@@ -387,7 +399,11 @@ let framePositionGrilleJukebox = null;
 let gesteApercu = null;
 let signatureDerniereVarianteCouleur = "";
 let cycleVarianteBouton = null;
-let indexTeinteActif = -1;
+let menuPaletteTeintes = null;
+let boutonPaletteTeintesActif = null;
+let familleTeinteActive = null;
+let paletteTeinteActive = null;
+let reglagesSourcePaletteTeinte = null;
 let ignorerProchainClicApercu = false;
 let etapeReglageActive = "reglages";
 const reglagesParEtiquette = {
@@ -559,6 +575,9 @@ function brancherEvenements() {
     if (!evenement.target.closest("#menuActionsApercu")) {
       fermerMenuActionsApercu();
     }
+    if (!evenement.target.closest(".palette-teintes, [data-ouvrir-palette-teintes]")) {
+      fermerPaletteTeintes();
+    }
     if (menuModelesApercu && !menuModelesApercu.contains(evenement.target)) {
       fermerMenuModelesApercu();
     }
@@ -567,7 +586,10 @@ function brancherEvenements() {
     }
     fermerEditionTexteSiClicExterieur(evenement);
   });
-  window.addEventListener("resize", fermerBulleAide);
+  window.addEventListener("resize", () => {
+    fermerBulleAide();
+    fermerPaletteTeintes();
+  });
   window.addEventListener("scroll", fermerBulleAide, true);
   bloquerZoomMobile();
   elements.formulaire.addEventListener("focusin", memoriserPointDepartControle);
@@ -597,7 +619,7 @@ function brancherEvenements() {
   brancherInteractionCurseursTactiles();
   brancherCransSurregimeTexte();
   elements.formulaire.addEventListener("input", (evenement) => {
-    if (chargementReglages || evenement.target.closest("[data-configuration-etiquettes]")) {
+    if (chargementReglages || evenement.target.type === "file" || evenement.target.closest("[data-configuration-etiquettes]")) {
       return;
     }
     enregistrerHistoriqueDepuisControle(evenement.target);
@@ -612,7 +634,7 @@ function brancherEvenements() {
     mettreAJour();
   });
   elements.formulaire.addEventListener("change", (evenement) => {
-    if (chargementReglages || evenement.target.closest("[data-configuration-etiquettes]")) {
+    if (chargementReglages || evenement.target.type === "file" || evenement.target.closest("[data-configuration-etiquettes]")) {
       return;
     }
     enregistrerHistoriqueDepuisControle(evenement.target);
@@ -659,6 +681,7 @@ function brancherEvenements() {
       }
       porteeModificationGrilleJukebox = radio.value;
       synchroniserPorteeModificationApercu();
+      synchroniserSelectionPorteeGrille();
       sauvegarderReglagesAutomatiques();
     });
   });
@@ -708,7 +731,12 @@ function brancherEvenements() {
     radio.addEventListener("change", changerEtiquetteActive);
   });
   elements.inverser?.addEventListener("click", inverserStyle);
-  elements.teinte?.addEventListener("click", applyNextTint);
+  if (elements.teinte) {
+    elements.teinte.dataset.ouvrirPaletteTeintes = "true";
+    elements.teinte.setAttribute("aria-haspopup", "dialog");
+    elements.teinte.setAttribute("aria-expanded", "false");
+    elements.teinte.addEventListener("click", () => ouvrirPaletteTeintes(elements.teinte));
+  }
   elements.annulerReglage.addEventListener("click", annulerDerniereModification);
   elements.retablirReglage.addEventListener("click", retablirModification);
   elements.reinitialiserReglage.addEventListener("click", reinitialiserStyleDefaut);
@@ -971,9 +999,6 @@ function lireSauvegardeReglagesAutomatiques() {
 
 function sauvegarderReglagesAutomatiques() {
   try {
-    const reglagesActifs = styleActifVerrouille()
-      ? reglagesParEtiquette[etiquetteActive]
-      : lireReglagesFormulaire();
     const payload = {
       version: 1,
       sauvegardeLe: new Date().toISOString(),
@@ -984,9 +1009,9 @@ function sauvegarderReglagesAutomatiques() {
       reglagesParLigne: clonerReglages(reglagesParLigne),
       reglagesBrouillonParLigne: clonerReglages(reglagesBrouillonParLigne),
       reglages: {
-        1: etiquetteActive === "1" ? reglagesActifs : reglagesParEtiquette[1],
+        1: clonerReglages(reglagesParEtiquette[1]),
         2: deuxiemeEtiquetteActive()
-          ? (etiquetteActive === "2" ? reglagesActifs : reglagesParEtiquette[2])
+          ? clonerReglages(reglagesParEtiquette[2])
           : null,
       },
     };
@@ -1100,6 +1125,7 @@ function brancherAccueilIntro() {
   document.addEventListener("keydown", (evenement) => {
     if (evenement.key === "Escape") {
       fermerMenuActionsMobile();
+      fermerPaletteTeintes();
     }
     if (evenement.key === "Escape" && elements.aboutModal.open && !elements.licenceCompleteModal.open) {
       fermerAPropos();
@@ -2312,6 +2338,48 @@ function synchroniserPorteeModificationApercu() {
     elementsGrilleJukeboxInline.radioPorteeImpaires.checked = porteeModificationGrilleJukebox === "impaires";
     elementsGrilleJukeboxInline.radioPorteeToutes.checked = porteeModificationGrilleJukebox === "toutes";
   }
+}
+
+function indexAppartientPorteeModification(index, portee = porteeModificationGrilleJukebox) {
+  if (portee === "toutes") {
+    return true;
+  }
+  if (portee === "paires") {
+    return (index + 1) % 2 === 0;
+  }
+  if (portee === "impaires") {
+    return (index + 1) % 2 === 1;
+  }
+  return index === indexApercu;
+}
+
+function obtenirIndexReferencePortee(portee = porteeModificationGrilleJukebox) {
+  const lignes = obtenirLignes();
+  if (!lignes.length) {
+    return -1;
+  }
+  if (indexAppartientPorteeModification(indexApercu, portee) && lignes[indexApercu]) {
+    return indexApercu;
+  }
+  const ligne = lignes.find((candidate) => indexAppartientPorteeModification(candidate.index, portee));
+  return ligne?.index ?? 0;
+}
+
+function synchroniserSelectionPorteeGrille() {
+  if (!grilleJukeboxInlineOuverte) {
+    return;
+  }
+  const indexReference = obtenirIndexReferencePortee();
+  if (indexReference < 0) {
+    return;
+  }
+  selectionGrilleJukeboxInlineActive = true;
+  varianteGrillePretePourAlternance = null;
+  indexApercu = indexReference;
+  etiquetteActive = "1";
+  appliquerReglagesAuFormulaire(lireReglages("1", obtenirLignes()[indexReference]));
+  placerFenetreGrilleJukeboxSurIndex(indexReference);
+  mettreAJour();
 }
 
 function basculerMenuActionsApercu(evenement) {
@@ -3680,9 +3748,6 @@ function clonerReglages(reglages) {
 
 function creerInstantaneReglages() {
   const actif = etiquetteActive === "2" && deuxiemeEtiquetteActive() ? "2" : "1";
-  const reglagesActifs = styleActifVerrouille()
-    ? reglagesParEtiquette[actif]
-    : lireReglagesFormulaire();
   return {
     etiquetteActive: actif,
     modeleChoisi,
@@ -3692,8 +3757,8 @@ function creerInstantaneReglages() {
     reglagesBrouillonParLigne: clonerReglages(reglagesBrouillonParLigne),
     modeleSecondaire: elements.modeleSecondaire.value,
     reglagesParEtiquette: {
-      1: clonerReglages(actif === "1" ? reglagesActifs : lireReglages("1")),
-      2: clonerReglages(actif === "2" ? reglagesActifs : reglagesParEtiquette[2]),
+      1: clonerReglages(reglagesParEtiquette[1]),
+      2: clonerReglages(reglagesParEtiquette[2]),
     },
   };
 }
@@ -3930,9 +3995,6 @@ function signatureFavoriDepuisReglages(reglages) {
 
 function basculerFavori() {
   const reglages = lireReglagesFormulaire();
-  if (!styleActifVerrouille()) {
-    reglagesParEtiquette[etiquetteActive] = reglages;
-  }
   const favoriCourant = creerFavoriDepuisReglages(reglages);
   if (!favoriCourant) {
     return;
@@ -4379,7 +4441,10 @@ function lireReglages(numero = etiquetteActive, ligne = null) {
   if (cleLigne !== null && reglagesBrouillonParLigne[cleLigne]) {
     return reglagesBrouillonParLigne[cleLigne];
   }
-  if (numero === "2") {
+  const numeroStyle = ligne && deuxiemeEtiquetteActive()
+    ? (ligne.index % 2 === 1 ? "2" : "1")
+    : numero;
+  if (numeroStyle === "2") {
     return reglagesParEtiquette[2] || creerReglagesSecondaires();
   }
 
@@ -4426,7 +4491,6 @@ function obtenirEditionActive() {
 }
 
 function changerEtiquetteActive() {
-  enregistrerReglagesActifs();
   etiquetteActive = obtenirEditionActive();
   appliquerReglagesAuFormulaire(lireReglages(etiquetteActive));
   mettreAJour();
@@ -4740,7 +4804,6 @@ function selectionnerEtiquetteDepuisApercu(numero, { ouvrirEditeur = true } = {}
     }
     return;
   }
-  enregistrerReglagesActifs();
   etiquetteActive = numero;
   elements.editionEtiquette.forEach((radio) => {
     radio.checked = radio.value === numero;
@@ -5405,9 +5468,6 @@ function copierReglages(evenement) {
 
 function creerSauvegardeSession() {
   const actif = etiquetteActive === "2" && deuxiemeEtiquetteActive() ? "2" : "1";
-  const reglagesActifs = styleActifVerrouille()
-    ? reglagesParEtiquette[actif]
-    : lireReglagesFormulaire();
   return {
     type: "45ojuke-session",
     version: 1,
@@ -5422,9 +5482,9 @@ function creerSauvegardeSession() {
       reglagesParLigne: clonerReglages(reglagesParLigne),
       reglagesBrouillonParLigne: clonerReglages(reglagesBrouillonParLigne),
       reglages: {
-        1: clonerReglages(actif === "1" ? reglagesActifs : lireReglages("1")),
+        1: clonerReglages(reglagesParEtiquette[1]),
         2: deuxiemeEtiquetteActive()
-          ? clonerReglages(actif === "2" ? reglagesActifs : lireReglages("2"))
+          ? clonerReglages(reglagesParEtiquette[2])
           : null,
       },
       vinyles: vinyles.map((vinyle) => ({ ...vinyle })),
@@ -5568,7 +5628,7 @@ function creerStylesEtiquettesPourEmail(lignes) {
         export: exportStyle,
         reglages,
         preview: apercu,
-        previewName: apercu?.name || `45ojuke-apercu-${nomApercu}.jpg`,
+        previewName: apercu?.name || `45ojuke-apercu-${nomApercu}.png`,
         previewDataUrl: apercu?.dataUrl || null,
       });
       return;
@@ -5602,8 +5662,8 @@ function creerApercuStylePourEmail(reglages, nom) {
     const canvas = dessinerEtiquette(creerLigneAnonymePourApercuEmail(), reglages);
     const apercu = redimensionnerCanvasPourEmail(canvas);
     return {
-      name: `45ojuke-apercu-${nom}.jpg`,
-      dataUrl: apercu.toDataURL("image/jpeg", 0.7),
+      name: `45ojuke-apercu-${nom}.png`,
+      dataUrl: apercu.toDataURL("image/png"),
     };
   } catch {
     return null;
@@ -5625,7 +5685,7 @@ function creerLigneAnonymePourApercuEmail() {
 }
 
 function redimensionnerCanvasPourEmail(source) {
-  const largeurMax = 420;
+  const largeurMax = 1200;
   const ratio = Math.min(1, largeurMax / source.width);
   if (ratio >= 1) {
     return source;
@@ -5848,15 +5908,166 @@ function inverserStyle() {
   mettreAJour();
 }
 
-function applyNextTint() {
-  const reglages = lireReglagesFormulaire();
-  indexTeinteActif = (indexTeinteActif + 1) % PALETTES_TEINTES.length;
+function appliquerPaletteTeinteSelectionnee(palette) {
+  const reglages = clonerReglages(reglagesSourcePaletteTeinte) || lireReglagesFormulaire();
+  paletteTeinteActive = palette.nom;
   enregistrerHistoriqueAvantAction();
-  appliquerReglagesAuFormulaire(appliquerPaletteTeinte(reglages, PALETTES_TEINTES[indexTeinteActif]));
+  appliquerReglagesAuFormulaire(appliquerPaletteTeinte(reglages, palette));
   signatureDerniereVarianteCouleur = "";
   cycleVarianteBouton = null;
   enregistrerReglagesActifs();
   mettreAJour();
+}
+
+function obtenirPalettesFamilleTeinte(famille) {
+  return famille.palettes
+    .map((nom) => PALETTES_TEINTES.find((palette) => palette.nom === nom))
+    .filter(Boolean);
+}
+
+function trouverFamilleTeinte(nomPalette) {
+  return FAMILLES_TEINTES.find((famille) => famille.palettes.includes(nomPalette)) || null;
+}
+
+function libelleNuanceTeinte(palette, famille) {
+  if (palette.nom === famille.id) {
+    return traduirePhrase("Classique");
+  }
+  if (palette.nom.endsWith("-vif")) {
+    return traduirePhrase("Vif");
+  }
+  if (palette.nom.endsWith("-electrique")) {
+    return traduirePhrase("Électrique");
+  }
+  return traduirePhrase(palette.nom.charAt(0).toUpperCase() + palette.nom.slice(1));
+}
+
+function positionnerPaletteTeintes() {
+  if (!menuPaletteTeintes || !boutonPaletteTeintesActif) {
+    return;
+  }
+  const marge = 10;
+  const rectBouton = boutonPaletteTeintesActif.getBoundingClientRect();
+  const rectMenu = menuPaletteTeintes.getBoundingClientRect();
+  const gauche = Math.max(marge, Math.min(
+    rectBouton.left + rectBouton.width / 2 - rectMenu.width / 2,
+    window.innerWidth - rectMenu.width - marge,
+  ));
+  const placeDessous = rectBouton.bottom + rectMenu.height + marge <= window.innerHeight;
+  const haut = placeDessous
+    ? rectBouton.bottom + 7
+    : Math.max(marge, rectBouton.top - rectMenu.height - 7);
+  menuPaletteTeintes.style.left = `${Math.round(gauche)}px`;
+  menuPaletteTeintes.style.top = `${Math.round(haut)}px`;
+}
+
+function rendrePaletteTeintes() {
+  if (!menuPaletteTeintes) {
+    return;
+  }
+  const entete = document.createElement("div");
+  entete.className = "palette-teintes__entete";
+  const titre = document.createElement("strong");
+  titre.textContent = traduirePhrase("Choisir une teinte");
+  const fermer = document.createElement("button");
+  fermer.type = "button";
+  fermer.className = "palette-teintes__fermer";
+  fermer.textContent = "×";
+  fermer.setAttribute("aria-label", traduirePhrase("Fermer"));
+  fermer.addEventListener("click", fermerPaletteTeintes);
+  entete.append(titre, fermer);
+
+  const familles = document.createElement("div");
+  familles.className = "palette-teintes__familles";
+  FAMILLES_TEINTES.forEach((famille) => {
+    const bouton = document.createElement("button");
+    bouton.type = "button";
+    bouton.className = "palette-teintes__famille";
+    bouton.classList.toggle("is-active", famille.id === familleTeinteActive);
+    bouton.setAttribute("aria-pressed", String(famille.id === familleTeinteActive));
+    bouton.style.setProperty("--teinte", famille.couleur);
+    const pastille = document.createElement("span");
+    pastille.className = "palette-teintes__pastille";
+    pastille.setAttribute("aria-hidden", "true");
+    const libelle = document.createElement("span");
+    libelle.textContent = traduirePhrase(famille.libelle);
+    bouton.append(pastille, libelle);
+    bouton.addEventListener("click", (evenement) => {
+      evenement.stopPropagation();
+      familleTeinteActive = famille.id;
+      const [premierePalette] = obtenirPalettesFamilleTeinte(famille);
+      if (premierePalette) {
+        appliquerPaletteTeinteSelectionnee(premierePalette);
+      }
+      rendrePaletteTeintes();
+    });
+    familles.append(bouton);
+  });
+
+  menuPaletteTeintes.replaceChildren(entete, familles);
+  const famille = FAMILLES_TEINTES.find((candidate) => candidate.id === familleTeinteActive);
+  if (famille) {
+    const sectionNuances = document.createElement("div");
+    sectionNuances.className = "palette-teintes__section-nuances";
+    const titreNuances = document.createElement("span");
+    titreNuances.className = "palette-teintes__titre-nuances";
+    titreNuances.textContent = `${traduirePhrase("Nuances")} : ${traduirePhrase(famille.libelle)}`;
+    const nuances = document.createElement("div");
+    nuances.className = "palette-teintes__nuances";
+    obtenirPalettesFamilleTeinte(famille).forEach((palette) => {
+      const bouton = document.createElement("button");
+      bouton.type = "button";
+      bouton.className = "palette-teintes__nuance";
+      bouton.classList.toggle("is-active", palette.nom === paletteTeinteActive);
+      bouton.setAttribute("aria-pressed", String(palette.nom === paletteTeinteActive));
+      bouton.style.setProperty("--teinte", palette.cadre);
+      const pastille = document.createElement("span");
+      pastille.className = "palette-teintes__pastille";
+      pastille.setAttribute("aria-hidden", "true");
+      const libelle = document.createElement("span");
+      libelle.textContent = libelleNuanceTeinte(palette, famille);
+      bouton.append(pastille, libelle);
+      bouton.addEventListener("click", (evenement) => {
+        evenement.stopPropagation();
+        appliquerPaletteTeinteSelectionnee(palette);
+        rendrePaletteTeintes();
+      });
+      nuances.append(bouton);
+    });
+    sectionNuances.append(titreNuances, nuances);
+    menuPaletteTeintes.append(sectionNuances);
+  }
+  window.requestAnimationFrame(positionnerPaletteTeintes);
+}
+
+function fermerPaletteTeintes() {
+  boutonPaletteTeintesActif?.setAttribute("aria-expanded", "false");
+  menuPaletteTeintes?.remove();
+  menuPaletteTeintes = null;
+  boutonPaletteTeintesActif = null;
+  reglagesSourcePaletteTeinte = null;
+}
+
+function ouvrirPaletteTeintes(bouton) {
+  if (menuPaletteTeintes && boutonPaletteTeintesActif === bouton) {
+    fermerPaletteTeintes();
+    return;
+  }
+  fermerPaletteTeintes();
+  boutonPaletteTeintesActif = bouton;
+  boutonPaletteTeintesActif.dataset.ouvrirPaletteTeintes = "true";
+  boutonPaletteTeintesActif.setAttribute("aria-haspopup", "dialog");
+  boutonPaletteTeintesActif.setAttribute("aria-expanded", "true");
+  reglagesSourcePaletteTeinte = clonerReglages(lireReglagesFormulaire());
+  const paletteCourante = PALETTES_TEINTES.find((palette) => couleursEgales(palette.cadre, reglagesSourcePaletteTeinte.couleur1));
+  paletteTeinteActive = paletteCourante?.nom || null;
+  familleTeinteActive = trouverFamilleTeinte(paletteTeinteActive)?.id || null;
+  menuPaletteTeintes = document.createElement("div");
+  menuPaletteTeintes.className = "palette-teintes";
+  menuPaletteTeintes.setAttribute("role", "dialog");
+  menuPaletteTeintes.setAttribute("aria-label", traduirePhrase("Choisir une teinte"));
+  document.body.append(menuPaletteTeintes);
+  rendrePaletteTeintes();
 }
 
 function appliquerPaletteTeinte(reglages, palette) {
@@ -6968,6 +7179,9 @@ function creerPanneauGrilleJukeboxInline() {
   boutonVerrouiller.append(iconeVerrouiller);
   const boutonVariante = creerBoutonActionGrille(traduirePhrase("Variante"));
   const boutonTeinte = creerBoutonActionGrille(traduirePhrase("Teinte"));
+  boutonTeinte.dataset.ouvrirPaletteTeintes = "true";
+  boutonTeinte.setAttribute("aria-haspopup", "dialog");
+  boutonTeinte.setAttribute("aria-expanded", "false");
   const boutonReset = creerBoutonActionGrille(traduirePhrase("Reset"));
   boutonReset.setAttribute("aria-label", traduirePhrase("Revenir au style par défaut"));
   boutonReset.title = traduirePhrase("Style par défaut");
@@ -7058,7 +7272,7 @@ function creerPanneauGrilleJukeboxInline() {
   porteeSelection.addEventListener("change", () => {
     porteeModificationGrilleJukebox = porteeSelection.querySelector('input[name="porteeModificationGrilleJukebox"]:checked')?.value || "toutes";
     synchroniserPorteeModificationApercu();
-    mettreAJourActionsGrilleJukeboxInline();
+    synchroniserSelectionPorteeGrille();
     sauvegarderReglagesAutomatiques();
   });
   boutonChangerEtiquette.addEventListener("click", () => {});
@@ -7071,10 +7285,7 @@ function creerPanneauGrilleJukeboxInline() {
     inverserStyle();
     actualiserGrilleJukeboxInline();
   });
-  boutonTeinte.addEventListener("click", () => {
-    applyNextTint();
-    actualiserGrilleJukeboxInline();
-  });
+  boutonTeinte.addEventListener("click", () => ouvrirPaletteTeintes(boutonTeinte));
   boutonReset.addEventListener("click", () => {
     reinitialiserStyleDefaut();
     actualiserGrilleJukeboxInline();
@@ -7646,6 +7857,11 @@ function creerEmplacementJukebox(index, totalColonnes) {
   carte.className = "jukebox-emplacement";
   carte.dataset.indexJukebox = String(index);
   carte.classList.toggle("is-actif", index === indexApercu);
+  const selectionnee = selectionGrilleJukeboxInlineActive
+    && Boolean(ligne)
+    && indexAppartientPorteeModification(index);
+  carte.classList.toggle("is-selectionnee-portee", selectionnee);
+  carte.setAttribute("aria-selected", String(selectionnee));
   carte.classList.toggle("is-vide", !ligne);
   carte.dataset.repereJukebox = creerRepereJukebox(index, totalColonnes, ligne);
   carte.title = `${traduirePhrase("Étiquette")} ${index + 1} ${traduirePhrase("sur")} ${total}`;
@@ -7663,10 +7879,17 @@ function creerEmplacementJukebox(index, totalColonnes) {
   image.className = "jukebox-emplacement__image";
   image.alt = `Étiquette ${ligne.numeroTableau}`;
   const reglages = lireReglages("1", ligne);
-  const miniature = obtenirMiniatureJukebox(index, ligne, reglages);
-  image.width = miniature.width;
-  image.height = miniature.height;
-  image.src = miniature.src;
+  image.width = Math.round(reglages.largeurEtiquette * window.PX_PAR_MM);
+  image.height = Math.round(reglages.hauteurEtiquette * window.PX_PAR_MM);
+  chargerPolicesReglages(reglages).then(() => {
+    if (!image.isConnected) {
+      return;
+    }
+    const miniature = obtenirMiniatureJukebox(index, ligne, reglages);
+    image.width = miniature.width;
+    image.height = miniature.height;
+    image.src = miniature.src;
+  });
 
   carte.append(image);
   return carte;
@@ -7952,7 +8175,6 @@ function changerApercu(delta) {
   if (!lignes.length) {
     return;
   }
-  enregistrerReglagesActifs();
   if (deuxiemeEtiquetteActive()) {
     const nombrePaires = Math.ceil(lignes.length / 2);
     const paireActive = Math.floor(indexApercu / 2);
@@ -8432,7 +8654,7 @@ function normaliserTailleTrianglesPourSignature(reglages) {
 
 
 function imprimer() {
-  enregistrerReglagesActifs();
+  // Les contrôles enregistrent déjà les modifications : une sortie ne réapplique aucun style.
   const lignes = obtenirLignes();
   if (!lignes.length) {
     elements.etat.textContent = traduirePhrase("Aucune étiquette à imprimer");

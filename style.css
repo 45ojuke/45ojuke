@@ -405,6 +405,19 @@ body.is-edition-texte-mobile .controles>.edition-texte>.champ input{min-height:3
 .barre-actions--apercu .bouton-favori-icone{width:34px;min-width:34px;padding:0;font-size:1.1rem}
 .barre-actions--apercu .bouton.is-actif{border-color:var(--accent-2);background:var(--accent-2);color:#fffaf0}
 .barre-actions--apercu::-webkit-scrollbar{display:none}
+.palette-teintes{position:fixed;z-index:120;width:min(430px,calc(100vw - 20px));display:grid;gap:10px;border:1px solid rgba(138,85,53,0.28);border-radius:12px;padding:10px;background:rgba(255,250,241,0.99);box-shadow:0 18px 42px rgba(31,21,14,0.28);color:var(--accent-2)}
+.palette-teintes__entete{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:0.88rem}
+.palette-teintes__fermer{width:28px;height:28px;border:0;border-radius:7px;background:rgba(138,85,53,0.1);color:var(--accent-2);cursor:pointer;font:inherit;font-size:1.2rem;font-weight:900;line-height:1}
+.palette-teintes__familles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.palette-teintes__famille,.palette-teintes__nuance{min-width:0;display:flex;align-items:center;gap:7px;border:1px solid rgba(138,85,53,0.2);border-radius:8px;padding:7px;background:#fffdf8;color:var(--accent-2);cursor:pointer;font:inherit;font-size:0.74rem;font-weight:850;text-align:left}
+.palette-teintes__famille:hover,.palette-teintes__nuance:hover{border-color:rgba(145,26,16,0.56);background:#fff8e9}
+.palette-teintes__famille.is-active,.palette-teintes__nuance.is-active{border-color:#911a10;box-shadow:0 0 0 2px rgba(145,26,16,0.16)}
+.palette-teintes__pastille{flex:0 0 auto;width:18px;height:18px;border:2px solid rgba(255,255,255,0.92);border-radius:50%;background:var(--teinte);box-shadow:0 0 0 1px rgba(44,35,28,0.22)}
+.palette-teintes__section-nuances{display:grid;gap:6px;border-top:1px solid rgba(138,85,53,0.16);padding-top:9px}
+.palette-teintes__titre-nuances{font-size:0.7rem;font-weight:900}
+.palette-teintes__nuances{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:6px}
+.palette-teintes__nuance{padding:6px;font-size:0.7rem}
+.palette-teintes__nuance .palette-teintes__pastille{width:16px;height:16px}
 .barre-actions--csv{display:grid;grid-template-columns:minmax(0,1fr);justify-content:stretch}
 .barre-actions--csv .bouton{width:100%}
 .barre-actions--csv .bouton-action-large{grid-column:1 / -1}
@@ -573,7 +586,8 @@ body.is-grille-jukebox-ouverte .jukebox-inline__bandeau{position:sticky;top:12px
 .jukebox-grille{grid-template-columns:repeat(var(--colonnes-jukebox),minmax(86px,1fr));grid-auto-columns:minmax(86px,1fr);gap:6px;padding:8px}
 }
 .jukebox-emplacement{position:relative;isolation:isolate;min-width:0;display:grid;grid-template-rows:auto;align-self:start;gap:5px;align-content:start;border:1px solid rgba(44,35,28,0.14);border-radius:8px;padding:7px;background:rgba(255,253,247,0.88);cursor:pointer;transform-origin:center;transition:transform 150ms ease,border-color 150ms ease,background-color 150ms ease,box-shadow 150ms ease,opacity 150ms ease}
-.jukebox-emplacement:hover,.jukebox-emplacement.is-actif{border-color:rgba(145,26,16,0.48);box-shadow:0 8px 18px rgba(31,21,14,0.11)}
+.jukebox-emplacement:hover,.jukebox-emplacement.is-actif,.jukebox-emplacement.is-selectionnee-portee{border-color:rgba(145,26,16,0.48);box-shadow:0 8px 18px rgba(31,21,14,0.11)}
+.jukebox-emplacement.is-selectionnee-portee{background:linear-gradient(135deg,rgba(255,246,220,0.86),rgba(255,253,247,0.96));box-shadow:0 0 0 2px rgba(145,26,16,0.5),0 8px 18px rgba(31,21,14,0.11)}
 .jukebox-emplacement.is-actif{border-color:rgba(145,26,16,0.95);background:linear-gradient(135deg,rgba(255,246,220,0.98),rgba(255,253,247,0.92));box-shadow:0 0 0 2px #fffaf0,0 0 0 5px rgba(145,26,16,0.76),0 14px 24px rgba(31,21,14,0.18)}
 .jukebox-emplacement.is-actif::before{content:"";position:absolute;inset:4px auto auto 4px;z-index:2;width:13px;height:13px;border:2px solid #fffaf0;border-radius:50%;background:#911a10;box-shadow:0 2px 6px rgba(31,21,14,0.24);pointer-events:none}
 .jukebox-emplacement:hover{transform:translateY(-1px)}

@@ -6,6 +6,7 @@ import {
   MARGE_PAGE_MM,
 } from "./reglages.js";
 import { dessinerEtiquette } from "./etiquettes.js";
+import { chargerPolicesReglages } from "./polices.js";
 
 const POINTS_PAR_MM = 72 / 25.4;
 const MARGE_HABILLAGE_PAGE_MM = 23.5;
@@ -53,24 +54,27 @@ export async function telechargerPdf(lignes, {
   libellesSignature = {},
 }) {
   const deuxiemeActive = deuxiemeEtiquetteActive();
-  const reglagesPrincipaux = lireReglages("1", lignes[0]);
+  // Garder l'identité d'origine même pour une sélection ou des étiquettes vierges.
+  const reglagesParLigne = lignes.map((ligne, index) => {
+    const indexOriginal = Number.isInteger(ligne.index) ? ligne.index : index;
+    const numeroStyle = deuxiemeActive && indexOriginal % 2 === 1 ? "2" : "1";
+    return { ...lireReglages(numeroStyle, ligne) };
+  });
+  const reglagesPrincipaux = reglagesParLigne[0];
   const disposition = calculerDispositionImpression(reglagesPrincipaux);
   if (!disposition.etiquettesParPage) {
     throw new Error("Format trop grand pour une page A4");
   }
 
+  await Promise.all(reglagesParLigne.map(chargerPolicesReglages));
   const imagesParPage = [];
   for (let index = 0; index < lignes.length; index += disposition.etiquettesParPage) {
-    const images = lignes.slice(index, index + disposition.etiquettesParPage).map((ligne, decalage) => {
-      const numeroStyle = deuxiemeActive && (index + decalage) % 2 === 1 ? "2" : "1";
-      const reglages = lireReglages(numeroStyle, ligne);
+    const images = [];
+    for (const [decalage, ligne] of lignes.slice(index, index + disposition.etiquettesParPage).entries()) {
+      const reglages = reglagesParLigne[index + decalage];
       const canvas = dessinerEtiquette(ligne, reglages);
-      return {
-        largeurPx: canvas.width,
-        hauteurPx: canvas.height,
-        donnees: extraireDonneesBase64(canvas.toDataURL("image/jpeg", 0.96)),
-      };
-    });
+      images.push(await encoderCanvasSansPerte(canvas));
+    }
     imagesParPage.push(images);
   }
 
@@ -158,8 +162,34 @@ export function construirePdfEtiquettes(imagesParPage, disposition, reglages, op
   return encoderPdf(objets);
 }
 
+async function encoderCanvasSansPerte(canvas) {
+  const rgba = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+  const rgb = new Uint8Array(canvas.width * canvas.height * 3);
+  for (let source = 0, cible = 0; source < rgba.length; source += 4) {
+    const alpha = rgba[source + 3] / 255;
+    for (let canal = 0; canal < 3; canal += 1) {
+      rgb[cible++] = Math.round(rgba[source + canal] * alpha + 255 * (1 - alpha));
+    }
+  }
+  const compressionDisponible = typeof CompressionStream !== "undefined";
+  const octets = compressionDisponible
+    ? new Uint8Array(await new Response(new Blob([rgb]).stream().pipeThrough(new CompressionStream("deflate"))).arrayBuffer())
+    : rgb;
+  const morceaux = [];
+  for (let index = 0; index < octets.length; index += 8192) {
+    morceaux.push(String.fromCharCode(...octets.subarray(index, index + 8192)));
+  }
+  return {
+    largeurPx: canvas.width,
+    hauteurPx: canvas.height,
+    donnees: morceaux.join(""),
+    filtre: compressionDisponible ? "/FlateDecode" : "",
+  };
+}
+
 function creerObjetImagePdf(image) {
-  return `<< /Type /XObject /Subtype /Image /Width ${image.largeurPx} /Height ${image.hauteurPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${image.donnees.length} >>\nstream\n${image.donnees}\nendstream`;
+  const filtre = image.filtre ?? "/DCTDecode";
+  return `<< /Type /XObject /Subtype /Image /Width ${image.largeurPx} /Height ${image.hauteurPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 ${filtre ? `/Filter ${filtre}` : ""} /Length ${image.donnees.length} >>\nstream\n${image.donnees}\nendstream`;
 }
 
 function creerCommandesTraitsDecoupe(nombreImages, disposition, reglages, departXMm, departYMm) {

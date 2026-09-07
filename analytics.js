@@ -9,7 +9,10 @@ export function envoyerJsonStyle(evenement, payload) {
     return;
   }
 
-  const donnees = JSON.stringify(payload);
+  const donnees = JSON.stringify({
+    ...payload,
+    event: evenement,
+  });
 
   try {
     const formulaire = new URLSearchParams();
