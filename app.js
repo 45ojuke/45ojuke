@@ -7316,7 +7316,10 @@ function creerPanneauGrilleJukeboxInline() {
     editionTexteMasqueeParGrille = true;
     selectionGrilleJukeboxInlineActive = true;
     varianteGrillePretePourAlternance = null;
+    porteeModificationGrilleJukebox = "selection";
+    synchroniserPorteeModificationApercu();
     appliquerActionJukebox(Number(emplacement.dataset.indexJukebox));
+    sauvegarderReglagesAutomatiques();
     actualiserGrilleJukeboxInline();
   });
   grille.addEventListener("contextmenu", (evenement) => {
