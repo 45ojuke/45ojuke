@@ -50,7 +50,7 @@ const CLE_POSITION_FOND_INTRO = "45ojuke.positionFondIntro.v2";
 const MEDIA_MOBILE = window.matchMedia("(max-width: 860px)");
 const MEDIA_SURVOL_PRECIS = window.matchMedia("(hover: hover) and (pointer: fine)");
 const LIMITE_TAILLE_TITRES = 200;
-const LIMITE_TAILLE_ARTISTE = 200;
+const LIMITE_TAILLE_ARTISTE = 240;
 const PIXELS_CSS_PAR_MM = 96 / 25.4;
 const PIXELS_APERCU_PAR_MM_MAX = 14;
 

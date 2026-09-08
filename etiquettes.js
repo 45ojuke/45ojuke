@@ -927,7 +927,7 @@ function dessinerEtiquetteLeon(ctx, ligne, reglages, largeur, hauteur, bordure) 
     reglages.couleurTitreFaceBManuelle,
     "titreB",
   );
-  dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, yBas - yHaut, reglages, fondArtiste);
+  dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, reglages, fondArtiste);
 
 }
 
@@ -1034,7 +1034,7 @@ function dessinerEtiquetteJean(ctx, ligne, reglages, largeur, hauteur, bordure) 
     reglages.couleurTitreFaceBManuelle,
     "titreB",
   );
-  dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, yBas - yHaut, reglages, fondArtiste);
+  dessinerArtisteLeon(ctx, ligne.artiste, largeur / 2, centreEntreTraits(yHaut, yBas), largeurTexte * 0.94, reglages, fondArtiste);
 
 }
 
@@ -1141,10 +1141,8 @@ function dessinerEtiquetteAdrien(ctx, ligne, reglages, largeur, hauteur, bordure
 
 function mesurerArtistePourFilets(ctx, texte, largeurMax, reglages) {
   const valeurTaille = Number(reglages.tailleArtiste) || 100;
-  let taille = 32 * Math.min(200, valeurTaille) / 100;
-  const espacementLettres = valeurTaille > 200
-    ? taille * ((Math.min(240, valeurTaille) - 200) / 40) * 0.13
-    : 0;
+  let taille = 32 * Math.min(240, valeurTaille) / 100;
+  const espacementLettres = 0;
   const style = normaliserStylePolice(reglages.policeArtiste, reglages.styleArtiste);
   const poids = poidsPolice(reglages.policeArtiste, styleTexteEnGras(style) ? 700 : 400);
   const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
@@ -1163,17 +1161,13 @@ function mesurerArtistePourFilets(ctx, texte, largeurMax, reglages) {
   return { largeur: Math.min(largeurMax, largeurTexte), taille };
 }
 
-function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, hauteurZone, reglages, couleurFond) {
+function dessinerArtisteLeon(ctx, texte, x, y, largeurMax, reglages, couleurFond) {
   const decalageManuel = calculerDecalageManuelTexte(ctx, reglages, "artiste");
   x += decalageManuel.x;
   y += decalageManuel.y;
   const valeurTailleArtiste = Number(reglages.tailleArtiste) || 100;
-  let taille = 32 * Math.min(200, valeurTailleArtiste) / 100;
-  const tailleMax = Math.max(10, hauteurZone * 0.48);
-  taille = Math.min(taille, tailleMax);
-  const espacementLettres = valeurTailleArtiste > 200
-    ? taille * ((Math.min(240, valeurTailleArtiste) - 200) / 40) * 0.13
-    : 0;
+  let taille = 32 * Math.min(240, valeurTailleArtiste) / 100;
+  const espacementLettres = 0;
   const style = normaliserStylePolice(reglages.policeArtiste, reglages.styleArtiste);
   const poids = poidsPolice(reglages.policeArtiste, styleTexteEnGras(style) ? 700 : 400);
   const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
@@ -2280,10 +2274,8 @@ function dessinerArtiste(ctx, texte, x, y, largeurMax, reglages, couleurFond = r
   x += decalageManuel.x;
   y += decalageManuel.y;
   const valeurTailleArtiste = Number(reglages.tailleArtiste) || 100;
-  let taille = 32 * Math.min(200, valeurTailleArtiste) / 100;
-  const espacementLettres = valeurTailleArtiste > 200
-    ? taille * ((Math.min(240, valeurTailleArtiste) - 200) / 40) * 0.13
-    : 0;
+  let taille = 32 * Math.min(240, valeurTailleArtiste) / 100;
+  const espacementLettres = 0;
   const style = normaliserStylePolice(reglages.policeArtiste, reglages.styleArtiste);
   const poids = poidsPolice(reglages.policeArtiste, styleTexteEnGras(style) ? 700 : 400);
   const italique = style === "italique" || style === "gras-italique" ? "italic " : "";
