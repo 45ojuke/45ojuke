@@ -783,8 +783,30 @@
               <label><input name="porteeModificationApercu" type="radio" value="selection" /> Cette étiquette</label>
               <label><input name="porteeModificationApercu" type="radio" value="paires" /> Paires</label>
               <label><input name="porteeModificationApercu" type="radio" value="impaires" /> Impaires</label>
+              <label><input name="porteeModificationApercu" type="radio" value="damier" /> Damier</label>
               <label><input name="porteeModificationApercu" type="radio" value="toutes" checked /> Toutes</label>
             </fieldset>
+            <div class="aide-damier" id="aideDamier" hidden>
+              <div class="aide-damier__introduction">
+                <strong>Créer un damier</strong>
+                <span>Répartissez automatiquement deux styles en alternance dans votre jukebox.</span>
+              </div>
+              <div class="damier-mini" aria-hidden="true">
+                <span class="damier-mini__case damier-mini__case--1"></span><span class="damier-mini__case damier-mini__case--2"></span><span class="damier-mini__case damier-mini__case--1"></span><span class="damier-mini__case damier-mini__case--2"></span>
+                <span class="damier-mini__case damier-mini__case--2"></span><span class="damier-mini__case damier-mini__case--1"></span><span class="damier-mini__case damier-mini__case--2"></span><span class="damier-mini__case damier-mini__case--1"></span>
+                <span class="damier-mini__case damier-mini__case--1"></span><span class="damier-mini__case damier-mini__case--2"></span><span class="damier-mini__case damier-mini__case--1"></span><span class="damier-mini__case damier-mini__case--2"></span>
+              </div>
+              <div class="aide-damier__dimensions">
+                <label>Nombre de colonnes <input id="damierColonnes" type="number" min="1" max="30" value="8" /></label>
+                <label>Étiquettes par colonne <input id="damierLignes" type="number" min="1" max="40" value="10" /></label>
+              </div>
+              <p class="aide-damier__resume" id="damierResume"></p>
+              <div class="aide-damier__groupes" role="group" aria-label="Style à modifier">
+                <button class="bouton bouton-secondaire" id="damierGroupe1" type="button" aria-pressed="true">Modifier le Style 1</button>
+                <button class="bouton bouton-secondaire" id="damierGroupe2" type="button" aria-pressed="false">Modifier le Style 2</button>
+              </div>
+              <p class="aide-damier__etat" id="etatDamier"></p>
+            </div>
           </div>
           <section class="accueil-apercu" id="accueilApercu">
             <p class="accueil-apercu__surtitre">Étape 1</p>

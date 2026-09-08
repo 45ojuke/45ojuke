@@ -400,6 +400,24 @@ body.is-edition-texte-mobile .controles>.edition-texte>.champ input{min-height:3
 .portee-modification-apercu label{display:inline-flex;align-items:center;gap:3px;min-height:24px;padding:0 7px;border-radius:5px;color:var(--accent-2);cursor:pointer;font-size:0.72rem;font-weight:850;line-height:1}
 .portee-modification-apercu label:has(input:checked){background:var(--accent-2);color:#fffaf0}
 .portee-modification-apercu input{accent-color:currentColor}
+.aide-damier{position:relative;z-index:1;order:21;flex:0 0 100%;display:grid;grid-template-columns:92px minmax(150px,1fr);gap:8px 12px;align-items:center;margin:0;padding:10px 12px;border:1px solid rgba(145,26,16,0.24);border-radius:9px;background:rgba(255,246,220,0.88);color:var(--accent-2);text-align:left}
+.aide-damier[hidden]{display:none}
+.aide-damier__introduction{grid-column:1/-1;display:grid;gap:2px}
+.aide-damier__introduction strong{font-size:0.86rem}
+.aide-damier__introduction span{font-size:0.72rem;font-weight:720;line-height:1.35}
+.damier-mini{grid-row:2/5;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:5px;border:1px solid rgba(138,85,53,0.2);border-radius:7px;background:#fffdf8}
+.damier-mini__case{aspect-ratio:1.55;border:2px solid transparent;border-radius:3px;background:#f7d26f}
+.damier-mini__case--2{background:#c94536}
+.aide-damier[data-groupe="1"] .damier-mini__case--1,.aide-damier[data-groupe="2"] .damier-mini__case--2{border-color:#2d2420;box-shadow:0 0 0 1px #fff}
+.aide-damier__dimensions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.aide-damier__dimensions label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;font-weight:850}
+.aide-damier__dimensions input{width:58px;min-height:30px;border:1px solid var(--bordure);border-radius:6px;padding:3px 6px;background:#fffdf8;color:var(--texte);font:inherit;text-align:center}
+.aide-damier__resume{margin:0;font-size:0.72rem;font-weight:900}
+.aide-damier__groupes{display:flex;flex-wrap:wrap;gap:6px}
+.aide-damier__groupes .bouton{min-height:30px;padding:0 10px;font-size:0.74rem;white-space:nowrap}
+.aide-damier__groupes .bouton.is-actif{border-color:var(--accent-2);background:var(--accent-2);color:#fffaf0}
+.aide-damier__etat{grid-column:1/-1;margin:0;border-radius:6px;padding:6px 8px;background:rgba(145,26,16,0.08);font-size:0.72rem;font-weight:850;line-height:1.35}
+.jukebox-inline__outils[hidden]{display:none}
 #ouvrirJukebox{display:inline-flex}
 .barre-actions--apercu #reinitialiserReglage:disabled{color:#9a9184;border-color:rgba(95,84,72,0.18);background:rgba(232,226,214,0.72);opacity:1}
 .barre-actions--apercu .bouton-favori-icone{width:34px;min-width:34px;padding:0;font-size:1.1rem}

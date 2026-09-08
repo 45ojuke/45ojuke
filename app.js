@@ -94,6 +94,13 @@ const elements = {
   assistantSuivant: document.querySelector("#assistantSuivant"),
   porteeModificationApercu: document.querySelector("#porteeModificationApercu"),
   porteeModificationApercuOptions: document.querySelectorAll('input[name="porteeModificationApercu"]'),
+  aideDamier: document.querySelector("#aideDamier"),
+  damierColonnes: document.querySelector("#damierColonnes"),
+  damierLignes: document.querySelector("#damierLignes"),
+  damierResume: document.querySelector("#damierResume"),
+  damierGroupe1: document.querySelector("#damierGroupe1"),
+  damierGroupe2: document.querySelector("#damierGroupe2"),
+  etatDamier: document.querySelector("#etatDamier"),
   panneauxReglages: document.querySelectorAll("[data-tab-panel]"),
   ouvrirSoutien: document.querySelector("#ouvrirSoutien"),
   ouvrirSoutienMenu: document.querySelector("#ouvrirSoutienMenu"),
@@ -680,11 +687,18 @@ function brancherEvenements() {
         return;
       }
       porteeModificationGrilleJukebox = radio.value;
+      if (radio.value === "damier" && !grilleJukeboxInlineOuverte) {
+        ouvrirGrilleJukeboxInline();
+      }
       synchroniserPorteeModificationApercu();
       synchroniserSelectionPorteeGrille();
       sauvegarderReglagesAutomatiques();
     });
   });
+  elements.damierGroupe1.addEventListener("click", () => selectionnerGroupeDamier(0));
+  elements.damierGroupe2.addEventListener("click", () => selectionnerGroupeDamier(1));
+  elements.damierColonnes.addEventListener("input", changerDimensionsDamier);
+  elements.damierLignes.addEventListener("input", changerDimensionsDamier);
   elements.deuxiemeEtiquette.forEach((radio) => {
     radio.addEventListener("change", changerActivationDeuxiemeEtiquette);
   });
@@ -937,7 +951,7 @@ function restaurerReglagesAutomatiques() {
 
     reglagesParEtiquette[1] = reglagesPrincipaux;
     reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
-    porteeModificationGrilleJukebox = ["selection", "paires", "impaires", "toutes"].includes(sauvegarde.porteeModificationEtiquettes)
+    porteeModificationGrilleJukebox = ["selection", "paires", "impaires", "damier", "toutes"].includes(sauvegarde.porteeModificationEtiquettes)
       ? sauvegarde.porteeModificationEtiquettes
       : "toutes";
     synchroniserPorteeModificationApercu();
@@ -2336,8 +2350,82 @@ function synchroniserPorteeModificationApercu() {
     elementsGrilleJukeboxInline.radioPorteeSelection.checked = porteeModificationGrilleJukebox === "selection";
     elementsGrilleJukeboxInline.radioPorteePaires.checked = porteeModificationGrilleJukebox === "paires";
     elementsGrilleJukeboxInline.radioPorteeImpaires.checked = porteeModificationGrilleJukebox === "impaires";
+    elementsGrilleJukeboxInline.radioPorteeDamier.checked = porteeModificationGrilleJukebox === "damier";
     elementsGrilleJukeboxInline.radioPorteeToutes.checked = porteeModificationGrilleJukebox === "toutes";
   }
+  synchroniserAideDamier();
+}
+
+function obtenirNombreLignesGrilleJukebox() {
+  return Math.max(1, Number(elementsGrilleJukeboxInline?.obtenirCapacite?.().totalLignes) || 10);
+}
+
+function obtenirPariteDamier(index) {
+  const totalLignes = obtenirNombreLignesGrilleJukebox();
+  const colonne = Math.floor(index / totalLignes);
+  const ligne = index % totalLignes;
+  return (colonne + ligne) % 2;
+}
+
+function synchroniserAideDamier() {
+  const actif = porteeModificationGrilleJukebox === "damier";
+  elements.aideDamier.hidden = !actif;
+  if (elementsGrilleJukeboxInline?.outils) {
+    elementsGrilleJukeboxInline.outils.hidden = actif;
+  }
+  if (!actif) {
+    return;
+  }
+  const totalLignes = obtenirNombreLignesGrilleJukebox();
+  const totalColonnes = elementsGrilleJukeboxInline?.obtenirCapacite?.().totalColonnes || 8;
+  const totalEtiquettes = totalColonnes * totalLignes;
+  elements.damierColonnes.value = String(totalColonnes);
+  elements.damierLignes.value = String(totalLignes);
+  elements.damierResume.textContent = `${totalColonnes} ${traduirePhrase("colonnes")} × ${totalLignes} = ${totalEtiquettes} ${traduirePhrase("étiquettes dans le damier")}`;
+  const groupe = obtenirPariteDamier(indexApercu) + 1;
+  elements.aideDamier.dataset.groupe = String(groupe);
+  elements.damierGroupe1.setAttribute("aria-pressed", String(groupe === 1));
+  elements.damierGroupe2.setAttribute("aria-pressed", String(groupe === 2));
+  elements.damierGroupe1.classList.toggle("is-actif", groupe === 1);
+  elements.damierGroupe2.classList.toggle("is-actif", groupe === 2);
+  elements.etatDamier.textContent = traduirePhrase(
+    groupe === 1
+      ? "Vous modifiez le Style 1. Toutes les étiquettes entourées recevront vos changements."
+      : "Vous modifiez le Style 2. Toutes les étiquettes entourées recevront vos changements.",
+  );
+}
+
+function selectionnerGroupeDamier(parite) {
+  if (porteeModificationGrilleJukebox !== "damier") {
+    return;
+  }
+  const lignes = obtenirLignes();
+  const ligneGroupe = lignes.find((ligne) => obtenirPariteDamier(ligne.index) === parite);
+  if (!ligneGroupe) {
+    return;
+  }
+  indexApercu = ligneGroupe.index;
+  selectionGrilleJukeboxInlineActive = true;
+  etiquetteActive = "1";
+  appliquerReglagesAuFormulaire(lireReglages("1", ligneGroupe));
+  placerFenetreGrilleJukeboxSurIndex(indexApercu);
+  sauvegarderReglagesAutomatiques();
+  mettreAJour();
+  synchroniserAideDamier();
+}
+
+function changerDimensionsDamier() {
+  if (!elementsGrilleJukeboxInline?.colonnesInput || !elementsGrilleJukeboxInline?.lignesInput) {
+    return;
+  }
+  const totalColonnes = Math.max(1, Math.min(30, Number(elements.damierColonnes.value) || 8));
+  const totalLignes = Math.max(1, Math.min(40, Number(elements.damierLignes.value) || 10));
+  elements.damierColonnes.value = String(totalColonnes);
+  elements.damierLignes.value = String(totalLignes);
+  elementsGrilleJukeboxInline.colonnesInput.value = String(totalColonnes);
+  elementsGrilleJukeboxInline.lignesInput.value = String(totalLignes);
+  ajusterGrilleJukeboxInlineDepuisChamps();
+  synchroniserAideDamier();
 }
 
 function indexAppartientPorteeModification(index, portee = porteeModificationGrilleJukebox) {
@@ -2349,6 +2437,9 @@ function indexAppartientPorteeModification(index, portee = porteeModificationGri
   }
   if (portee === "impaires") {
     return (index + 1) % 2 === 1;
+  }
+  if (portee === "damier") {
+    return obtenirPariteDamier(index) === obtenirPariteDamier(indexApercu);
   }
   return index === indexApercu;
 }
@@ -2516,6 +2607,14 @@ function obtenirClesLignesPourPorteeGrille(portee) {
     return obtenirLignes()
       .map((ligne, index) => ({ ligne, index }))
       .filter(({ ligne, index }) => ligne && (index + 1) % 2 === parite)
+      .map(({ index }) => String(index));
+  }
+  if (portee === "damier") {
+    const pariteCible = obtenirPariteDamier(indexApercu);
+    const total = elementsGrilleJukeboxInline?.obtenirCapacite?.().total || obtenirLignes().length;
+    return obtenirLignes()
+      .map((ligne, index) => ({ ligne, index }))
+      .filter(({ ligne, index }) => ligne && index < total && obtenirPariteDamier(index) === pariteCible)
       .map(({ index }) => String(index));
   }
   if (portee === "toutes") {
@@ -5529,7 +5628,7 @@ function restaurerSauvegardeSession(donnees) {
 
   reglagesParEtiquette[1] = reglagesPrincipaux;
   reglagesParEtiquette[2] = secondeActive ? reglagesSecondaires : null;
-  porteeModificationGrilleJukebox = ["selection", "paires", "impaires", "toutes"].includes(session.porteeModificationEtiquettes)
+  porteeModificationGrilleJukebox = ["selection", "paires", "impaires", "damier", "toutes"].includes(session.porteeModificationEtiquettes)
     ? session.porteeModificationEtiquettes
     : "toutes";
   synchroniserPorteeModificationApercu();
@@ -7147,6 +7246,13 @@ function creerPanneauGrilleJukeboxInline() {
   radioPorteeImpaires.name = "porteeModificationGrilleJukebox";
   radioPorteeImpaires.value = "impaires";
   optionPorteeImpaires.append(radioPorteeImpaires, document.createTextNode(traduirePhrase("Impaires")));
+  const optionPorteeDamier = document.createElement("label");
+  const radioPorteeDamier = document.createElement("input");
+  radioPorteeDamier.type = "radio";
+  radioPorteeDamier.name = "porteeModificationGrilleJukebox";
+  radioPorteeDamier.value = "damier";
+  optionPorteeDamier.title = traduirePhrase("Créer un damier");
+  optionPorteeDamier.append(radioPorteeDamier, document.createTextNode(traduirePhrase("Damier")));
   const optionPorteeToutes = document.createElement("label");
   const radioPorteeToutes = document.createElement("input");
   radioPorteeToutes.type = "radio";
@@ -7154,7 +7260,7 @@ function creerPanneauGrilleJukeboxInline() {
   radioPorteeToutes.value = "toutes";
   radioPorteeToutes.checked = true;
   optionPorteeToutes.append(radioPorteeToutes, document.createTextNode(traduirePhrase("Toutes")));
-  porteeSelection.append(legendePortee, optionPorteeSelection, optionPorteePaires, optionPorteeImpaires, optionPorteeToutes);
+  porteeSelection.append(legendePortee, optionPorteeSelection, optionPorteePaires, optionPorteeImpaires, optionPorteeDamier, optionPorteeToutes);
   const actionsRapides = document.createElement("div");
   actionsRapides.className = "jukebox-selection__rapides";
   const boutonFavori = document.createElement("button");
@@ -7266,8 +7372,16 @@ function creerPanneauGrilleJukeboxInline() {
     });
   };
 
-  colonnes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
-  lignes.input.addEventListener("input", ajusterGrilleJukeboxInlineDepuisChamps);
+  colonnes.input.addEventListener("input", () => {
+    elements.damierColonnes.value = colonnes.input.value;
+    ajusterGrilleJukeboxInlineDepuisChamps();
+    synchroniserAideDamier();
+  });
+  lignes.input.addEventListener("input", () => {
+    elements.damierLignes.value = lignes.input.value;
+    ajusterGrilleJukeboxInlineDepuisChamps();
+    synchroniserAideDamier();
+  });
   boutonModifierStyle.addEventListener("click", modifierStyleDepuisGrilleJukeboxInline);
   porteeSelection.addEventListener("change", () => {
     porteeModificationGrilleJukebox = porteeSelection.querySelector('input[name="porteeModificationGrilleJukebox"]:checked')?.value || "toutes";
@@ -7316,9 +7430,12 @@ function creerPanneauGrilleJukeboxInline() {
     editionTexteMasqueeParGrille = true;
     selectionGrilleJukeboxInlineActive = true;
     varianteGrillePretePourAlternance = null;
-    porteeModificationGrilleJukebox = "selection";
+    if (porteeModificationGrilleJukebox !== "damier") {
+      porteeModificationGrilleJukebox = "selection";
+    }
     synchroniserPorteeModificationApercu();
     appliquerActionJukebox(Number(emplacement.dataset.indexJukebox));
+    synchroniserAideDamier();
     sauvegarderReglagesAutomatiques();
     actualiserGrilleJukeboxInline();
   });
@@ -7443,7 +7560,11 @@ function creerPanneauGrilleJukeboxInline() {
     radioPorteeSelection,
     radioPorteePaires,
     radioPorteeImpaires,
+    radioPorteeDamier,
     radioPorteeToutes,
+    outils,
+    colonnesInput: colonnes.input,
+    lignesInput: lignes.input,
     navigation,
     boutonPrecedent,
     boutonSuivant,
@@ -7880,7 +8001,7 @@ function creerEmplacementJukebox(index, totalColonnes) {
 
   const image = document.createElement("img");
   image.className = "jukebox-emplacement__image";
-  image.alt = `Étiquette ${ligne.numeroTableau}`;
+  image.alt = `${traduirePhrase("Étiquette")} ${ligne.numeroTableau}`;
   const reglages = lireReglages("1", ligne);
   image.width = Math.round(reglages.largeurEtiquette * window.PX_PAR_MM);
   image.height = Math.round(reglages.hauteurEtiquette * window.PX_PAR_MM);
