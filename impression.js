@@ -11,7 +11,9 @@ import { chargerPolicesReglages } from "./polices.js";
 const POINTS_PAR_MM = 72 / 25.4;
 const MARGE_HABILLAGE_PAGE_MM = 23.5;
 const LONGUEUR_REPERE_MM = 2.15;
+const LONGUEUR_REPERE_MARGE_MM = 3;
 const RETRAIT_REPERE_MM = 0.65;
+const STYLE_REPERE_DECOUPE_PDF = "q 0.35 w 0.46 G [1.25 1.15] 0 d";
 const TAILLE_QR_IMPRESSION_MM = 17;
 const VERSION_QR = 3;
 const TAILLE_QR = 17 + VERSION_QR * 4;
@@ -51,6 +53,7 @@ export async function telechargerPdf(lignes, {
   deuxiemeEtiquetteActive,
   lireReglages,
   traitsDecoupe = true,
+  margePorteEtiquetteMm = 0,
   libellesSignature = {},
 }) {
   const deuxiemeActive = deuxiemeEtiquetteActive();
@@ -72,7 +75,12 @@ export async function telechargerPdf(lignes, {
     const images = [];
     for (const [decalage, ligne] of lignes.slice(index, index + disposition.etiquettesParPage).entries()) {
       const reglages = reglagesParLigne[index + decalage];
-      const canvas = dessinerEtiquette(ligne, reglages);
+      const canvasOriginal = dessinerEtiquette(ligne, reglages);
+      const canvas = appliquerMargePorteEtiquette(
+        canvasOriginal,
+        reglages.largeurEtiquette,
+        margePorteEtiquetteMm,
+      );
       images.push(await encoderCanvasSansPerte(canvas));
     }
     imagesParPage.push(images);
@@ -81,6 +89,7 @@ export async function telechargerPdf(lignes, {
   const logo = await chargerLogoImpression();
   const pdf = construirePdfEtiquettes(imagesParPage, disposition, reglagesPrincipaux, {
     traitsDecoupe,
+    margePorteEtiquetteMm,
     logo,
     libellesSignature,
   });
@@ -92,6 +101,51 @@ export async function telechargerPdf(lignes, {
   lien.click();
   lien.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+export function appliquerMargePorteEtiquette(canvas, largeurEtiquetteMm, margeMm = 0) {
+  const largeurMm = Number(largeurEtiquetteMm) || 0;
+  const margeValideMm = Math.max(0, Math.min(Number(margeMm) || 0, largeurMm));
+  if (!largeurMm || !margeValideMm) {
+    return canvas;
+  }
+
+  const margePx = Math.round(canvas.width * (margeValideMm / largeurMm));
+  const largeurVisuelPx = Math.max(1, canvas.width - margePx);
+  const sortie = document.createElement("canvas");
+  sortie.width = canvas.width;
+  sortie.height = canvas.height;
+  const ctx = sortie.getContext("2d");
+  ctx.imageSmoothingEnabled = true;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, sortie.width, sortie.height);
+  peindrePointsMarge(ctx, margePx, sortie.height, canvas.width / largeurMm);
+  ctx.drawImage(
+    canvas,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+    margePx,
+    0,
+    largeurVisuelPx,
+    canvas.height,
+  );
+  return sortie;
+}
+
+function peindrePointsMarge(ctx, largeurPx, hauteurPx, pixelsParMm) {
+  const pasPx = Math.max(5, pixelsParMm);
+  const rayonPx = Math.max(0.5, 0.045 * pixelsParMm);
+  ctx.fillStyle = "rgba(74, 74, 74, 0.16)";
+
+  for (let y = pasPx / 2; y < hauteurPx; y += pasPx) {
+    for (let x = pasPx / 2; x < largeurPx; x += pasPx) {
+      ctx.beginPath();
+      ctx.arc(x, y, rayonPx, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 }
 
 export function construirePdfEtiquettes(imagesParPage, disposition, reglages, options = {}) {
@@ -132,10 +186,25 @@ export function construirePdfEtiquettes(imagesParPage, disposition, reglages, op
       const imageRef = ajouterObjet(creerObjetImagePdf(image));
       xObjects.push(`/${nom} ${imageRef} 0 R`);
       commandes.push(`q ${formatPdfNombre(largeurEtiquettePt)} 0 0 ${formatPdfNombre(hauteurEtiquettePt)} ${x} ${y} cm /${nom} Do Q`);
+      if (Number(options.margePorteEtiquetteMm) > 0) {
+        commandes.push(creerCommandesRepereMarge(
+          xMm,
+          yMm,
+          reglages.hauteurEtiquette,
+          Number(options.margePorteEtiquetteMm),
+        ));
+      }
     });
 
     if (options.traitsDecoupe) {
-      commandes.push(creerCommandesTraitsDecoupe(images.length, disposition, reglages, departXMm, departYMm));
+      commandes.push(creerCommandesTraitsDecoupe(
+        images.length,
+        disposition,
+        reglages,
+        departXMm,
+        departYMm,
+        { omettreGauche: Number(options.margePorteEtiquetteMm) > 0 },
+      ));
     }
 
     commandes.push(creerCommandesSignature({
@@ -160,6 +229,26 @@ export function construirePdfEtiquettes(imagesParPage, disposition, reglages, op
   objets[pagesRef - 1] = `<< /Type /Pages /Kids [${pageRefs.map((ref) => `${ref} 0 R`).join(" ")}] /Count ${pageRefs.length} >>`;
 
   return encoderPdf(objets);
+}
+
+function creerCommandesRepereMarge(xMm, yMm, hauteurEtiquetteMm, margeMm) {
+  const x = formatPdfNombre(xMm * POINTS_PAR_MM);
+  const xDebut = formatPdfNombre((xMm - LONGUEUR_REPERE_MARGE_MM) * POINTS_PAR_MM);
+  const limiteMarge = formatPdfNombre((xMm + margeMm) * POINTS_PAR_MM);
+  const basPt = (HAUTEUR_PAGE_MM - yMm - hauteurEtiquetteMm) * POINTS_PAR_MM;
+  const hautPt = (HAUTEUR_PAGE_MM - yMm) * POINTS_PAR_MM;
+  const bas = formatPdfNombre(basPt);
+  const haut = formatPdfNombre(hautPt);
+  const prolongement = LONGUEUR_REPERE_MARGE_MM * POINTS_PAR_MM;
+  const basProlonge = formatPdfNombre(basPt - prolongement);
+  const hautProlonge = formatPdfNombre(hautPt + prolongement);
+  return [
+    STYLE_REPERE_DECOUPE_PDF,
+    `${x} ${basProlonge} m ${x} ${hautProlonge} l S`,
+    `${xDebut} ${bas} m ${limiteMarge} ${bas} l S`,
+    `${xDebut} ${haut} m ${limiteMarge} ${haut} l S`,
+    "Q",
+  ].join("\n");
 }
 
 async function encoderCanvasSansPerte(canvas) {
@@ -192,8 +281,8 @@ function creerObjetImagePdf(image) {
   return `<< /Type /XObject /Subtype /Image /Width ${image.largeurPx} /Height ${image.hauteurPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 ${filtre ? `/Filter ${filtre}` : ""} /Length ${image.donnees.length} >>\nstream\n${image.donnees}\nendstream`;
 }
 
-function creerCommandesTraitsDecoupe(nombreImages, disposition, reglages, departXMm, departYMm) {
-  const commandes = ["q 0.5 G 0.35 w [] 0 d"];
+function creerCommandesTraitsDecoupe(nombreImages, disposition, reglages, departXMm, departYMm, options = {}) {
+  const commandes = [STYLE_REPERE_DECOUPE_PDF];
 
   for (let index = 0; index < nombreImages; index += 1) {
     const colonne = index % disposition.colonnes;
@@ -206,14 +295,19 @@ function creerCommandesTraitsDecoupe(nombreImages, disposition, reglages, depart
     const retrait = RETRAIT_REPERE_MM * POINTS_PAR_MM;
     const longueur = LONGUEUR_REPERE_MM * POINTS_PAR_MM;
 
+    if (!options.omettreGauche) {
+      commandes.push(
+        segmentPdf(gauche - retrait - longueur, haut, gauche - retrait, haut),
+        segmentPdf(gauche - retrait - longueur, bas, gauche - retrait, bas),
+        segmentPdf(gauche, haut + retrait, gauche, haut + retrait + longueur),
+        segmentPdf(gauche, bas - retrait - longueur, gauche, bas - retrait),
+      );
+    }
+
     commandes.push(
-      segmentPdf(gauche - retrait - longueur, haut, gauche - retrait, haut),
-      segmentPdf(gauche - retrait - longueur, bas, gauche - retrait, bas),
       segmentPdf(droite + retrait, haut, droite + retrait + longueur, haut),
       segmentPdf(droite + retrait, bas, droite + retrait + longueur, bas),
-      segmentPdf(gauche, haut + retrait, gauche, haut + retrait + longueur),
       segmentPdf(droite, haut + retrait, droite, haut + retrait + longueur),
-      segmentPdf(gauche, bas - retrait - longueur, gauche, bas - retrait),
       segmentPdf(droite, bas - retrait - longueur, droite, bas - retrait),
     );
   }

@@ -34,6 +34,7 @@ import {
   traductions,
 } from "./traductions.js";
 import {
+  appliquerMargePorteEtiquette,
   calculerDispositionImpression,
   preparerLignesSortie,
   telechargerPdf as telechargerPdfModule,
@@ -8964,7 +8965,48 @@ function ouvrirDialogueImpression(lignes) {
   reperesTexte.append(reperesNom, reperesDetail);
   reperes.append(reperesInput, reperesTexte);
 
-  optionsSortie.append(optionsTitre, vierges, reperes);
+  const margePorte = document.createElement("div");
+  margePorte.className = "sortie-option sortie-option--marge";
+  const margePorteInput = document.createElement("input");
+  margePorteInput.type = "checkbox";
+  margePorteInput.id = `marge-porte-etiquette-${Date.now()}`;
+  const margePorteContenu = document.createElement("div");
+  margePorteContenu.className = "sortie-option__contenu";
+  const margePorteLibelles = document.createElement("label");
+  margePorteLibelles.className = "sortie-option__libelles";
+  margePorteLibelles.htmlFor = margePorteInput.id;
+  const margePorteNom = document.createElement("strong");
+  margePorteNom.textContent = traduirePhrase("Marge porte-étiquette");
+  margePorteNom.append(creerAideDynamique("Marge porte-étiquette"));
+  const margePorteDetail = document.createElement("small");
+  margePorteDetail.textContent = traduirePhrase("Réserve une marge parsemée de petits points discrets, sans changer la taille de l’étiquette.");
+  margePorteLibelles.append(margePorteNom, margePorteDetail);
+
+  const margePorteOutils = document.createElement("div");
+  margePorteOutils.className = "sortie-option__outils";
+  const margePorteValeur = document.createElement("label");
+  margePorteValeur.className = "sortie-option__valeur";
+  margePorteValeur.textContent = traduirePhrase("Marge");
+  const margePorteSelect = document.createElement("select");
+  margePorteSelect.setAttribute("aria-label", traduirePhrase("Marge porte-étiquette"));
+  [1, 2, 3].forEach((valeur) => {
+    const option = document.createElement("option");
+    option.value = String(valeur);
+    option.textContent = `${valeur} mm`;
+    option.selected = valeur === 2;
+    margePorteSelect.append(option);
+  });
+  margePorteSelect.disabled = true;
+  margePorteValeur.append(margePorteSelect);
+  const visualiserMarge = document.createElement("button");
+  visualiserMarge.className = "sortie-option__visualiser";
+  visualiserMarge.type = "button";
+  visualiserMarge.textContent = traduirePhrase("Visualiser l’effet");
+  margePorteOutils.append(margePorteValeur, visualiserMarge);
+  margePorteContenu.append(margePorteLibelles, margePorteOutils);
+  margePorte.append(margePorteInput, margePorteContenu);
+
+  optionsSortie.append(optionsTitre, vierges, reperes, margePorte);
 
   const actionsSortie = document.createElement("div");
   actionsSortie.className = "sortie-actions";
@@ -9030,6 +9072,7 @@ function ouvrirDialogueImpression(lignes) {
     try {
       await telechargerPdf(lignesSortie, {
         traitsDecoupe: reperesInput.checked,
+        margePorteEtiquetteMm: margePorteInput.checked ? Number(margePorteSelect.value) : 0,
       });
       dialogue.close();
     } catch {
@@ -9052,6 +9095,12 @@ function ouvrirDialogueImpression(lignes) {
       input.focus();
     }
   });
+  margePorteInput.addEventListener("change", () => {
+    margePorteSelect.disabled = !margePorteInput.checked;
+  });
+  visualiserMarge.addEventListener("click", async () => {
+    await ouvrirVisualisationMargePorteEtiquette(Number(margePorteSelect.value), ligneActive);
+  });
   boutonImpression.addEventListener("click", executerSortie);
 
   contenu.append(entete, soutien, etapeFacebook, options);
@@ -9065,6 +9114,73 @@ function ouvrirDialogueImpression(lignes) {
       dialogue.close();
     }
   });
+  dialogue.showModal();
+}
+
+async function ouvrirVisualisationMargePorteEtiquette(margeMm, ligne) {
+  const indexOriginal = Number.isInteger(ligne.index) ? ligne.index : indexApercu;
+  const numeroStyle = deuxiemeEtiquetteActive() && indexOriginal % 2 === 1 ? "2" : "1";
+  const reglages = { ...lireReglages(numeroStyle, ligne) };
+  await chargerPolicesReglages(reglages);
+
+  const dialogue = document.createElement("dialog");
+  dialogue.className = "fenetre-visualisation-marge";
+  const contenu = document.createElement("div");
+  contenu.className = "fenetre-visualisation-marge__contenu";
+  const entete = document.createElement("div");
+  entete.className = "fenetre-impression__entete";
+  const titre = document.createElement("h2");
+  titre.className = "fenetre-import__titre";
+  titre.textContent = traduirePhrase("Effet de la marge porte-étiquette");
+  const fermer = document.createElement("button");
+  fermer.className = "bouton bouton-secondaire";
+  fermer.type = "button";
+  fermer.textContent = traduirePhrase("Fermer");
+  entete.append(titre, fermer);
+
+  const explication = document.createElement("p");
+  explication.className = "visualisation-marge__explication";
+  explication.textContent = traduirePhrase("La zone grisée représente la partie cachée par le porte-étiquette. Les exemples reprennent l’étiquette actuellement affichée.");
+  const comparaison = document.createElement("div");
+  comparaison.className = "visualisation-marge__comparaison";
+
+  const creerExemple = (avecMarge) => {
+    const exemple = document.createElement("figure");
+    exemple.className = "visualisation-marge__exemple";
+    const cadre = document.createElement("div");
+    cadre.className = "visualisation-marge__cadre";
+    const etiquette = document.createElement("div");
+    etiquette.className = "visualisation-marge__etiquette";
+    const proportion = Math.max(0, Math.min(100, (margeMm / reglages.largeurEtiquette) * 100));
+    etiquette.style.setProperty("--marge-illustree", `${proportion}%`);
+    const canvasOriginal = dessinerEtiquette(ligne, reglages);
+    const canvas = avecMarge
+      ? appliquerMargePorteEtiquette(canvasOriginal, reglages.largeurEtiquette, margeMm)
+      : canvasOriginal;
+    canvas.className = "visualisation-marge__canvas";
+    const zoneMasquee = document.createElement("div");
+    zoneMasquee.className = "visualisation-marge__zone-masquee";
+    etiquette.append(canvas, zoneMasquee);
+    cadre.append(etiquette);
+    const legende = document.createElement("figcaption");
+    legende.textContent = avecMarge
+      ? `${traduirePhrase("Avec marge")} · ${margeMm} mm`
+      : traduirePhrase("Sans marge");
+    exemple.append(cadre, legende);
+    return exemple;
+  };
+
+  comparaison.append(creerExemple(false), creerExemple(true));
+  contenu.append(entete, explication, comparaison);
+  dialogue.append(contenu);
+  document.body.append(dialogue);
+  fermer.addEventListener("click", () => dialogue.close());
+  dialogue.addEventListener("click", (evenement) => {
+    if (evenement.target === dialogue) {
+      dialogue.close();
+    }
+  });
+  dialogue.addEventListener("close", () => dialogue.remove(), { once: true });
   dialogue.showModal();
 }
 
